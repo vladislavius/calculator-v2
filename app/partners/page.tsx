@@ -32,6 +32,15 @@ export default function PartnersPage() {
   const [newPriceClient, setNewPriceClient] = useState(57500);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // Menu editor states
+  const [menuEditorOpen, setMenuEditorOpen] = useState(false);
+  const [menuEditorPartnerId, setMenuEditorPartnerId] = useState<number | null>(null);
+  const [partnerMenus, setPartnerMenus] = useState<any[]>([]);
+  const [menuSets, setMenuSets] = useState<any[]>([]);
+  const [editingMenu, setEditingMenu] = useState<any>(null);
+  const [editingSets, setEditingSets] = useState<any[]>([]);
+  const [menuLoading, setMenuLoading] = useState(false);
 
   // Load boat details when selected
   const loadBoatDetails = async (boat: any) => {
@@ -528,6 +537,170 @@ export default function PartnersPage() {
     list: { maxHeight: '300px', overflowY: 'auto' as const },
     listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' },
     message: { padding: '10px', backgroundColor: '#d1fae5', borderRadius: '6px', marginBottom: '15px', color: '#065f46' }
+  };
+
+  // ==================== MENU EDITOR FUNCTIONS ====================
+  const openMenuEditor = async (partnerId: number) => {
+    setMenuEditorPartnerId(partnerId);
+    setMenuEditorOpen(true);
+    setMenuLoading(true);
+    
+    try {
+      // Load partner menus
+      const { data: menus } = await supabase
+        .from('partner_menus')
+        .select('*')
+        .eq('partner_id', partnerId)
+        .eq('active', true);
+      
+      setPartnerMenus(menus || []);
+      
+      // Load all menu sets for these menus
+      if (menus && menus.length > 0) {
+        const menuIds = menus.map(m => m.id);
+        const { data: sets } = await supabase
+          .from('menu_sets')
+          .select('*')
+          .in('menu_id', menuIds)
+          .eq('active', true)
+          .order('sort_order');
+        
+        setMenuSets(sets || []);
+      } else {
+        setMenuSets([]);
+      }
+    } catch (error) {
+      console.error('Error loading menus:', error);
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  const closeMenuEditor = () => {
+    setMenuEditorOpen(false);
+    setMenuEditorPartnerId(null);
+    setPartnerMenus([]);
+    setMenuSets([]);
+    setEditingMenu(null);
+    setEditingSets([]);
+  };
+
+  const startEditMenu = (menu: any) => {
+    setEditingMenu({ ...menu });
+    setEditingSets(menuSets.filter(s => s.menu_id === menu.id).map(s => ({ ...s })));
+  };
+
+  const saveMenuChanges = async () => {
+    if (!editingMenu) return;
+    setMenuLoading(true);
+    
+    try {
+      // Update menu
+      await supabase
+        .from('partner_menus')
+        .update({
+          name: editingMenu.name,
+          type: editingMenu.type,
+          conditions: editingMenu.conditions,
+          conditions_ru: editingMenu.conditions_ru
+        })
+        .eq('id', editingMenu.id);
+      
+      // Update/insert sets
+      for (const set of editingSets) {
+        if (set.id && !set._isNew) {
+          await supabase.from('menu_sets').update({
+            name: set.name,
+            name_ru: set.name_ru,
+            category: set.category,
+            price: set.price,
+            dishes: set.dishes,
+            dishes_ru: set.dishes_ru
+          }).eq('id', set.id);
+        } else if (set._isNew) {
+          await supabase.from('menu_sets').insert({
+            menu_id: editingMenu.id,
+            name: set.name,
+            name_ru: set.name_ru,
+            category: set.category,
+            price: set.price,
+            dishes: set.dishes || [],
+            dishes_ru: set.dishes_ru || [],
+            sort_order: editingSets.indexOf(set)
+          });
+        }
+      }
+      
+      // Reload menus
+      await openMenuEditor(menuEditorPartnerId!);
+      setEditingMenu(null);
+      setEditingSets([]);
+    } catch (error) {
+      console.error('Error saving menu:', error);
+      alert('Ошибка сохранения');
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  const addNewSet = () => {
+    setEditingSets([...editingSets, {
+      _isNew: true,
+      name: 'New Set',
+      name_ru: 'Новый сет',
+      category: 'other',
+      price: null,
+      dishes: [],
+      dishes_ru: []
+    }]);
+  };
+
+  const deleteSet = async (setId: number) => {
+    if (!confirm('Удалить этот сет?')) return;
+    
+    try {
+      await supabase.from('menu_sets').update({ active: false }).eq('id', setId);
+      setMenuSets(menuSets.filter(s => s.id !== setId));
+      setEditingSets(editingSets.filter(s => s.id !== setId));
+    } catch (error) {
+      console.error('Error deleting set:', error);
+    }
+  };
+
+  const createNewMenu = async () => {
+    if (!menuEditorPartnerId) return;
+    
+    try {
+      const { data: newMenu } = await supabase
+        .from('partner_menus')
+        .insert({
+          partner_id: menuEditorPartnerId,
+          name: 'Новое меню',
+          type: 'included'
+        })
+        .select()
+        .single();
+      
+      if (newMenu) {
+        setPartnerMenus([...partnerMenus, newMenu]);
+        startEditMenu(newMenu);
+      }
+    } catch (error) {
+      console.error('Error creating menu:', error);
+    }
+  };
+
+  const deleteMenu = async (menuId: number) => {
+    if (!confirm('Удалить это меню и все его сеты?')) return;
+    
+    try {
+      await supabase.from('menu_sets').update({ active: false }).eq('menu_id', menuId);
+      await supabase.from('partner_menus').update({ active: false }).eq('id', menuId);
+      setPartnerMenus(partnerMenus.filter(m => m.id !== menuId));
+      setMenuSets(menuSets.filter(s => s.menu_id !== menuId));
+    } catch (error) {
+      console.error('Error deleting menu:', error);
+    }
   };
 
   return (
@@ -1228,6 +1401,16 @@ export default function PartnersPage() {
                                 {partner.contact_email && <span>✉️ {partner.contact_email}</span>}
                               </div>
                               
+                              {/* Menu Button */}
+                              <div style={{ marginBottom: '12px' }}>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openMenuEditor(partner.id); }}
+                                  style={{ padding: '8px 16px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
+                                >
+                                  🍽️ Меню партнёра
+                                </button>
+                              </div>
+                              
                               {/* Boats List */}
                               {partnerBoats.length > 0 ? (
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '8px' }}>
@@ -1268,6 +1451,147 @@ export default function PartnersPage() {
           </>
         )}
       </div>
+
+      {/* Menu Editor Modal */}
+      {menuEditorOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '90%', maxWidth: '900px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {/* Header */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '18px' }}>🍽️ Меню партнёра</h2>
+              <button onClick={closeMenuEditor} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>×</button>
+            </div>
+            
+            {/* Content */}
+            <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+              {menuLoading ? (
+                <p style={{ textAlign: 'center', color: '#6b7280' }}>Загрузка...</p>
+              ) : editingMenu ? (
+                /* Edit Mode */
+                <div>
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0 }}>Редактирование: {editingMenu.name}</h3>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => { setEditingMenu(null); setEditingSets([]); }} style={{ padding: '8px 16px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Отмена</button>
+                      <button onClick={saveMenuChanges} style={{ padding: '8px 16px', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>💾 Сохранить</button>
+                    </div>
+                  </div>
+                  
+                  {/* Menu Info */}
+                  <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Название</label>
+                        <input value={editingMenu.name || ''} onChange={(e) => setEditingMenu({...editingMenu, name: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Тип</label>
+                        <select value={editingMenu.type || 'included'} onChange={(e) => setEditingMenu({...editingMenu, type: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}>
+                          <option value="included">Включено в стоимость</option>
+                          <option value="paid">Платное</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Условия (EN)</label>
+                      <textarea value={editingMenu.conditions || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', minHeight: '60px' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Условия (RU)</label>
+                      <textarea value={editingMenu.conditions_ru || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions_ru: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', minHeight: '60px' }} />
+                    </div>
+                  </div>
+                  
+                  {/* Sets */}
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4 style={{ margin: 0 }}>Сеты ({editingSets.length})</h4>
+                    <button onClick={addNewSet} style={{ padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Добавить сет</button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {editingSets.map((set, idx) => (
+                      <div key={set.id || idx} style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr auto', gap: '8px', marginBottom: '8px' }}>
+                          <input placeholder="Name" value={set.name || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
+                          <input placeholder="Название (RU)" value={set.name_ru || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name_ru = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
+                          <select value={set.category || 'other'} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].category = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }}>
+                            <option value="thai">🇹🇭 Thai</option>
+                            <option value="western">🍝 Western</option>
+                            <option value="vegetarian">🥗 Vegetarian</option>
+                            <option value="kids">👶 Kids</option>
+                            <option value="seafood">🦐 Seafood</option>
+                            <option value="bbq">🍖 BBQ</option>
+                            <option value="other">🍽️ Other</option>
+                          </select>
+                          {!set._isNew && <button onClick={() => deleteSet(set.id)} style={{ padding: '6px 10px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>🗑️</button>}
+                        </div>
+                        <div style={{ marginBottom: '8px' }}>
+                          <label style={{ fontSize: '11px', color: '#6b7280' }}>Блюда (через запятую)</label>
+                          <input value={(set.dishes || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#6b7280' }}>Блюда RU (через запятую)</label>
+                          <input value={(set.dishes_ru || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes_ru = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }} />
+                        </div>
+                        {editingMenu.type === 'paid' && (
+                          <div style={{ marginTop: '8px' }}>
+                            <label style={{ fontSize: '11px', color: '#6b7280' }}>Цена (THB)</label>
+                            <input type="number" value={set.price || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].price = e.target.value ? Number(e.target.value) : null; setEditingSets(newSets); }} style={{ width: '100px', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* View Mode */
+                <div>
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0 }}>Меню ({partnerMenus.length})</h3>
+                    <button onClick={createNewMenu} style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>+ Создать меню</button>
+                  </div>
+                  
+                  {partnerMenus.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>У этого партнёра пока нет меню. Создайте новое или импортируйте через /menu-import</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {partnerMenus.map(menu => (
+                        <div key={menu.id} style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <div>
+                              <h4 style={{ margin: 0 }}>{menu.name}</h4>
+                              <span style={{ fontSize: '12px', color: menu.type === 'included' ? '#22c55e' : '#f59e0b' }}>{menu.type === 'included' ? '✅ Включено' : '💰 Платное'}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button onClick={() => startEditMenu(menu)} style={{ padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>✏️ Редактировать</button>
+                              <button onClick={() => deleteMenu(menu.id)} style={{ padding: '6px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>🗑️</button>
+                            </div>
+                          </div>
+                          
+                          {menu.conditions_ru && (
+                            <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '13px', color: '#92400e' }}>
+                              <strong>⚠️ Условия:</strong> {menu.conditions_ru}
+                            </div>
+                          )}
+                          
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {menuSets.filter(s => s.menu_id === menu.id).map(set => (
+                              <span key={set.id} style={{ padding: '4px 10px', backgroundColor: menu.type === 'paid' ? '#fef3c7' : '#e0f2fe', borderRadius: '4px', fontSize: '12px' }}>
+                                {set.name} {set.name_ru && `(${set.name_ru})`}
+                                {menu.type === 'paid' && set.price && <strong style={{ marginLeft: '6px', color: '#d97706' }}>{set.price} THB</strong>}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

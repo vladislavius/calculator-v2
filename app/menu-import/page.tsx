@@ -57,6 +57,10 @@ export default function MenuImportPage() {
   };
 
   const parseMenu = async () => {
+    if (!selectedPartnerId) {
+      alert('⚠️ Сначала выберите партнёра!');
+      return;
+    }
     if (menuText.length < 50) {
       alert('Вставьте текст меню (минимум 50 символов)');
       return;
