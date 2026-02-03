@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -141,6 +141,45 @@ export default function ImportPage() {
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [saveStatus, setSaveStatus] = useState('');
   const [activeTab, setActiveTab] = useState<'partner' | 'boats' | 'routes' | 'extras' | 'terms'>('partner');
+  const [importMode, setImportMode] = useState<'full' | 'single_boat' | null>(null);
+  const [importHistory, setImportHistory] = useState<any[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Fetch import history
+  const fetchImportHistory = async () => {
+    const { data } = await supabase
+      .from('import_history')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (data) setImportHistory(data);
+  };
+
+  // Load history item into editor
+  const loadHistoryItem = (item: any) => {
+    setExtractedData(item.raw_data);
+    setImportMode(item.import_type);
+    if (item.partner_id) {
+      setSelectedPartnerId(item.partner_id);
+      setSelectedPartnerName(item.partner_name);
+    }
+    setShowHistory(false);
+  };
+  const [existingPartnersList, setExistingPartnersList] = useState<any[]>([]);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
+  const [selectedPartnerName, setSelectedPartnerName] = useState<string>('');
+
+  // Fetch existing partners on mount
+  const fetchExistingPartners = async () => {
+    const { data } = await supabase
+      .from('partners')
+      .select('id, name, contact_phone, commission_percent')
+      .order('name');
+    if (data) setExistingPartnersList(data);
+  };
+
+  // Load partners when component mounts
+  // Note: fetchExistingPartners is called when 'single_boat' mode is selected
 
   const handleAnalyze = async () => {
     if (contractText.length < 50) {
@@ -534,52 +573,58 @@ export default function ImportPage() {
     setSaveStatus('Сохранение...');
     
     try {
-      // 1. Smart partner upsert - find by partial name match
-      const partnerFirstWord = extractedData.partner_name.split(' ')[0];
-      console.log('Looking for partner containing:', partnerFirstWord);
+      let partnerId: number;
       
-      const { data: existingPartners } = await supabase
-        .from('partners')
-        .select('*')
-        .ilike('name', '%' + partnerFirstWord + '%');
-      
-      console.log('Found partners:', existingPartners);
-      
-      let partnerId;
-      
-      if (existingPartners && existingPartners.length > 0) {
-        // Partner exists - update with new data
-        const existing = existingPartners[0];
-        partnerId = existing.id;
-        console.log('Updating existing partner:', existing.name, 'ID:', partnerId);
-        
-        await supabase.from('partners').update({
-          contact_phone: extractedData.partner_phone || existing.contact_phone,
-          contact_email: extractedData.partner_email || existing.contact_email,
-          commission_percent: extractedData.commission_percent || existing.commission_percent || 15,
-          contract_valid_until: extractedData.contract_end || existing.contract_valid_until,
-          notes: extractedData.partner_website || extractedData.partner_address 
-            ? (existing.notes || '') + '\n---\nUpdated: ' + new Date().toISOString().split('T')[0] + '\nWebsite: ' + (extractedData.partner_website || '') + '\nAddress: ' + (extractedData.partner_address || '')
-            : existing.notes
-        }).eq('id', partnerId);
-        
+      // Check if partner was pre-selected (single boat mode)
+      if (selectedPartnerId) {
+        partnerId = selectedPartnerId;
+        console.log('Using pre-selected partner ID:', partnerId, 'Name:', selectedPartnerName);
       } else {
-        // Create new partner
-        console.log('Creating new partner:', extractedData.partner_name);
-        const { data: newPartner, error: insertError } = await supabase
+        // 1. Smart partner upsert - find by partial name match
+        const partnerFirstWord = extractedData.partner_name.split(' ')[0];
+        console.log('Looking for partner containing:', partnerFirstWord);
+        
+        const { data: existingPartners } = await supabase
           .from('partners')
-          .insert({
-            name: extractedData.partner_name,
-            contact_phone: extractedData.partner_phone || null,
-            contact_email: extractedData.partner_email || null,
-            commission_percent: extractedData.commission_percent || 15
-          })
-          .select('id')
-          .single();
+          .select('*')
+          .ilike('name', '%' + partnerFirstWord + '%');
+        
+        console.log('Found partners:', existingPartners);
+        
+        if (existingPartners && existingPartners.length > 0) {
+          // Partner exists - update with new data
+          const existing = existingPartners[0];
+          partnerId = existing.id;
+          console.log('Updating existing partner:', existing.name, 'ID:', partnerId);
+          
+          await supabase.from('partners').update({
+            contact_phone: extractedData.partner_phone || existing.contact_phone,
+            contact_email: extractedData.partner_email || existing.contact_email,
+            commission_percent: extractedData.commission_percent || existing.commission_percent || 15,
+            contract_valid_until: extractedData.contract_end || existing.contract_valid_until,
+            notes: extractedData.partner_website || extractedData.partner_address 
+              ? (existing.notes || '') + '\n---\nUpdated: ' + new Date().toISOString().split('T')[0] + '\nWebsite: ' + (extractedData.partner_website || '') + '\nAddress: ' + (extractedData.partner_address || '')
+              : existing.notes
+          }).eq('id', partnerId);
+          
+        } else {
+          // Create new partner
+          console.log('Creating new partner:', extractedData.partner_name);
+          const { data: newPartner, error: insertError } = await supabase
+            .from('partners')
+            .insert({
+              name: extractedData.partner_name,
+              contact_phone: extractedData.partner_phone || null,
+              contact_email: extractedData.partner_email || null,
+              commission_percent: extractedData.commission_percent || 15
+            })
+            .select('id')
+            .single();
 
-        if (insertError) throw insertError;
-        partnerId = newPartner.id;
-        console.log('Created partner ID:', partnerId);
+          if (insertError) throw insertError;
+          partnerId = newPartner.id;
+          console.log('Created partner ID:', partnerId);
+        }
       }
 
 
@@ -989,6 +1034,18 @@ export default function ImportPage() {
         }
       }
       
+      // Save to import history
+      await supabase.from('import_history').insert({
+        partner_id: partnerId,
+        partner_name: selectedPartnerName || extractedData.partner_name,
+        import_type: importMode || 'full_contract',
+        boats_added: extractedData.boats.length,
+        routes_added: extractedData.routes.length,
+        raw_data: extractedData,
+        status: 'success'
+      });
+      console.log('Saved to import history');
+      
       setSaveStatus('✅ Успешно! Партнёр, лодки, ценовые правила (' + (extractedData.pricing_rules?.length || 0) + ' вариантов) и опции сохранены.');
     } catch (error: any) {
       console.error('Save error:', error);
@@ -1032,19 +1089,170 @@ export default function ImportPage() {
             <h1 style={{fontSize: '28px', fontWeight: 'bold', color: '#111'}}>🤖 AI Contract Import</h1>
             <p style={{color: '#666', marginTop: '4px'}}>Полный импорт данных о партнёрах, лодках и ценах</p>
           </div>
-          <a href="/" style={{padding: '8px 16px', backgroundColor: '#e5e7eb', borderRadius: '6px', color: '#374151', textDecoration: 'none'}}>← Назад к поиску</a>
+          <div style={{display: 'flex', gap: '12px'}}>
+            <button 
+              onClick={() => { fetchImportHistory(); setShowHistory(!showHistory); }}
+              style={{padding: '8px 16px', backgroundColor: '#f3e8ff', borderRadius: '6px', color: '#7c3aed', border: 'none', cursor: 'pointer', fontWeight: '500'}}
+            >
+              📜 История ({importHistory.length || '...'})
+            </button>
+            <a href="/" style={{padding: '8px 16px', backgroundColor: '#e5e7eb', borderRadius: '6px', color: '#374151', textDecoration: 'none'}}>← Назад к поиску</a>
+          </div>
         </div>
+
+        {/* Import History Panel */}
+        {showHistory && (
+          <div style={{backgroundColor: 'white', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+              <h3 style={{fontSize: '18px', fontWeight: '600'}}>📜 Последние импорты</h3>
+              <button onClick={() => setShowHistory(false)} style={{background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer'}}>✕</button>
+            </div>
+            
+            {importHistory.length === 0 ? (
+              <p style={{color: '#666', textAlign: 'center', padding: '20px'}}>История пуста</p>
+            ) : (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                {importHistory.map((item, idx) => (
+                  <div 
+                    key={item.id}
+                    style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '12px 16px', backgroundColor: idx === 0 ? '#ecfdf5' : '#f9fafb',
+                      borderRadius: '8px', border: idx === 0 ? '2px solid #10b981' : '1px solid #e5e7eb'
+                    }}
+                  >
+                    <div>
+                      <div style={{fontWeight: '600', marginBottom: '4px'}}>
+                        {item.import_type === 'single_boat' ? '🚤' : '📄'} {item.partner_name}
+                        {idx === 0 && <span style={{marginLeft: '8px', fontSize: '12px', color: '#10b981'}}>(последний)</span>}
+                      </div>
+                      <div style={{fontSize: '12px', color: '#666'}}>
+                        {new Date(item.created_at).toLocaleString('ru-RU')} • 
+                        {item.boats_added} лодок • {item.routes_added} маршрутов
+                      </div>
+                    </div>
+                    <div style={{display: 'flex', gap: '8px'}}>
+                      <button 
+                        onClick={() => loadHistoryItem(item)}
+                        style={{padding: '6px 12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px'}}
+                      >
+                        Открыть
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {!extractedData ? (
           <div style={{backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}>
-            <div style={{display: 'flex', gap: '16px', marginBottom: '24px'}}>
-              <button onClick={createEmptyData} style={{padding: '12px 24px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600'}}>
-                📝 Создать вручную
-              </button>
-              <span style={{color: '#9ca3af', alignSelf: 'center'}}>или</span>
-            </div>
             
-            <h2 style={{fontSize: '18px', fontWeight: '600', marginBottom: '16px'}}>📋 Вставьте текст контракта для AI-анализа</h2>
+            {/* Mode Selection */}
+            {!importMode ? (
+              <div>
+                <h2 style={{fontSize: '20px', fontWeight: '600', marginBottom: '24px', textAlign: 'center'}}>Выберите режим импорта</h2>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', maxWidth: '800px', margin: '0 auto'}}>
+                  
+                  {/* Full Contract Mode */}
+                  <div 
+                    onClick={() => setImportMode('full')}
+                    style={{
+                      border: '2px solid #e5e7eb', borderRadius: '16px', padding: '32px',
+                      cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
+                      backgroundColor: '#fafafa'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.backgroundColor = '#eff6ff'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.backgroundColor = '#fafafa'; }}
+                  >
+                    <div style={{fontSize: '48px', marginBottom: '16px'}}>📄</div>
+                    <h3 style={{fontSize: '18px', fontWeight: '600', marginBottom: '8px'}}>Полный контракт</h3>
+                    <p style={{color: '#666', fontSize: '14px'}}>Новый партнёр + все его лодки, маршруты и цены из контракта</p>
+                  </div>
+                  
+                  {/* Single Boat Mode */}
+                  <div 
+                    onClick={() => { setImportMode('single_boat'); fetchExistingPartners(); }}
+                    style={{
+                      border: '2px solid #e5e7eb', borderRadius: '16px', padding: '32px',
+                      cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
+                      backgroundColor: '#fafafa'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.backgroundColor = '#ecfdf5'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.backgroundColor = '#fafafa'; }}
+                  >
+                    <div style={{fontSize: '48px', marginBottom: '16px'}}>🚤</div>
+                    <h3 style={{fontSize: '18px', fontWeight: '600', marginBottom: '8px'}}>Одна лодка</h3>
+                    <p style={{color: '#666', fontSize: '14px'}}>Добавить лодку к существующему партнёру (PDF одной лодки)</p>
+                  </div>
+                </div>
+              </div>
+            ) : importMode === 'single_boat' && !selectedPartnerId ? (
+              <div>
+                <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px'}}>
+                  <button onClick={() => setImportMode(null)} style={{padding: '8px 16px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
+                  <h2 style={{fontSize: '20px', fontWeight: '600'}}>Выберите партнёра</h2>
+                </div>
+                
+                {/* Partner List */}
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px'}}>
+                  {existingPartnersList.map(p => (
+                    <div 
+                      key={p.id}
+                      onClick={() => { setSelectedPartnerId(p.id); setSelectedPartnerName(p.name); }}
+                      style={{
+                        border: '2px solid #e5e7eb', borderRadius: '12px', padding: '16px',
+                        cursor: 'pointer', transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.backgroundColor = '#ecfdf5'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.backgroundColor = 'white'; }}
+                    >
+                      <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
+                      <div style={{fontSize: '12px', color: '#666'}}>{p.contact_phone || 'Нет телефона'}</div>
+                      <div style={{fontSize: '12px', color: '#10b981'}}>Комиссия: {p.commission_percent || 15}%</div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Or create new partner */}
+                <div style={{borderTop: '1px solid #e5e7eb', paddingTop: '16px', textAlign: 'center'}}>
+                  <span style={{color: '#666'}}>Партнёра нет в списке? </span>
+                  <button 
+                    onClick={() => setImportMode('full')}
+                    style={{color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline'}}
+                  >
+                    Создать нового партнёра
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                {/* Back button and mode indicator */}
+                <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px'}}>
+                  <button onClick={() => { setImportMode(null); setSelectedPartnerId(null); setSelectedPartnerName(''); }} style={{padding: '8px 16px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
+                  {importMode === 'single_boat' && selectedPartnerName && (
+                    <div style={{padding: '8px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', color: '#059669', fontWeight: '500'}}>
+                      🏢 Партнёр: {selectedPartnerName}
+                    </div>
+                  )}
+                </div>
+                
+                <div style={{display: 'flex', gap: '16px', marginBottom: '24px'}}>
+                  <button onClick={() => { 
+                    createEmptyData(); 
+                    if (importMode === 'single_boat' && selectedPartnerId) {
+                      // Will be handled after createEmptyData
+                    }
+                  }} style={{padding: '12px 24px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600'}}>
+                    📝 Создать вручную
+                  </button>
+                  <span style={{color: '#9ca3af', alignSelf: 'center'}}>или</span>
+                </div>
+                
+                <h2 style={{fontSize: '18px', fontWeight: '600', marginBottom: '16px'}}>
+                  {importMode === 'single_boat' ? '📋 Вставьте данные о лодке (PDF/текст)' : '📋 Вставьте текст контракта для AI-анализа'}
+                </h2>
             
             <textarea
               value={contractText}
@@ -1073,6 +1281,8 @@ export default function ImportPage() {
                 {loading ? '⏳ ' + loadingStatus : '🚀 Анализировать с AI'}
               </button>
             </div>
+              </div>
+            )}
           </div>
         ) : (
           <div>
