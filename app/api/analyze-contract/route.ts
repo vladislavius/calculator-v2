@@ -37,7 +37,7 @@ EXTRACT STRUCTURE:
   "validity": "contract validity period if mentioned"
 }
 
-2. BOATS - for EACH boat mentioned:
+2. BOATS - for EACH boat mentioned, INCLUDING ITS ROUTES:
 {
   "name": "exact boat name",
   "model": "model if mentioned",
@@ -50,8 +50,25 @@ EXTRACT STRUCTURE:
   "max_pax_overnight": number or null,
   "base_pax": number - the pax included in base price,
   "crew_count": number or null,
-  "departure_pier": "if mentioned"
+  "departure_pier": "if mentioned",
+  "routes": [
+    {
+      "destination": "EXACT route name - copy word for word",
+      "charter_type": "morning/afternoon/full_day/sunset",
+      "duration_hours": 4 for half-day, 8 for full-day,
+      "time_slot": "half_day/full_day/sunset/overnight",
+      "base_price": exact price from contract for this route,
+      "agent_price": same as base_price (agent gets this price),
+      "fuel_surcharge": number if route has extra fuel cost,
+      "season": "all" if one price for all seasons, or "low"/"high"/"peak"
+    }
+  ]
 }
+
+CRITICAL: Each boat has its OWN routes array! 
+- If contract lists routes under a specific boat -> put routes in that boat
+- If contract has shared routes for all boats -> copy routes to each boat with appropriate prices
+- Price for route is specific to that boat!
 
 3. ROUTES/PROGRAMS - THIS IS CRITICAL! Extract EVERY route from PROGRAM section:
 
@@ -154,8 +171,12 @@ For overnight charters:
 RETURN JSON:
 {
   "partner": {...},
-  "boats": [...],
-  "routes": [...],
+  "boats": [
+    {
+      "name": "...",
+      "routes": [...]  // Routes are INSIDE each boat now!
+    }
+  ],
   "pricing_rules": [...],
   "included": [...],
   "not_included": [...],

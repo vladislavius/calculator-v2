@@ -46,6 +46,7 @@ interface ExtractedBoat {
     included: BoatFeature[];
     paid: BoatFeature[];
   };
+  routes: ExtractedRoute[];
 }
 
 interface ExtractedRoute {
@@ -53,6 +54,7 @@ interface ExtractedRoute {
   departure_pier: string;
   time_slot: string;
   duration_hours: number | null;
+  duration_nights: number | null;
   distance_nm: number | null;
   base_price: number | null;
   agent_price: number | null;
@@ -62,6 +64,12 @@ interface ExtractedRoute {
   season: string;
   min_notice_hours: number | null;
   notes: string;
+  // Additional fields used in UI/code
+  charter_type?: string;
+  name?: string;
+  guests_from?: number | null;
+  guests_to?: number | null;
+  season_dates?: string;
 }
 
 interface ExtractedExtra {
@@ -94,12 +102,17 @@ interface ExtractedData {
   general_inclusions: string[];
   general_exclusions: string[];
   special_conditions: string;
+  // Additional fields used in code
+  included?: any[];
+  optional_extras?: any[];
+  pricing_rules?: any[];
 }
 
 // Empty features - will be populated from AI contract parsing
 const EMPTY_FEATURES = {
   included: [],
-  paid: []
+  paid: [],
+  routes: []
 };
 
 // Helper to create features from AI data
@@ -264,7 +277,22 @@ export default function ImportPage() {
         schedule: b.schedule || '',
         photos_url: b.photos_url || '',
         notes: b.notes || '',
-        features: aiFeatures
+        features: aiFeatures,
+        routes: (b.routes || []).map((r: any) => ({
+          destination: r.destination || r.name || '',
+          departure_pier: r.departure_pier || b.departure_pier || 'Chalong Pier',
+          time_slot: r.time_slot || 'full_day',
+          duration_hours: r.duration_hours || (r.time_slot === 'half_day' ? 4 : 8),
+          distance_nm: r.distance_nm || null,
+          base_price: r.base_price || null,
+          agent_price: r.agent_price || r.base_price || null,
+          fuel_surcharge: r.fuel_surcharge || 0,
+          extra_pax_price: r.extra_pax_price || null,
+          base_pax: r.base_pax || b.base_pax || null,
+          season: r.season || 'all',
+          min_notice_hours: r.min_notice_hours || null,
+          notes: r.notes || ''
+        }))
       }));
       
       // Map ROUTES (destinations/itineraries) from ai.routes
@@ -299,7 +327,7 @@ export default function ImportPage() {
       if (aiRoutes.length > 0 && pricingRules.length > 0) {
         // Cross-reference routes with pricing
         for (const route of aiRoutes) {
-          const matchingPrices = pricingRules.filter(p => 
+          const matchingPrices = pricingRules.filter((p: any) => 
             p.charter_type === route.charter_type || 
             (route.charter_type === 'morning' && p.charter_type === 'morning') ||
             (route.charter_type === 'afternoon' && p.charter_type === 'afternoon') ||
@@ -487,7 +515,8 @@ export default function ImportPage() {
         fuel_capacity: null, water_capacity: null, generator: false, air_conditioning: true,
         stabilizers: false, bow_thruster: false, stern_thruster: false,
         default_pier: 'Chalong Pier', photos_url: '', notes: '',
-        features: JSON.parse(JSON.stringify(EMPTY_FEATURES))
+        features: JSON.parse(JSON.stringify(EMPTY_FEATURES)),
+        routes: []
       }]
     });
   };
@@ -513,7 +542,7 @@ export default function ImportPage() {
       ...extractedData,
       routes: [...extractedData.routes, {
         destination: '', departure_pier: 'Chalong Pier', time_slot: 'full_day',
-        duration_hours: 8, distance_nm: null, base_price: null, agent_price: null,
+        duration_hours: 8, duration_nights: null, distance_nm: null, base_price: null, agent_price: null,
         fuel_surcharge: 0, extra_pax_price: 2000, base_pax: 10, season: 'high',
         min_notice_hours: 24, notes: ''
       }]
@@ -641,7 +670,7 @@ export default function ImportPage() {
           .eq('partner_id', partnerId)
           .ilike('name', '%' + boat.name.split(' ').pop() + '%');
         
-        let boatId: number;
+        let boatId: number = 0;
         
         if (existingBoats && existingBoats.length > 0) {
           // Update existing boat
@@ -694,29 +723,35 @@ export default function ImportPage() {
             } else {
               continue;
             }
+          } else if (newBoat) {
+            boatId = newBoat.id;
+            console.log('Created boat ID:', boatId);
           }
-          boatId = newBoat.id;
-          console.log('Created boat ID:', boatId);
         }
         
         savedBoatIds[boat.name] = boatId;
         
         // 3. Process routes and SEASONAL PRICES for this boat
-        for (const route of extractedData.routes) {
+        // Use routes from this specific boat (not shared extractedData.routes)
+        const boatRoutes = boat.routes || [];
+        console.log('Processing', boatRoutes.length, 'routes for boat:', boat.name);
+        
+        for (const route of boatRoutes) {
           console.log('Processing route:', route.destination, 'for boat:', boat.name);
           
-          // Find or create route
-          const { data: existingRoutes } = await supabase
+          // Find or create route - use exact match first, then create new
+          const { data: exactMatch } = await supabase
             .from('routes')
             .select('id')
-            .ilike('name', '%' + route.destination.split(' ')[0] + '%');
+            .ilike('name', route.destination.trim());
           
           let routeId: number;
           
-          if (existingRoutes && existingRoutes.length > 0) {
-            routeId = existingRoutes[0].id;
-            console.log('Using existing route ID:', routeId);
+          if (exactMatch && exactMatch.length > 0) {
+            routeId = exactMatch[0].id;
+            console.log('Using exact match route ID:', routeId);
           } else {
+            // Create new route with full name
             const { data: newRoute, error: routeError } = await supabase
               .from('routes')
               .insert({
@@ -1445,6 +1480,138 @@ export default function ImportPage() {
                       <div style={{marginTop: '16px'}}>
                         <label style={labelStyle}>Примечания</label>
                         <textarea value={boat.notes} onChange={(e) => updateBoat(bi, 'notes', e.target.value)} style={{...inputStyle, height: '60px'}} placeholder="Особенности, ограничения..." />
+                      </div>
+
+                      {/* Routes for this boat */}
+                      <div style={{marginTop: '20px', borderTop: '2px solid #3b82f6', paddingTop: '16px'}}>
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                          <h5 style={{fontSize: '14px', fontWeight: '600', color: '#3b82f6'}}>🗺️ Маршруты этой лодки ({boat.routes?.length || 0})</h5>
+                          <button 
+                            onClick={() => {
+                              const boats = [...extractedData.boats];
+                              boats[bi].routes = [...(boats[bi].routes || []), {
+                                destination: '',
+                                departure_pier: boat.default_pier || 'Chalong Pier',
+                                time_slot: 'full_day',
+                                duration_hours: 8,
+                                duration_nights: null,
+                                distance_nm: null,
+                                base_price: null,
+                                agent_price: null,
+                                fuel_surcharge: 0,
+                                extra_pax_price: null,
+                                base_pax: null,
+                                season: 'all',
+                                min_notice_hours: null,
+                                notes: ''
+                              }];
+                              setExtractedData({...extractedData, boats});
+                            }}
+                            style={{padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px'}}
+                          >
+                            + Добавить маршрут
+                          </button>
+                        </div>
+                        
+                        {(boat.routes || []).length === 0 ? (
+                          <p style={{color: '#9ca3af', fontSize: '13px'}}>Нет маршрутов. Добавьте маршрут для этой лодки.</p>
+                        ) : (
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                            {boat.routes.map((route: any, ri: number) => (
+                              <div key={ri} style={{border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px', backgroundColor: '#eff6ff'}}>
+                                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                  <span style={{fontWeight: '500', color: '#1d4ed8'}}>Маршрут #{ri + 1}</span>
+                                  <button 
+                                    onClick={() => {
+                                      const boats = [...extractedData.boats];
+                                      boats[bi].routes = boats[bi].routes.filter((_: any, i: number) => i !== ri);
+                                      setExtractedData({...extractedData, boats});
+                                    }}
+                                    style={{color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px'}}
+                                  >🗑️</button>
+                                </div>
+                                <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px'}}>
+                                  <div>
+                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Направление *</label>
+                                    <input 
+                                      value={route.destination || ''} 
+                                      onChange={(e) => {
+                                        const boats = [...extractedData.boats];
+                                        boats[bi].routes[ri].destination = e.target.value;
+                                        setExtractedData({...extractedData, boats});
+                                      }}
+                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      placeholder="KHAI / NAKA NOI"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Слот</label>
+                                    <select 
+                                      value={route.time_slot || 'full_day'}
+                                      onChange={(e) => {
+                                        const boats = [...extractedData.boats];
+                                        boats[bi].routes[ri].time_slot = e.target.value;
+                                        setExtractedData({...extractedData, boats});
+                                      }}
+                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                    >
+                                      <option value="half_day">Полдня (4ч)</option>
+                                      <option value="full_day">Полный день (8ч)</option>
+                                      <option value="sunset">Закат</option>
+                                      <option value="overnight">Ночёвка</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Сезон</label>
+                                    <select 
+                                      value={route.season || 'all'}
+                                      onChange={(e) => {
+                                        const boats = [...extractedData.boats];
+                                        boats[bi].routes[ri].season = e.target.value;
+                                        setExtractedData({...extractedData, boats});
+                                      }}
+                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                    >
+                                      <option value="all">Все сезоны</option>
+                                      <option value="low">Low</option>
+                                      <option value="high">High</option>
+                                      <option value="peak">Peak</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Цена агента (THB) *</label>
+                                    <input 
+                                      type="number"
+                                      value={route.agent_price || route.base_price || ''} 
+                                      onChange={(e) => {
+                                        const boats = [...extractedData.boats];
+                                        boats[bi].routes[ri].agent_price = Number(e.target.value);
+                                        boats[bi].routes[ri].base_price = Number(e.target.value);
+                                        setExtractedData({...extractedData, boats});
+                                      }}
+                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      placeholder="180000"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Топливо (+THB)</label>
+                                    <input 
+                                      type="number"
+                                      value={route.fuel_surcharge || ''} 
+                                      onChange={(e) => {
+                                        const boats = [...extractedData.boats];
+                                        boats[bi].routes[ri].fuel_surcharge = Number(e.target.value);
+                                        setExtractedData({...extractedData, boats});
+                                      }}
+                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      placeholder="0"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

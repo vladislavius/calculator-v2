@@ -91,7 +91,7 @@ export default function PartnersPage() {
   };
 
   // Update price
-  const updatePrice = async (priceId: number, field: string, value: number) => {
+  const updatePrice = async (priceId: number, field: string, value: number | string) => {
     const { error } = await supabase
       .from('route_prices')
       .update({ [field]: value })
@@ -732,6 +732,7 @@ export default function PartnersPage() {
                               onChange={(e) => updatePrice(price.id, 'season', e.target.value)}
                               style={{ padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }}
                             >
+                              <option value="all">All Seasons</option>
                               <option value="low">Low</option>
                               <option value="high">High</option>
                               <option value="peak">Peak</option>
@@ -908,6 +909,7 @@ export default function PartnersPage() {
                   onChange={(e) => setNewPriceSeason(e.target.value)}
                   style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
                 >
+                  <option value="all">All Seasons (круглый год)</option>
                   <option value="low">Low Season</option>
                   <option value="high">High Season</option>
                   <option value="peak">Peak Season</option>

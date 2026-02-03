@@ -24,6 +24,7 @@ interface SearchResult {
   route_name: string;
   destination: string;
   duration_hours: number;
+  duration?: string;
   base_price: number;
   agent_price: number;
   client_price: number;
@@ -72,13 +73,15 @@ interface CateringOrder {
 interface DrinkOrder {
   drinkId: string;
   name: string;
+  nameRu?: string;
   price: number;
   quantity: number;
   unit: string;
+  included?: boolean;
 }
 
 interface TransferOrder {
-  type: 'none' | 'standard' | 'minivan' | 'vip';
+  type: 'none' | 'standard' | 'minivan' | 'vip' | 'own';
   pickup: string;
   dropoff: string;
   price: number;
@@ -214,8 +217,8 @@ export default function Home() {
   const [customPrices, setCustomPrices] = useState<{[key: string]: number}>({});
   
   // Helper to get custom price or original
-  const getPrice = (itemId: string, originalPrice: number) => {
-    return customPrices[itemId] !== undefined ? customPrices[itemId] : originalPrice;
+  const getPrice = (itemId: string, originalPrice: number | null): number => {
+    return customPrices[itemId] !== undefined ? customPrices[itemId] : (originalPrice || 0);
   };
   
   // Helper to set custom price
@@ -232,13 +235,13 @@ export default function Home() {
   const [transferMarkup, setTransferMarkup] = useState(15);
 
   // Special services
-  const [selectedServices, setSelectedServices] = useState<{id: string, quantity: number}[]>([]);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
 
   // Water toys
-  const [selectedToys, setSelectedToys] = useState<{id: string, quantity: number, hours: number}[]>([]);
+  const [selectedToys, setSelectedToys] = useState<any[]>([]);
 
   // Fees
-  const [selectedFees, setSelectedFees] = useState<{id: string, adults: number, children: number}[]>([]);
+  const [selectedFees, setSelectedFees] = useState<any[]>([]);
 
   // Special requests
   const [specialOccasion, setSpecialOccasion] = useState('');
@@ -547,8 +550,9 @@ export default function Home() {
   
   // ==================== PDF GENERATION ====================
   const generatePDF = () => {
+    if (!selectedBoat) return;
     const totals = calculateTotals();
-    const boatPriceForClient = Math.round((Number(selectedBoat.calculated_total) || Number(selectedBoat.base_price) || 0) * (1 + boatMarkup / 100));
+    const boatPriceForClient = Math.round((Number(selectedBoat?.calculated_total) || Number(selectedBoat?.base_price) || 0) * (1 + boatMarkup / 100));
     
     // Extra guests surcharge for PDF
     const pdfAdultPrice = customAdultPrice !== null ? customAdultPrice : (selectedBoat?.extra_pax_price || 0);
@@ -566,7 +570,7 @@ export default function Home() {
     
     const cateringItems = cateringOrders.map(order => {
       const price = Math.round((order.pricePerPerson || 0) * (order.persons || 1) * (1 + boatMarkup / 100));
-      return '<tr><td>' + (order.packageName || order.name) + '</td><td>' + order.persons + ' чел</td><td>' + price.toLocaleString() + ' THB</td></tr>';
+      return '<tr><td>' + order.packageName + '</td><td>' + order.persons + ' чел</td><td>' + price.toLocaleString() + ' THB</td></tr>';
     }).join('');
     
     const drinkItems = drinkOrders.map(order => {
@@ -575,7 +579,7 @@ export default function Home() {
       return '<tr><td>' + (drink?.name_ru || drink?.name_en || 'Напиток') + '</td><td>' + order.quantity + ' шт</td><td>' + price.toLocaleString() + ' THB</td></tr>';
     }).join('');
     
-    const toysItems = selectedToys.map(toy => {
+    const toysItems = selectedToys.map((toy: any) => {
       const hours = toy.hours || 1;
       const basePrice = customPrices['toy_' + toy.id] || toy.pricePerHour || toy.pricePerDay || 0;
       const total = basePrice * hours;
@@ -595,12 +599,12 @@ export default function Home() {
     
     const allToysItems = toysItems + partnerWatersportsItems;
     
-    const serviceItems = selectedServices.map(s => {
+    const serviceItems = selectedServices.map((s: any) => {
       const price = customPrices['service_' + s.id] || s.price || 0;
       return '<tr><td>' + s.name + '</td><td>1</td><td>' + price.toLocaleString() + ' THB</td></tr>';
     }).join('');
     
-    const feeItems = selectedFees.map(fee => {
+    const feeItems = selectedFees.map((fee: any) => {
       const price = (customPrices['fee_' + fee.id] || fee.pricePerPerson || 0) * (fee.adults + fee.children);
       return '<tr><td>' + fee.name + '</td><td>' + (fee.adults + fee.children) + ' чел</td><td>' + price.toLocaleString() + ' THB</td></tr>';
     }).join('');
@@ -642,7 +646,7 @@ export default function Home() {
     if (!selectedBoat) return;
     
     const totals = calculateTotals();
-    const boatPriceForClient = Math.round((Number(selectedBoat.calculated_total) || Number(selectedBoat.base_price) || 0) * (1 + boatMarkup / 100));
+    const boatPriceForClient = Math.round((Number(selectedBoat?.calculated_total) || Number(selectedBoat?.base_price) || 0) * (1 + boatMarkup / 100));
     
     let message = '🚤 *ЗАПРОС НА БРОНИРОВАНИЕ*\n\n';
     message += '🛥️ *Яхта:* ' + selectedBoat.boat_name + '\n';
@@ -714,7 +718,7 @@ export default function Home() {
     ));
   };
 
-  const addCatering = (pkg: typeof CATERING_PACKAGES[0]) => {
+  const addCatering = (pkg: any) => {
     setCateringOrders([...cateringOrders, {
       packageId: pkg.id,
       packageName: pkg.name,
@@ -1066,7 +1070,7 @@ export default function Home() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Итого</p>
-                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#059669' }}>{totals.totalClient.toLocaleString()} THB</p>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#059669' }}>{(totals.totalClient || 0).toLocaleString()} THB</p>
                 </div>
                 <button onClick={closeModal} style={{ padding: '8px 16px', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '20px' }}>✕</button>
               </div>
@@ -2158,7 +2162,7 @@ export default function Home() {
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 0 0', fontSize: '24px', fontWeight: 'bold' }}>
                     <span>💰 ЦЕНА ДЛЯ КЛИЕНТА</span>
-                    <span>{totals.totalClient.toLocaleString()} THB</span>
+                    <span>{(totals.totalClient || 0).toLocaleString()} THB</span>
                   </div>
                 </div>
 
@@ -2187,7 +2191,6 @@ export default function Home() {
                   const currentIndex = tabs.indexOf(activeTab);
                   if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1] as any);
                 }}
-                style={{ display: 'none' }}
                 style={{ padding: '12px 24px', backgroundColor: activeTab === 'included' ? '#e5e7eb' : '#6b7280', color: 'white', border: 'none', borderRadius: '8px', cursor: activeTab === 'included' ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
                 ← Назад
               </button>
@@ -2197,7 +2200,6 @@ export default function Home() {
                   const currentIndex = tabs.indexOf(activeTab);
                   if (currentIndex < tabs.length - 1) setActiveTab(tabs[currentIndex + 1] as any);
                 }}
-                style={{ display: 'none' }}
                 style={{ padding: '12px 24px', backgroundColor: activeTab === 'summary' ? '#e5e7eb' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: activeTab === 'summary' ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
                 Далее →
               </button>
