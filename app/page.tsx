@@ -116,6 +116,7 @@ export default function Home() {
   const [childrenUnder3, setChildrenUnder3] = useState(0);
   const [customAdultPrice, setCustomAdultPrice] = useState<number | null>(null);
   const [customChildPrice, setCustomChildPrice] = useState<number | null>(null);
+  const [customNotes, setCustomNotes] = useState<string>('');
   const [infants, setInfants] = useState(0);
   const [boatType, setBoatType] = useState('');
   const [destination, setDestination] = useState('');
@@ -146,6 +147,8 @@ export default function Home() {
   // New: Catering partners from DB
   const [cateringPartners, setCateringPartners] = useState<any[]>([]);
   const [cateringMenu, setCateringMenu] = useState<any[]>([]);
+  const [partnerMenus, setPartnerMenus] = useState<any[]>([]);
+  const [partnerMenuSets, setPartnerMenuSets] = useState<any[]>([]);
   
   // New: Watersports partners from DB  
   const [watersportsPartners, setWatersportsPartners] = useState<any[]>([]);
@@ -305,6 +308,13 @@ export default function Home() {
       // Load staff services
       const { data: ssData } = await supabase.from('staff_services').select('*');
       if (ssData) setStaffServices(ssData);
+      
+      // Load partner menus (new system)
+      const { data: pmData } = await supabase.from('partner_menus').select('*').eq('active', true);
+      if (pmData) setPartnerMenus(pmData);
+      
+      const { data: msData } = await supabase.from('menu_sets').select('*').eq('active', true);
+      if (msData) setPartnerMenuSets(msData);
     };
     
     loadPartnersData();
@@ -384,12 +394,33 @@ export default function Home() {
         setSelectedFees([]);
       }
       
-      // Load boat menu
+      // Load boat menu (old system)
       const { data: menuData } = await supabase
         .from('boat_menu')
         .select('*')
         .or('partner_id.eq.' + boat.partner_id + ',boat_id.eq.' + boat.boat_id);
       setBoatMenu(menuData || []);
+      
+      // Load partner menu sets (new system)
+      const partnerMenuIds = partnerMenus
+        .filter(pm => pm.partner_id === boat.partner_id && (pm.boat_id === null || pm.boat_id === boat.boat_id))
+        .map(pm => pm.id);
+      
+      if (partnerMenuIds.length > 0) {
+        const relevantSets = partnerMenuSets.filter(ms => partnerMenuIds.includes(ms.menu_id));
+        setBoatMenu(prev => [...prev, ...relevantSets.map(s => ({
+          id: 'set_' + s.id,
+          name_en: s.name,
+          name_ru: s.name_ru,
+          category: s.category,
+          price: s.price,
+          price_per_person: s.price,
+          included: s.price === null || s.price === 0,
+          dishes: s.dishes,
+          dishes_ru: s.dishes_ru,
+          from_partner_menu: true
+        }))]);
+      }
 
       const { data, error } = await supabase
         .from('boat_options')
@@ -518,7 +549,7 @@ export default function Home() {
     // Apply boat markup to base price for client
     // Extra guests surcharge (use custom prices if set)
     const adultPriceToUse = customAdultPrice !== null ? customAdultPrice : (selectedBoat?.extra_pax_price || 0);
-    const childPriceToUse = customChildPrice !== null ? customChildPrice : (selectedBoat?.child_price_3_11 || selectedBoat?.extra_pax_price || 0);
+    const childPriceToUse = customChildPrice !== null ? customChildPrice : (selectedBoat?.child_price_3_11 || Math.round((selectedBoat?.extra_pax_price || 0) * 0.5));
     const extraAdultsSurcharge = extraAdults * adultPriceToUse;
     const children3to11Surcharge = children3to11 * childPriceToUse;
     const extraGuestsSurcharge = extraAdultsSurcharge + children3to11Surcharge;
@@ -556,7 +587,7 @@ export default function Home() {
     
     // Extra guests surcharge for PDF
     const pdfAdultPrice = customAdultPrice !== null ? customAdultPrice : (selectedBoat?.extra_pax_price || 0);
-    const pdfChildPrice = customChildPrice !== null ? customChildPrice : (selectedBoat?.child_price_3_11 || selectedBoat?.extra_pax_price || 0);
+    const pdfChildPrice = customChildPrice !== null ? customChildPrice : (selectedBoat?.child_price_3_11 || Math.round((selectedBoat?.extra_pax_price || 0) * 0.5));
     const pdfExtraAdultsSurcharge = extraAdults * pdfAdultPrice;
     const pdfChildren3to11Surcharge = children3to11 * pdfChildPrice;
     const pdfExtraGuestsSurcharge = pdfExtraAdultsSurcharge + pdfChildren3to11Surcharge;
@@ -617,7 +648,9 @@ export default function Home() {
       '<div class="header"><div class="logo">ОСТРОВ СОКРОВИЩ</div><div class="subtitle">Аренда яхт на Пхукете</div><div class="date">' + new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }) + '</div></div>' +
       '<div class="yacht-info"><div class="yacht-name">' + (selectedBoat.boat_name || 'Яхта') + '</div><div class="yacht-details"><div class="yacht-detail"><div class="yacht-detail-label">Маршрут</div><div class="yacht-detail-value">' + (selectedBoat.route_name || 'По запросу') + '</div></div><div class="yacht-detail"><div class="yacht-detail-label">Длительность</div><div class="yacht-detail-value">' + (selectedBoat.duration || '8 часов') + '</div></div><div class="yacht-detail"><div class="yacht-detail-label">Макс. гостей</div><div class="yacht-detail-value">' + (selectedBoat.max_guests || '-') + ' человек</div></div><div class="yacht-detail"><div class="yacht-detail-label">Стоимость яхты</div><div class="yacht-detail-value">' + boatPriceForClient.toLocaleString() + ' THB</div></div></div></div>' +
       (includedOptions.length > 0 ? '<div class="section"><div class="section-title">ВКЛЮЧЕНО В СТОИМОСТЬ</div><div class="included-list">' + includedOptions.map(opt => '<span class="included-item">' + opt + '</span>').join('') + '</div></div>' : '') +
-      (cateringItems ? '<div class="section"><div class="section-title">ПИТАНИЕ</div><table><tr><th>Название</th><th>Кол-во</th><th>Сумма</th></tr>' + cateringItems + '</table></div>' : '') +
+      (cateringItems ? '<div class="section"><div class="section-title">ПИТАНИЕ</div>' + 
+      ((() => { const menu = partnerMenus.find(pm => pm.partner_id === selectedBoat?.partner_id); return menu?.conditions ? '<div style="margin-bottom:10px;padding:8px 12px;background:#fef3c7;border-radius:6px;font-size:12px;color:#92400e"><strong>⚠️ Условия:</strong> ' + menu.conditions + '</div>' : ''; })()) +
+      '<table><tr><th>Название</th><th>Кол-во</th><th>Сумма</th></tr>' + cateringItems + '</table></div>' : '') +
       (drinkItems ? '<div class="section"><div class="section-title">НАПИТКИ</div><table><tr><th>Название</th><th>Кол-во</th><th>Сумма</th></tr>' + drinkItems + '</table></div>' : '') +
       (allToysItems ? '<div class="section"><div class="section-title">ВОДНЫЕ РАЗВЛЕЧЕНИЯ</div><table><tr><th>Название</th><th>Время</th><th>Сумма</th></tr>' + allToysItems + '</table></div>' : '') +
       (serviceItems ? '<div class="section"><div class="section-title">ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ</div><table><tr><th>Услуга</th><th>Кол-во</th><th>Сумма</th></tr>' + serviceItems + '</table></div>' : '') +
@@ -631,6 +664,7 @@ export default function Home() {
       (totals.fees > 0 ? '<div class="total-row"><span>Парковые сборы</span><span>+' + totals.fees.toLocaleString() + ' THB</span></div>' : '') +
       (totals.transfer > 0 ? '<div class="total-row"><span>Трансфер</span><span>+' + totals.transfer.toLocaleString() + ' THB</span></div>' : '') + (totals.partnerWatersports > 0 ? '<div class="total-row"><span>Водные услуги</span><span>+' + totals.partnerWatersports.toLocaleString() + ' THB</span></div>' : '') +
       '<div class="total-row final"><span>ИТОГО К ОПЛАТЕ</span><span>' + finalTotal.toLocaleString() + ' THB</span></div></div>' +
+      (customNotes ? '<div class="section" style="margin-top:20px;padding:15px;background:#fff3cd;border-radius:8px;border:1px solid #ffc107"><div class="section-title" style="color:#856404">📝 ПРИМЕЧАНИЯ</div><p style="margin:10px 0 0;color:#856404">' + customNotes.replace(/\n/g, '<br>') + '</p></div>' : '') +
       '<div class="footer"><p><strong>Остров Сокровищ</strong> — Аренда яхт на Пхукете</p><p>WhatsApp: +66 810507171 • Email: tratatobookings@gmail.com</p></div></body></html>';
     
     const printWindow = window.open('', '_blank');
@@ -689,6 +723,10 @@ export default function Home() {
     
     const finalTotal = boatPriceForClient + totals.catering + totals.drinks + totals.toys + totals.services + totals.fees + totals.transfer + (totals.partnerWatersports || 0);
     message += '\n✅ *ИТОГО: ' + finalTotal.toLocaleString() + ' THB*';
+    
+    if (customNotes) {
+      message += '\n\n📝 *Примечания:*\n' + customNotes;
+    }
     
     const encoded = encodeURIComponent(message);
     window.open('https://wa.me/?text=' + encoded, '_blank');
@@ -1155,7 +1193,7 @@ export default function Home() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <input
                           type="number"
-                          value={customChildPrice !== null ? customChildPrice : (selectedBoat.child_price_3_11 || selectedBoat.extra_pax_price || 1000)}
+                          value={customChildPrice !== null ? customChildPrice : (selectedBoat.child_price_3_11 || Math.round((selectedBoat.extra_pax_price || 0) * 0.5))}
                           onChange={(e) => setCustomChildPrice(Number(e.target.value) || 0)}
                           style={{ width: '65px', padding: '4px', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '4px', fontSize: '12px', textAlign: 'right', backgroundColor: 'rgba(255,255,255,0.8)' }}
                         />
@@ -1184,7 +1222,7 @@ export default function Home() {
                     </span>
                     {(extraAdults > 0 || children3to11 > 0) && (
                       <span style={{ fontWeight: '700', fontSize: '16px', color: '#fbbf24' }}>
-                        Доплата: +{((extraAdults * (customAdultPrice !== null ? customAdultPrice : (selectedBoat.extra_pax_price || 0))) + (children3to11 * (customChildPrice !== null ? customChildPrice : (selectedBoat.child_price_3_11 || 1000)))).toLocaleString()} THB
+                        Доплата: +{((extraAdults * (customAdultPrice !== null ? customAdultPrice : (selectedBoat.extra_pax_price || 0))) + (children3to11 * (customChildPrice !== null ? customChildPrice : (selectedBoat.child_price_3_11 || Math.round((selectedBoat.extra_pax_price || 0) * 0.5))))).toLocaleString()} THB
                       </span>
                     )}
                   </div>
@@ -1237,14 +1275,76 @@ export default function Home() {
               <div id="food" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#fffbeb', borderRadius: '16px', border: '1px solid #fcd34d' }}>
                 <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#92400e' }}>🍽️ ПИТАНИЕ</h3>
                 
-                {/* Included food */}
-                {(boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').length > 0 || boatMenu.filter(m => m.included).length > 0) && (
+                {/* Included menu sets from partner */}
+                {boatMenu.filter(m => m.included && m.from_partner_menu).length > 0 && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#166534' }}>✅ Включено в стоимость — выберите сеты:</p>
+                    {(() => {
+                      const menu = partnerMenus.find(pm => pm.partner_id === selectedBoat?.partner_id);
+                      return menu?.conditions ? (
+                        <div style={{ marginBottom: '12px', padding: '10px 14px', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fcd34d', fontSize: '13px', color: '#92400e' }}>
+                          <strong>⚠️ Условия:</strong> {menu.conditions}
+                        </div>
+                      ) : null;
+                    })()}
+                    <div style={{ display: 'grid', gap: '10px' }}>
+                      {boatMenu.filter(m => m.included && m.from_partner_menu).map(set => {
+                        const isSelected = cateringOrders.some(c => c.packageId === set.id);
+                        const orderIndex = cateringOrders.findIndex(c => c.packageId === set.id);
+                        const order = orderIndex >= 0 ? cateringOrders[orderIndex] : null;
+                        const categoryLabels: Record<string, string> = { thai: '🇹🇭 Тайская', western: '🍝 Западная', vegetarian: '🥗 Вегетарианская', kids: '👶 Детская', seafood: '🦐 Морепродукты', bbq: '🍖 BBQ', other: '🍽️ Другое' };
+                        return (
+                          <div key={set.id} style={{ padding: '12px 16px', backgroundColor: isSelected ? '#dcfce7' : '#f0fdf4', borderRadius: '10px', border: isSelected ? '2px solid #22c55e' : '1px solid #86efac' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: set.dishes ? '8px' : '0' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={isSelected}
+                                  onChange={() => {
+                                    if (isSelected) {
+                                      setCateringOrders(cateringOrders.filter(c => c.packageId !== set.id));
+                                    } else {
+                                      setCateringOrders([...cateringOrders, { packageId: set.id, packageName: set.name_en + (set.name_ru ? ' (' + set.name_ru + ')' : ''), pricePerPerson: 0, persons: adults + children, notes: '' }]);
+                                    }
+                                  }}
+                                  style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#22c55e' }}
+                                />
+                                <div>
+                                  <span style={{ fontWeight: '600', color: '#166534' }}>{set.name_en}</span>
+                                  {set.name_ru && <span style={{ marginLeft: '8px', fontSize: '13px', color: '#15803d' }}>({set.name_ru})</span>}
+                                  <span style={{ marginLeft: '10px', padding: '2px 8px', backgroundColor: '#bbf7d0', borderRadius: '4px', fontSize: '11px', color: '#166534' }}>{categoryLabels[set.category] || set.category}</span>
+                                </div>
+                              </div>
+                              {isSelected && order && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons - 1)} style={{ width: '28px', height: '28px', border: '1px solid #22c55e', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold', color: '#166534' }}>−</button>
+                                  <span style={{ minWidth: '50px', textAlign: 'center', fontWeight: '600', color: '#166534' }}>{order.persons} чел</span>
+                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons + 1)} style={{ width: '28px', height: '28px', border: '1px solid #22c55e', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold', color: '#166534' }}>+</button>
+                                </div>
+                              )}
+                            </div>
+                            {set.dishes && set.dishes.length > 0 && (
+                              <div style={{ marginLeft: '30px', fontSize: '13px', color: '#15803d' }}>
+                                {set.dishes.map((dish: string, i: number) => (
+                                  <span key={i}>{i > 0 ? ' • ' : ''}{dish}{set.dishes_ru && set.dishes_ru[i] ? ` (${set.dishes_ru[i]})` : ''}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Other included food (non-partner menu) */}
+                {(boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').length > 0 || boatMenu.filter(m => m.included && !m.from_partner_menu).length > 0) && (
                   <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #86efac' }}>
-                    <span style={{ fontWeight: '600', color: '#166534' }}>Включено: </span>
+                    <span style={{ fontWeight: '600', color: '#166534' }}>Также включено: </span>
                     {boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').map((o, i) => (
                       <span key={o.id}>{i > 0 ? ', ' : ''}{o.option_name}</span>
                     ))}
-                    {boatMenu.filter(m => m.included).map((m, i) => (
+                    {boatMenu.filter(m => m.included && !m.from_partner_menu).map((m, i) => (
                       <span key={m.id}>{(i > 0 || boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').length > 0) ? ', ' : ''}{m.name_en}</span>
                     ))}
                   </div>
@@ -2164,6 +2264,17 @@ export default function Home() {
                     <span>💰 ЦЕНА ДЛЯ КЛИЕНТА</span>
                     <span>{(totals.totalClient || 0).toLocaleString()} THB</span>
                   </div>
+                </div>
+
+                {/* Custom notes */}
+                <div style={{ marginTop: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: 'white' }}>📝 Заметки / Примечания:</label>
+                  <textarea
+                    value={customNotes}
+                    onChange={(e) => setCustomNotes(e.target.value)}
+                    placeholder="Например: Обед в ресторане - кэш-ваучер 500 THB/чел для спидбота..."
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', fontSize: '14px', minHeight: '80px', resize: 'vertical', backgroundColor: 'rgba(255,255,255,0.95)' }}
+                  />
                 </div>
 
                 {/* Action buttons */}

@@ -972,6 +972,7 @@ export default function PartnersPage() {
       <div style={styles.header}>
         <h1 style={styles.title}>👥 Управление партнёрами</h1>
         <a href="/" style={styles.backLink}>← Назад к калькулятору</a>
+        <a href="/menu-import" style={{...styles.backLink, marginLeft: '20px', backgroundColor: '#f59e0b', color: 'white', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none'}}>🍽️ Импорт меню</a>
       </div>
 
       <div style={styles.tabs}>
