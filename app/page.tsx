@@ -120,6 +120,7 @@ export default function Home() {
   const [infants, setInfants] = useState(0);
   const [boatType, setBoatType] = useState('');
   const [destination, setDestination] = useState('');
+  const [boatNameSearch, setBoatNameSearch] = useState('');
   const [timeSlot, setTimeSlot] = useState('full_day');
   const [minBudget, setMinBudget] = useState('');
   const [maxBudget, setMaxBudget] = useState('');
@@ -338,6 +339,14 @@ export default function Home() {
       
       if (minBudget) {
         filtered = filtered.filter((r: SearchResult) => r.calculated_total >= Number(minBudget));
+      }
+
+      // Filter by boat name
+      if (boatNameSearch) {
+        const searchLower = boatNameSearch.toLowerCase();
+        filtered = filtered.filter((r: SearchResult) => 
+          r.boat_name.toLowerCase().includes(searchLower)
+        );
       }
 
       // Sort
@@ -958,6 +967,17 @@ export default function Home() {
                 placeholder="Phi Phi, Phang Nga, James Bond Island..." 
                 value={destination} 
                 onChange={(e) => setDestination(e.target.value)} 
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
+              />
+            </div>
+
+            {/* Boat Name Search */}
+            <div style={{ flex: '1.5', minWidth: '180px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚢 Название лодки</label>
+              <input 
+                placeholder="Real, Princess, Chowa..." 
+                value={boatNameSearch} 
+                onChange={(e) => setBoatNameSearch(e.target.value)} 
                 style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
               />
             </div>
@@ -2181,7 +2201,7 @@ export default function Home() {
                 {/* Markup slider */}
                 <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontWeight: '600' }}>🔒 Ваша наценка</span>
+                    <span style={{ fontWeight: '600' }}>🔒 Наша наценка</span>
                     <span style={{ fontSize: '28px', fontWeight: 'bold' }}>{boatMarkup}%</span>
                   </div>
                   <input 

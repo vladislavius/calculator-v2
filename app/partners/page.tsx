@@ -71,6 +71,30 @@ export default function PartnersPage() {
   };
 
   // Save boat changes
+  const deleteBoat = async (boatId: number, boatName: string) => {
+    if (!confirm(`Удалить лодку "${boatName}"? Это также удалит все её маршруты и цены.`)) return;
+    
+    try {
+      // Delete route prices
+      await supabase.from('route_prices').delete().eq('boat_id', boatId);
+      // Delete boat options
+      await supabase.from('boat_options').delete().eq('boat_id', boatId);
+      // Delete the boat
+      const { error } = await supabase.from('boats').delete().eq('id', boatId);
+      
+      if (error) throw error;
+      
+      // Refresh boats list
+      const { data: b } = await supabase.from('boats').select('*').order('name');
+      if (b) setBoats(b);
+      
+      setSelectedBoat(null);
+      alert('Лодка удалена');
+    } catch (err: any) {
+      alert('Ошибка удаления: ' + err.message);
+    }
+  };
+
   const saveBoatChanges = async () => {
     if (!selectedBoat) return;
     setSaving(true);
@@ -732,12 +756,20 @@ export default function PartnersPage() {
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {!editMode ? (
-                  <button 
-                    onClick={() => setEditMode(true)}
-                    style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-                  >
-                    ✏️ Редактировать
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={() => setEditMode(true)}
+                      style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      ✏️ Редактировать
+                    </button>
+                    <button 
+                      onClick={() => deleteBoat(selectedBoat.id, selectedBoat.name)}
+                      style={{ padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      🗑️ Удалить
+                    </button>
+                  </div>
                 ) : (
                   <>
                     <button 
