@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ 
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: 'https://api.deepseek.com/v1'
-});
-
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.DEEPSEEK_API_KEY) {
+      return NextResponse.json({ success: false, error: 'API key not configured' }, { status: 500 });
+    }
+    
+    const openai = new OpenAI({ 
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: 'https://api.deepseek.com/v1'
+    });
     const { text } = await request.json();
     console.log('Parsing menu, text length:', text?.length);
 
