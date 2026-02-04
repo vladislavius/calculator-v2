@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const getSupabase = () => createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 );
 
 export default function PartnersPage() {
@@ -76,16 +76,16 @@ export default function PartnersPage() {
     
     try {
       // Delete route prices
-      await supabase.from('route_prices').delete().eq('boat_id', boatId);
+      await getSupabase().from('route_prices').delete().eq('boat_id', boatId);
       // Delete boat options
-      await supabase.from('boat_options').delete().eq('boat_id', boatId);
+      await getSupabase().from('boat_options').delete().eq('boat_id', boatId);
       // Delete the boat
-      const { error } = await supabase.from('boats').delete().eq('id', boatId);
+      const { error } = await getSupabase().from('boats').delete().eq('id', boatId);
       
       if (error) throw error;
       
       // Refresh boats list
-      const { data: b } = await supabase.from('boats').select('*').order('name');
+      const { data: b } = await getSupabase().from('boats').select('*').order('name');
       if (b) setBoats(b);
       
       setSelectedBoat(null);
@@ -274,29 +274,29 @@ export default function PartnersPage() {
   }, []);
 
   const loadData = async () => {
-    const { data: cp } = await supabase.from('catering_partners').select('*').order('name');
+    const { data: cp } = await getSupabase().from('catering_partners').select('*').order('name');
     if (cp) setCateringPartners(cp);
     
-    const { data: cm } = await supabase.from('catering_menu').select('*').order('name_en');
+    const { data: cm } = await getSupabase().from('catering_menu').select('*').order('name_en');
     if (cm) setCateringMenu(cm);
     
-    const { data: wp } = await supabase.from('watersports_partners').select('*').order('name');
+    const { data: wp } = await getSupabase().from('watersports_partners').select('*').order('name');
     if (wp) setWatersportsPartners(wp);
     
-    const { data: wc } = await supabase.from('watersports_catalog').select('*').order('name_en');
+    const { data: wc } = await getSupabase().from('watersports_catalog').select('*').order('name_en');
     if (wc) setWatersportsCatalog(wc);
 
-    const { data: bp } = await supabase.from('partners').select('*').order('name');
+    const { data: bp } = await getSupabase().from('partners').select('*').order('name');
     if (bp) setBoatPartners(bp);
 
-    const { data: b } = await supabase.from('boats').select('*').order('name');
+    const { data: b } = await getSupabase().from('boats').select('*').order('name');
     if (b) setBoats(b);
   };
 
   const addCateringPartner = async () => {
     if (!newPartnerName) return;
     
-    const { error } = await supabase.from('catering_partners').insert({
+    const { error } = await getSupabase().from('catering_partners').insert({
       name: newPartnerName,
       contact_person: newPartnerContact,
       phone: newPartnerPhone,
@@ -320,7 +320,7 @@ export default function PartnersPage() {
   const addWatersportsPartner = async () => {
     if (!newPartnerName) return;
     
-    const { error } = await supabase.from('watersports_partners').insert({
+    const { error } = await getSupabase().from('watersports_partners').insert({
       name: newPartnerName,
       contact_person: newPartnerContact,
       phone: newPartnerPhone,
@@ -342,7 +342,7 @@ export default function PartnersPage() {
   const addBoatPartner = async () => {
     if (!newPartnerName) return;
 
-    const { error } = await supabase.from('partners').insert({
+    const { error } = await getSupabase().from('partners').insert({
       name: newPartnerName,
       contact_phone: newPartnerPhone,
       contact_email: newPartnerEmail,
@@ -374,14 +374,14 @@ export default function PartnersPage() {
       
       // Удаляем в правильном порядке (из-за foreign keys)
       // 1. Удаляем boat_options
-      await supabase.from('boat_options').delete().in('boat_id', boatIds);
+      await getSupabase().from('boat_options').delete().in('boat_id', boatIds);
       // 2. Удаляем route_prices
-      await supabase.from('route_prices').delete().in('boat_id', boatIds);
+      await getSupabase().from('route_prices').delete().in('boat_id', boatIds);
       // 3. Удаляем лодки
-      await supabase.from('boats').delete().eq('partner_id', id);
+      await getSupabase().from('boats').delete().eq('partner_id', id);
     }
     // 4. Удаляем партнёра
-    const { error } = await supabase.from('partners').delete().eq('id', id);
+    const { error } = await getSupabase().from('partners').delete().eq('id', id);
     if (!error) {
       setMessage('Партнёр и все связанные данные удалены');
       loadData();
@@ -450,7 +450,7 @@ export default function PartnersPage() {
       }
       
       if (items.length > 0) {
-        const { error } = await supabase.from('catering_menu').insert(items);
+        const { error } = await getSupabase().from('catering_menu').insert(items);
         if (!error) {
           setMessage(`Импортировано ${items.length} позиций!`);
           setMenuText('');
@@ -508,7 +508,7 @@ export default function PartnersPage() {
       }
       
       if (items.length > 0) {
-        const { error } = await supabase.from('watersports_catalog').insert(items);
+        const { error } = await getSupabase().from('watersports_catalog').insert(items);
         if (!error) {
           setMessage(`Импортировано ${items.length} позиций!`);
           setMenuText('');
@@ -526,18 +526,18 @@ export default function PartnersPage() {
   };
 
   const deleteMenuItem = async (table: string, id: number) => {
-    const { error } = await supabase.from(table).delete().eq('id', id);
+    const { error } = await getSupabase().from(table).delete().eq('id', id);
     if (!error) loadData();
   };
 
   const deletePartner = async (table: string, id: number) => {
     // First delete related items
     if (table === 'catering_partners') {
-      await supabase.from('catering_menu').delete().eq('partner_id', id);
+      await getSupabase().from('catering_menu').delete().eq('partner_id', id);
     } else {
-      await supabase.from('watersports_catalog').delete().eq('partner_id', id);
+      await getSupabase().from('watersports_catalog').delete().eq('partner_id', id);
     }
-    const { error } = await supabase.from(table).delete().eq('id', id);
+    const { error } = await getSupabase().from(table).delete().eq('id', id);
     if (!error) loadData();
   };
 
@@ -633,7 +633,7 @@ export default function PartnersPage() {
       // Update/insert sets
       for (const set of editingSets) {
         if (set.id && !set._isNew) {
-          await supabase.from('menu_sets').update({
+          await getSupabase().from('menu_sets').update({
             name: set.name,
             name_ru: set.name_ru,
             category: set.category,
@@ -642,7 +642,7 @@ export default function PartnersPage() {
             dishes_ru: set.dishes_ru
           }).eq('id', set.id);
         } else if (set._isNew) {
-          await supabase.from('menu_sets').insert({
+          await getSupabase().from('menu_sets').insert({
             menu_id: editingMenu.id,
             name: set.name,
             name_ru: set.name_ru,
@@ -683,7 +683,7 @@ export default function PartnersPage() {
     if (!confirm('Удалить этот сет?')) return;
     
     try {
-      await supabase.from('menu_sets').update({ active: false }).eq('id', setId);
+      await getSupabase().from('menu_sets').update({ active: false }).eq('id', setId);
       setMenuSets(menuSets.filter(s => s.id !== setId));
       setEditingSets(editingSets.filter(s => s.id !== setId));
     } catch (error) {
@@ -718,8 +718,8 @@ export default function PartnersPage() {
     if (!confirm('Удалить это меню и все его сеты?')) return;
     
     try {
-      await supabase.from('menu_sets').update({ active: false }).eq('menu_id', menuId);
-      await supabase.from('partner_menus').update({ active: false }).eq('id', menuId);
+      await getSupabase().from('menu_sets').update({ active: false }).eq('menu_id', menuId);
+      await getSupabase().from('partner_menus').update({ active: false }).eq('id', menuId);
       setPartnerMenus(partnerMenus.filter(m => m.id !== menuId));
       setMenuSets(menuSets.filter(s => s.menu_id !== menuId));
     } catch (error) {
