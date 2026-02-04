@@ -208,13 +208,13 @@ const loadContractDetails = async (partnerId: number) => {
     const boatIds = partnerBoats.map(b => b.id);
     
     // Get routes and prices
-    const { data: prices } = await supabase
+    const { data: prices } = await getSupabase()
       .from('route_prices')
       .select('*, routes(name), boats(name)')
       .in('boat_id', boatIds);
     
     // Get options
-    const { data: options } = await supabase
+    const { data: options } = await getSupabase()
       .from('boat_options')
       .select('*, options_catalog(name_en, name_ru)')
       .in('boat_id', boatIds);
@@ -223,7 +223,7 @@ const loadContractDetails = async (partnerId: number) => {
     setContractOptions(options || []);
     
     // Load menu for this partner's boats
-    const { data: menu } = await supabase
+    const { data: menu } = await getSupabase()
       .from('boat_menu')
       .select('*')
       .or('partner_id.eq.' + partnerId + ',boat_id.in.(' + boatIds.join(',') + ')');
