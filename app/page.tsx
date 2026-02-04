@@ -121,6 +121,8 @@ export default function Home() {
   const [boatType, setBoatType] = useState('');
   const [destination, setDestination] = useState('');
   const [boatNameSearch, setBoatNameSearch] = useState('');
+  const [boatPartners, setBoatPartners] = useState<any[]>([]);
+  const [selectedPartnerFilter, setSelectedPartnerFilter] = useState('');
   const [timeSlot, setTimeSlot] = useState('full_day');
   const [minBudget, setMinBudget] = useState('');
   const [maxBudget, setMaxBudget] = useState('');
@@ -310,6 +312,10 @@ export default function Home() {
       const { data: ssData } = await supabase.from('staff_services').select('*');
       if (ssData) setStaffServices(ssData);
       
+      // Load boat partners
+      const { data: bpData } = await supabase.from('partners').select('*').order('name');
+      if (bpData) setBoatPartners(bpData);
+
       // Load partner menus (new system)
       const { data: pmData } = await supabase.from('partner_menus').select('*').eq('active', true);
       if (pmData) setPartnerMenus(pmData);
@@ -346,6 +352,13 @@ export default function Home() {
         const searchLower = boatNameSearch.toLowerCase();
         filtered = filtered.filter((r: SearchResult) => 
           r.boat_name.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Filter by partner
+      if (selectedPartnerFilter) {
+        filtered = filtered.filter((r: SearchResult) => 
+          r.partner_id === Number(selectedPartnerFilter)
         );
       }
 
@@ -982,6 +995,19 @@ export default function Home() {
               />
             </div>
 
+            {/* Partner Filter */}
+            <div style={{ flex: '1.5', minWidth: '180px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🏢 Партнёр</label>
+              <select 
+                value={selectedPartnerFilter} 
+                onChange={(e) => setSelectedPartnerFilter(e.target.value)} 
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="">Все партнёры</option>
+                {boatPartners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+
             {/* Boat Type */}
             <div style={{ flex: '0.9', minWidth: '140px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚤 Тип лодки</label>
@@ -1022,7 +1048,7 @@ export default function Home() {
             </div>
 
             {/* Search Button */}
-            <div style={{ flex: '0 0 auto' }}>
+            <div style={{ flex: '0 0 auto', marginLeft: 'auto' }}>
               <button 
                 onClick={handleSearch} 
                 disabled={loading} 
