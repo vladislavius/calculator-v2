@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const getSupabase = () => createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 );
 
 interface BoatFeature {
@@ -630,7 +630,7 @@ export default function ImportPage() {
           partnerId = existing.id;
           console.log('Updating existing partner:', existing.name, 'ID:', partnerId);
           
-          await supabase.from('partners').update({
+          await getSupabase().from('partners').update({
             contact_phone: extractedData.partner_phone || existing.contact_phone,
             contact_email: extractedData.partner_email || existing.contact_email,
             commission_percent: extractedData.commission_percent || existing.commission_percent || 15,
@@ -681,7 +681,7 @@ export default function ImportPage() {
           boatId = existingBoats[0].id;
           console.log('Updating existing boat:', existingBoats[0].name, 'ID:', boatId);
           
-          await supabase.from('boats').update({
+          await getSupabase().from('boats').update({
             boat_type: boat.type || existingBoats[0].boat_type,
             model: boat.model || existingBoats[0].model,
             length_ft: boat.length_ft || existingBoats[0].length_ft,
@@ -819,7 +819,7 @@ export default function ImportPage() {
               .eq('id', oldPrice.id);
             
             // Create new price version
-            await supabase.from('route_prices').insert({
+            await getSupabase().from('route_prices').insert({
               boat_id: boatId,
               route_id: routeId,
               season: season,
@@ -838,7 +838,7 @@ export default function ImportPage() {
           } else {
             // Create new price
             console.log('Creating new price');
-            await supabase.from('route_prices').insert({
+            await getSupabase().from('route_prices').insert({
               boat_id: boatId,
               route_id: routeId,
               season: season,
@@ -922,7 +922,7 @@ export default function ImportPage() {
               }
               
               // Now add to boat_options
-              await supabase.from('boat_options').insert({
+              await getSupabase().from('boat_options').insert({
                 boat_id: boatId,
                 option_id: newCatalogOpt.id,
                 status: feature.included ? 'included' : 'paid_optional',
@@ -943,14 +943,14 @@ export default function ImportPage() {
               
               if (existingOpt) {
                 // Update existing
-                await supabase.from('boat_options').update({
+                await getSupabase().from('boat_options').update({
                   price: feature.price || 0,
                   status: feature.included ? 'included' : 'paid_optional',
                   available: true
                 }).eq('id', existingOpt.id);
               } else {
                 // Create new boat_option linked to catalog
-                await supabase.from('boat_options').insert({
+                await getSupabase().from('boat_options').insert({
                   boat_id: boatId,
                   option_id: catalogOption2.id,
                   status: feature.included ? 'included' : 'paid_optional',
@@ -987,7 +987,7 @@ export default function ImportPage() {
           
           if (existingRule) {
             // Update existing
-            await supabase.from('boat_pricing_rules').update({
+            await getSupabase().from('boat_pricing_rules').update({
               base_price: rule.base_price,
               charter_type: rule.charter_type || 'overnight',
               notes: rule.notes,
@@ -995,7 +995,7 @@ export default function ImportPage() {
             }).eq('id', existingRule.id);
           } else {
             // Insert new
-            await supabase.from('boat_pricing_rules').insert({
+            await getSupabase().from('boat_pricing_rules').insert({
               boat_id: boatId,
               charter_type: rule.charter_type || 'overnight',
               season: rule.season,
@@ -1032,7 +1032,7 @@ export default function ImportPage() {
                 .maybeSingle();
               
               if (!existingOpt) {
-                await supabase.from('boat_options').insert({
+                await getSupabase().from('boat_options').insert({
                   boat_id: boatId,
                   option_id: catalogOpt.id,
                   status: 'included',
@@ -1071,13 +1071,13 @@ export default function ImportPage() {
                                extra.price_per === 'person' ? 'person' : 'trip';
               
               if (existingOpt) {
-                await supabase.from('boat_options').update({
+                await getSupabase().from('boat_options').update({
                   price: extra.price || 0,
                   price_per: pricePer,
                   status: 'paid_optional'
                 }).eq('id', existingOpt.id);
               } else {
-                await supabase.from('boat_options').insert({
+                await getSupabase().from('boat_options').insert({
                   boat_id: boatId,
                   option_id: catalogOpt.id,
                   status: 'paid_optional',
@@ -1092,7 +1092,7 @@ export default function ImportPage() {
       }
       
       // Save to import history
-      await supabase.from('import_history').insert({
+      await getSupabase().from('import_history').insert({
         partner_id: partnerId,
         partner_name: selectedPartnerName || extractedData.partner_name,
         import_type: importMode || 'full_contract',
