@@ -603,7 +603,7 @@ export default function Home() {
     }, 0) + (landingEnabled ? landingFee : 0) + (defaultParkFeeEnabled ? defaultParkFee * (defaultParkFeeAdults + defaultParkFeeChildren) : 0);
 
     // Children discount (50% on base price only)
-    const childrenDiscount = Math.round(baseClient * 0.5 * (children / Math.max(1, totalGuests)));
+    const childrenDiscount = Math.round(baseClient * 0.5 * (children3to11 / Math.max(1, adults + extraAdults + children3to11 + childrenUnder3)));
 
     const allExtras = extrasTotal + cateringTotal + drinksTotal + toysTotal + servicesTotal + transferTotal + feesTotal + partnerWatersportsTotal;
 
@@ -1168,6 +1168,19 @@ export default function Home() {
               </select>
             </div>
 
+
+            {/* Guests */}
+            <div style={{ flex: "0.7", minWidth: "100px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "13px", fontWeight: "600", color: "#6b7280" }}>👥 Гостей</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={adults}
+                onChange={(e) => setAdults(Math.max(1, Number(e.target.value)))}
+                style={{ width: "100%", padding: "14px 16px", border: "2px solid #e5e7eb", borderRadius: "12px", fontSize: "15px", backgroundColor: "#fafafa", outline: "none" }}
+              />
+            </div>
             {/* Search Button */}
             <div style={{ flex: '0 0 auto', marginLeft: 'auto' }}>
               <button 
