@@ -26,6 +26,7 @@ export interface SearchResult {
   calculated_agent_total: number;
   base_pax: number;
   marina_name: string;
+  season?: string;
 }
 
 export interface BoatOption {
