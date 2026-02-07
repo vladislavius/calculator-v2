@@ -113,14 +113,12 @@ export default function Home() {
   const [searchDate, setSearchDate] = useState('');
 
   const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
   const [extraAdults, setExtraAdults] = useState(0);
   const [children3to11, setChildren3to11] = useState(0);
   const [childrenUnder3, setChildrenUnder3] = useState(0);
   const [customAdultPrice, setCustomAdultPrice] = useState<number | null>(null);
   const [customChildPrice, setCustomChildPrice] = useState<number | null>(null);
   const [customNotes, setCustomNotes] = useState<string>('');
-  const [infants, setInfants] = useState(0);
   const [boatType, setBoatType] = useState('');
   const [destination, setDestination] = useState('');
   const [boatNameSearch, setBoatNameSearch] = useState('');
@@ -270,7 +268,7 @@ export default function Home() {
   // Active tab in modal
   const [activeTab, setActiveTab] = useState<'included' | 'food' | 'drinks' | 'toys' | 'services' | 'transfer' | 'fees' | 'summary'>('included');
 
-  const totalGuests = adults + children + infants;
+  const totalGuests = adults;
 
   const boatTypes = [
     { value: '', label: 'Любой тип' },
@@ -519,7 +517,6 @@ export default function Home() {
         notes: item.notes || ''
       }));
       
-      console.log('Loaded boat options:', transformed);
       
       if (error) throw error;
       setBoatOptions(transformed);
@@ -592,10 +589,8 @@ export default function Home() {
       const hours = Number(w.hours) || 0;
       const days = Number(w.days) || 0;
       const base = (pricePerHour * hours) + (pricePerDay * days);
-      console.log('WS DEBUG:', w.name, 'pricePerHour:', pricePerHour, 'hours:', hours, 'pricePerDay:', pricePerDay, 'days:', days, 'base:', base);
       return sum + base;
     }, 0);
-    console.log('WS TOTAL:', partnerWatersportsTotal);
 
     // Park fees (from DB) + landing fee + default park fee
     const feesTotal = selectedFees.reduce((sum, f: any) => {
@@ -959,7 +954,7 @@ export default function Home() {
         nameRu: fee.name_ru,
         pricePerPerson: fee.price_per_person || 0,
         adults: adults, 
-        children: children,
+        children: children3to11,
         mandatory: fee.mandatory || false
       }]);
     }
@@ -1484,7 +1479,7 @@ export default function Home() {
                                     if (isSelected) {
                                       setCateringOrders(cateringOrders.filter(c => c.packageId !== set.id));
                                     } else {
-                                      setCateringOrders([...cateringOrders, { packageId: set.id, packageName: set.name_en + (set.name_ru ? ' (' + set.name_ru + ')' : ''), pricePerPerson: 0, persons: adults + children, notes: '' }]);
+                                      setCateringOrders([...cateringOrders, { packageId: set.id, packageName: set.name_en + (set.name_ru ? ' (' + set.name_ru + ')' : ''), pricePerPerson: 0, persons: adults + children3to11, notes: '' }]);
                                     }
                                   }}
                                   style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#22c55e' }}
