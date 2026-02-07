@@ -191,14 +191,6 @@ export default function Home() {
 
   // Active tab in modal
   const [activeTab, setActiveTab] = useState<'included' | 'food' | 'drinks' | 'toys' | 'services' | 'transfer' | 'fees' | 'summary'>('included');
-    setExtraAdults(0);
-    setChildren3to11(0);
-    setChildrenUnder3(0);
-    setCustomNotes("");
-    setSelectedPartnerWatersports([]);
-    setSelectedDishes({});
-    setCustomPrices({});
-    setCorkageFee(0);
   const totalGuests = adults + extraAdults + children3to11 + childrenUnder3;
 
   const boatTypes = [
