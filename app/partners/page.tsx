@@ -265,6 +265,15 @@ export default function PartnersPage() {
   const [newPartnerPhone, setNewPartnerPhone] = useState('');
   const [newPartnerEmail, setNewPartnerEmail] = useState('');
   const [newPartnerDescription, setNewPartnerDescription] = useState('');
+  const [newPartnerCommission, setNewPartnerCommission] = useState('');
+  const [newPartnerBankName, setNewPartnerBankName] = useState('');
+  const [newPartnerBankAccount, setNewPartnerBankAccount] = useState('');
+  const [newPartnerBankAccountName, setNewPartnerBankAccountName] = useState('');
+  const [newPartnerBankBranch, setNewPartnerBankBranch] = useState('');
+  const [newPartnerSwift, setNewPartnerSwift] = useState('');
+  const [newPartnerTaxId, setNewPartnerTaxId] = useState('');
+  const [newPartnerAddress, setNewPartnerAddress] = useState('');
+  const [newPartnerWebsite, setNewPartnerWebsite] = useState('');
   
   // Menu import
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
@@ -347,10 +356,19 @@ export default function PartnersPage() {
 
     const { error } = await getSupabase().from('partners').insert({
       name: newPartnerName,
-      contact_phone: newPartnerPhone,
-      contact_email: newPartnerEmail,
-      commission_percent: 15,
-      notes: newPartnerDescription
+      contact_name: newPartnerContact || null,
+      contact_phone: newPartnerPhone || null,
+      contact_email: newPartnerEmail || null,
+      commission_percent: newPartnerCommission ? Number(newPartnerCommission) : null,
+      notes: newPartnerDescription || null,
+      bank_name: newPartnerBankName || null,
+      bank_account_number: newPartnerBankAccount || null,
+      bank_account_name: newPartnerBankAccountName || null,
+      bank_branch: newPartnerBankBranch || null,
+      swift_code: newPartnerSwift || null,
+      tax_id: newPartnerTaxId || null,
+      address: newPartnerAddress || null,
+      website: newPartnerWebsite || null,
     });
 
     if (!error) {
@@ -360,6 +378,15 @@ export default function PartnersPage() {
       setNewPartnerPhone('');
       setNewPartnerEmail('');
       setNewPartnerDescription('');
+      setNewPartnerCommission('');
+      setNewPartnerBankName('');
+      setNewPartnerBankAccount('');
+      setNewPartnerBankAccountName('');
+      setNewPartnerBankBranch('');
+      setNewPartnerSwift('');
+      setNewPartnerTaxId('');
+      setNewPartnerAddress('');
+      setNewPartnerWebsite('');
       loadData();
     } else {
       setMessage('Ошибка: ' + error.message);
@@ -746,7 +773,7 @@ export default function PartnersPage() {
       contact_email: editForm.contact_email || null,
       website: editForm.website || null,
       address: editForm.address || null,
-      commission_percent: editForm.commission_percent || 15,
+      commission_percent: editForm.commission_percent || null,
       tax_id: editForm.tax_id || null,
       bank_name: editForm.bank_name || null,
       bank_account_name: editForm.bank_account_name || null,
@@ -1397,6 +1424,39 @@ export default function PartnersPage() {
                   onChange={e => setNewPartnerEmail(e.target.value)}
                   style={styles.input}
                 />
+                <input
+                  placeholder="Комиссия %"
+                  type="number"
+                  value={newPartnerCommission}
+                  onChange={e => setNewPartnerCommission(e.target.value)}
+                  style={styles.input}
+                />
+                <input
+                  placeholder="Адрес"
+                  value={newPartnerAddress}
+                  onChange={e => setNewPartnerAddress(e.target.value)}
+                  style={styles.input}
+                />
+                <input
+                  placeholder="Вебсайт"
+                  value={newPartnerWebsite}
+                  onChange={e => setNewPartnerWebsite(e.target.value)}
+                  style={styles.input}
+                />
+                <input
+                  placeholder="Tax ID"
+                  value={newPartnerTaxId}
+                  onChange={e => setNewPartnerTaxId(e.target.value)}
+                  style={styles.input}
+                />
+                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f0f9ff", borderRadius: "8px", border: "1px solid #bae6fd" }}>
+                  <p style={{ margin: "0 0 8px", fontWeight: "600", fontSize: "13px", color: "#0369a1" }}>🏦 Банковские реквизиты</p>
+                  <input placeholder="Название банка (напр. Bangkok Bank)" value={newPartnerBankName} onChange={e => setNewPartnerBankName(e.target.value)} style={styles.input} />
+                  <input placeholder="Имя владельца счёта" value={newPartnerBankAccountName} onChange={e => setNewPartnerBankAccountName(e.target.value)} style={styles.input} />
+                  <input placeholder="Номер счёта" value={newPartnerBankAccount} onChange={e => setNewPartnerBankAccount(e.target.value)} style={styles.input} />
+                  <input placeholder="Отделение банка (Branch)" value={newPartnerBankBranch} onChange={e => setNewPartnerBankBranch(e.target.value)} style={styles.input} />
+                  <input placeholder="SWIFT код" value={newPartnerSwift} onChange={e => setNewPartnerSwift(e.target.value)} style={styles.input} />
+                </div>
                 <button style={styles.btn} onClick={addBoatPartner}>
                   Добавить партнёра
                 </button>
@@ -1447,18 +1507,23 @@ export default function PartnersPage() {
                               <div>
                                 <strong style={{ fontSize: '14px' }}>{partner.name}</strong>
                                 <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6b7280' }}>
-                                  🚢 {partnerBoats.length} лодок • {partner.commission_percent || 15}%
+                                  🚢 {partnerBoats.length} лодок • {partner.commission_percent ? partner.commission_percent + '%' : ''}
                                 </span>
                               </div>
                             </div>
                             <button 
-                              style={{ ...styles.btnDanger, fontSize: '10px', padding: '4px 8px' }} 
+                              style={{ fontSize: "10px", padding: "4px 8px", backgroundColor: "#3b82f6", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", marginRight: "6px" }}
+                              onClick={(e) => { e.stopPropagation(); startEditPartner(partner); }}
+                            >
+                              ✏️ Редактировать
+                            </button>
+                            <button
+                              style={{ ...styles.btnDanger, fontSize: '10px', padding: '4px 8px' }}
                               onClick={(e) => { e.stopPropagation(); deleteBoatPartner(partner.id); }}
                             >
                               Удалить
                             </button>
                           </div>
-                          
                           {/* Expanded Content */}
                           {isExpanded && (
                             <div style={{ padding: '12px', backgroundColor: 'white', borderTop: '1px solid #e5e7eb' }}>
@@ -1692,7 +1757,7 @@ export default function PartnersPage() {
                 </div>
                 <div>
                   <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Комиссия %</label>
-                  <input type="number" value={editForm.commission_percent || 15} onChange={e => setEditForm({...editForm, commission_percent: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <input type="number" value={editForm.commission_percent || ""} onChange={e => setEditForm({...editForm, commission_percent: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Адрес</label>
