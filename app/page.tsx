@@ -35,14 +35,12 @@ export default function Home() {
   const [searchDate, setSearchDate] = useState('');
 
   const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
   const [extraAdults, setExtraAdults] = useState(0);
   const [children3to11, setChildren3to11] = useState(0);
   const [childrenUnder3, setChildrenUnder3] = useState(0);
   const [customAdultPrice, setCustomAdultPrice] = useState<number | null>(null);
   const [customChildPrice, setCustomChildPrice] = useState<number | null>(null);
   const [customNotes, setCustomNotes] = useState<string>('');
-  const [infants, setInfants] = useState(0);
   const [boatType, setBoatType] = useState('');
   const [destination, setDestination] = useState('');
   const [boatNameSearch, setBoatNameSearch] = useState('');
@@ -192,7 +190,7 @@ export default function Home() {
   // Active tab in modal
   const [activeTab, setActiveTab] = useState<'included' | 'food' | 'drinks' | 'toys' | 'services' | 'transfer' | 'fees' | 'summary'>('included');
 
-  const totalGuests = adults + children + infants;
+  const totalGuests = adults + extraAdults + children3to11 + childrenUnder3;
 
   const boatTypes = [
     { value: '', label: 'Любой тип' },
@@ -664,16 +662,16 @@ export default function Home() {
     const totals = calculateTotals();
     const boatPriceForClient = Math.round((Number(selectedBoat?.calculated_total) || Number(selectedBoat?.base_price) || 0) * (1 + boatMarkup / 100));
     
-    let message = '🚤 *ЗАПРОС НА БРОНИРОВАНИЕ*\n\n';
-    message += '🛥️ *Яхта:* ' + selectedBoat.boat_name + '\n';
-    message += '📍 *Маршрут:* ' + (selectedBoat.route_name || 'По запросу') + '\n';
-    message += '⏱️ *Длительность:* ' + (selectedBoat.duration_hours || 8) + ' часов\n';
-    message += '👥 *Гостей:* ' + totalGuests + '\n\n';
+    let message = '*** ЗАПРОС НА БРОНИРОВАНИЕ ***\n\n';
+    message += '*Яхта:* ' + selectedBoat.boat_name + '\n';
+    message += '*Маршрут:* ' + (selectedBoat.route_name || 'По запросу') + '\n';
+    message += '*Длительность:* ' + (selectedBoat.duration_hours || 8) + ' часов\n';
+    message += '*Гостей:* ' + totalGuests + '\n\n';
     
-    message += '💰 *Стоимость яхты:* ' + boatPriceForClient.toLocaleString() + ' THB\n';
+    message += '*Стоимость яхты:* ' + boatPriceForClient.toLocaleString() + ' THB\n';
     
     if (cateringOrders.length > 0) {
-      message += '\n🍽️ *Питание:*\n';
+      message += '\n*Питание:*\n';
       cateringOrders.forEach(order => {
         const priceWithMarkup = Math.round(order.pricePerPerson * (1 + boatMarkup / 100));
         message += '  • ' + order.packageName + ' (' + order.persons + ' чел) - ' + (priceWithMarkup * order.persons).toLocaleString() + ' THB\n';
@@ -681,7 +679,7 @@ export default function Home() {
     }
     
     if (drinkOrders.length > 0) {
-      message += '\n🍺 *Напитки:*\n';
+      message += '\n*Напитки:*\n';
       drinkOrders.forEach(order => {
         const price = customPrices['drink_' + order.drinkId] || order.price;
         message += '  • ' + order.name + ' x' + order.quantity + ' - ' + (price * order.quantity).toLocaleString() + ' THB\n';
@@ -689,7 +687,7 @@ export default function Home() {
     }
     
     if (selectedFees.length > 0) {
-      message += '\n🏝️ *Парковые сборы:*\n';
+      message += '\n*Парковые сборы:*\n';
       selectedFees.forEach((fee: any) => {
         const price = customPrices['fee_' + fee.id] || fee.pricePerPerson;
         message += '  • ' + fee.name + ' - ' + (price * (fee.adults + fee.children)).toLocaleString() + ' THB\n';
@@ -697,17 +695,17 @@ export default function Home() {
     }
     
     if (transferPickup.type !== 'none' && transferPickup.price > 0) {
-      message += '\n🚗 *Трансфер:* ' + transferPickup.price.toLocaleString() + ' THB\n';
+      message += '\n*Трансфер:* ' + transferPickup.price.toLocaleString() + ' THB\n';
       if (transferPickup.pickup) {
         message += '  Адрес: ' + transferPickup.pickup + '\n';
       }
     }
     
     const finalTotal = boatPriceForClient + totals.catering + totals.drinks + totals.toys + totals.services + totals.fees + totals.transfer + (totals.partnerWatersports || 0);
-    message += '\n✅ *ИТОГО: ' + finalTotal.toLocaleString() + ' THB*';
+    message += '\n*ИТОГО: ' + finalTotal.toLocaleString() + ' THB*';
     
     if (customNotes) {
-      message += '\n\n📝 *Примечания:*\n' + customNotes;
+      message += '\n\n*Примечания:*\n' + customNotes;
     }
     
     const encoded = encodeURIComponent(message);
@@ -878,7 +876,7 @@ export default function Home() {
         nameRu: fee.name_ru,
         pricePerPerson: fee.price_per_person || 0,
         adults: adults, 
-        children: children,
+        children: children3to11,
         mandatory: fee.mandatory || false
       }]);
     }
@@ -1392,7 +1390,7 @@ export default function Home() {
                                     if (isSelected) {
                                       setCateringOrders(cateringOrders.filter(c => c.packageId !== set.id));
                                     } else {
-                                      setCateringOrders([...cateringOrders, { packageId: set.id, packageName: set.name_en + (set.name_ru ? ' (' + set.name_ru + ')' : ''), pricePerPerson: 0, persons: adults + children, notes: '' }]);
+                                      setCateringOrders([...cateringOrders, { packageId: set.id, packageName: set.name_en + (set.name_ru ? ' (' + set.name_ru + ')' : ''), pricePerPerson: 0, persons: adults + children3to11, notes: '' }]);
                                     }
                                   }}
                                   style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#22c55e' }}
@@ -1412,11 +1410,15 @@ export default function Home() {
                               )}
                             </div>
                             {set.dishes && set.dishes.length > 0 && (
-                              <div style={{ marginLeft: '30px', fontSize: '13px', color: '#15803d' }}>
+                              <div style={{ marginLeft: "30px", fontSize: "13px", color: "#15803d", display: "flex", flexDirection: "column", gap: "4px", marginTop: "6px" }}>
                                 {set.dishes.map((dish: string, i: number) => (
-                                  <span key={i}>{i > 0 ? ' • ' : ''}{dish}{set.dishes_ru && set.dishes_ru[i] ? ` (${set.dishes_ru[i]})` : ''}</span>
+                                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                                    <span style={{ color: "#22c55e", marginTop: "2px" }}>•</span>
+                                    <span>{dish}{set.dishes_ru && set.dishes_ru[i] ? ` (${set.dishes_ru[i]})` : ""}</span>
+                                  </div>
                                 ))}
                               </div>
+
                             )}
                           </div>
                         );
