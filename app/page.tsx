@@ -100,6 +100,7 @@ export default function Home() {
   const [defaultParkFeeChildren, setDefaultParkFeeChildren] = useState<number>(0);
   const [staffServices, setStaffServices] = useState<any[]>([]);
   const [boatMenu, setBoatMenu] = useState<any[]>([]);
+  const [selectedDishes, setSelectedDishes] = useState<Record<string, number>>({});
   
   // New: Boat markup slider
   const [boatMarkup, setBoatMarkup] = useState(15);
@@ -655,63 +656,123 @@ export default function Home() {
     }
   };
 
+
+
   // WhatsApp message generation
   const generateWhatsApp = () => {
     if (!selectedBoat) return;
-    
     const totals = calculateTotals();
     const boatPriceForClient = Math.round((Number(selectedBoat?.calculated_total) || Number(selectedBoat?.base_price) || 0) * (1 + boatMarkup / 100));
-    
-    let message = '*** ЗАПРОС НА БРОНИРОВАНИЕ ***\n\n';
+    const adultPriceToUse = customAdultPrice !== null ? customAdultPrice : (selectedBoat?.extra_pax_price || 0);
+    const childPriceToUse = customChildPrice !== null ? customChildPrice : (selectedBoat?.child_price_3_11 || Math.round((selectedBoat?.extra_pax_price || 0) * 0.5));
+    const extraAdultsSurch = extraAdults * adultPriceToUse;
+    const children3to11Surch = children3to11 * childPriceToUse;
+
+    let message = '*ЗАПРОС НА БРОНИРОВАНИЕ*\n\n';
     message += '*Яхта:* ' + selectedBoat.boat_name + '\n';
     message += '*Маршрут:* ' + (selectedBoat.route_name || 'По запросу') + '\n';
     message += '*Длительность:* ' + (selectedBoat.duration_hours || 8) + ' часов\n';
-    message += '*Гостей:* ' + totalGuests + '\n\n';
-    
+    message += '*Гостей:* ' + totalGuests + ' (взр: ' + (adults + extraAdults) + ', дети 3-11: ' + children3to11 + ', до 3: ' + childrenUnder3 + ')\n\n';
+
     message += '*Стоимость яхты:* ' + boatPriceForClient.toLocaleString() + ' THB\n';
-    
+    if (extraAdultsSurch + children3to11Surch > 0) {
+      message += '*Доп. гости (' + extraAdults + ' взр + ' + children3to11 + ' дет):* +' + (extraAdultsSurch + children3to11Surch).toLocaleString() + ' THB\n';
+    }
+
+    if (selectedExtras.length > 0) {
+      message += '\n*Доп. опции:*\n';
+      selectedExtras.forEach(e => {
+        message += '  - ' + e.name + ' x' + e.quantity + ' - ' + (e.price * e.quantity).toLocaleString() + ' THB\n';
+      });
+    }
+
+    const dishEntries = Object.entries(selectedDishes).filter(([, v]) => v > 0);
+    if (dishEntries.length > 0) {
+      message += '\n*Выбор блюд:*\n';
+      dishEntries.forEach(([key, count]) => {
+        const parts = key.split('_');
+        const setId = parts.slice(0, -2).join('_');
+        const dishIdx = parseInt(parts[parts.length - 2]);
+        const optIdx = parseInt(parts[parts.length - 1]);
+        const menuSet = boatMenu.find((m: any) => String(m.id) === setId);
+        if (menuSet && menuSet.dishes && menuSet.dishes[dishIdx]) {
+          const opts = menuSet.dishes[dishIdx].split(':').slice(1).join(':').split(',').map((o: string) => o.trim());
+          if (opts[optIdx]) message += '  - ' + opts[optIdx] + ' x' + count + '\n';
+        }
+      });
+    }
+
     if (cateringOrders.length > 0) {
       message += '\n*Питание:*\n';
       cateringOrders.forEach(order => {
         const priceWithMarkup = Math.round(order.pricePerPerson * (1 + boatMarkup / 100));
-        message += '  • ' + order.packageName + ' (' + order.persons + ' чел) - ' + (priceWithMarkup * order.persons).toLocaleString() + ' THB\n';
+        message += '  - ' + order.packageName + ' (' + order.persons + ' чел) - ' + (priceWithMarkup * order.persons).toLocaleString() + ' THB\n';
       });
     }
-    
+
     if (drinkOrders.length > 0) {
       message += '\n*Напитки:*\n';
       drinkOrders.forEach(order => {
         const price = customPrices['drink_' + order.drinkId] || order.price;
-        message += '  • ' + order.name + ' x' + order.quantity + ' - ' + (price * order.quantity).toLocaleString() + ' THB\n';
+        message += '  - ' + order.name + ' x' + order.quantity + ' - ' + (price * order.quantity).toLocaleString() + ' THB\n';
       });
     }
-    
+
+    if (selectedToys.length > 0) {
+      message += '\n*Водные игрушки:*\n';
+      selectedToys.forEach((t: any) => {
+        const cost = ((t.pricePerHour || 0) * (t.hours || 1) + (t.pricePerDay || 0) * (t.days || 0)) * (t.quantity || 1);
+        message += '  - ' + t.name + ' - ' + cost.toLocaleString() + ' THB\n';
+      });
+    }
+
+    if (selectedServices.length > 0) {
+      message += '\n*Услуги:*\n';
+      selectedServices.forEach((s: any) => {
+        message += '  - ' + s.name + ' x' + (s.quantity || 1) + ' - ' + ((s.price || 0) * (s.quantity || 1)).toLocaleString() + ' THB\n';
+      });
+    }
+
+    if (selectedPartnerWatersports.length > 0) {
+      message += '\n*Водный спорт:*\n';
+      selectedPartnerWatersports.forEach((w: any) => {
+        const cost = (Number(w.pricePerHour) || 0) * (Number(w.hours) || 0) + (Number(w.pricePerDay) || 0) * (Number(w.days) || 0);
+        message += '  - ' + w.name + ' - ' + cost.toLocaleString() + ' THB\n';
+      });
+    }
+
     if (selectedFees.length > 0) {
       message += '\n*Парковые сборы:*\n';
       selectedFees.forEach((fee: any) => {
         const price = customPrices['fee_' + fee.id] || fee.pricePerPerson;
-        message += '  • ' + fee.name + ' - ' + (price * (fee.adults + fee.children)).toLocaleString() + ' THB\n';
+        message += '  - ' + fee.name + ' - ' + (price * (fee.adults + fee.children)).toLocaleString() + ' THB\n';
       });
     }
-    
+
     if (transferPickup.type !== 'none' && transferPickup.price > 0) {
       message += '\n*Трансфер:* ' + transferPickup.price.toLocaleString() + ' THB\n';
-      if (transferPickup.pickup) {
-        message += '  Адрес: ' + transferPickup.pickup + '\n';
-      }
+      if (transferPickup.pickup) message += '  Адрес: ' + transferPickup.pickup + '\n';
     }
-    
-    const finalTotal = boatPriceForClient + totals.catering + totals.drinks + totals.toys + totals.services + totals.fees + totals.transfer + (totals.partnerWatersports || 0);
-    message += '\n*ИТОГО: ' + finalTotal.toLocaleString() + ' THB*';
-    
-    if (customNotes) {
-      message += '\n\n*Примечания:*\n' + customNotes;
-    }
-    
-    const encoded = encodeURIComponent(message);
-    window.open('https://wa.me/?text=' + encoded, '_blank');
-  };
 
+
+    const finalTotal = totals.totalClient || 0;
+    message += '\n--- СВОДКА ---\n';
+    message += '*Яхта:* ' + boatPriceForClient.toLocaleString() + ' THB\n';
+    if (extraAdultsSurch + children3to11Surch > 0) {
+      message += '*Доп. гости:* +' + (extraAdultsSurch + children3to11Surch).toLocaleString() + ' THB\n';
+    }
+    if (totals.extras > 0) message += '*Доп. опции:* +' + totals.extras.toLocaleString() + ' THB\n';
+    if (totals.catering > 0) message += '*Питание:* +' + totals.catering.toLocaleString() + ' THB\n';
+    if (totals.drinks > 0) message += '*Напитки:* +' + totals.drinks.toLocaleString() + ' THB\n';
+    if (totals.toys > 0) message += '*Водные игрушки:* +' + totals.toys.toLocaleString() + ' THB\n';
+    if (totals.services > 0) message += '*Услуги:* +' + totals.services.toLocaleString() + ' THB\n';
+    if ((totals.partnerWatersports || 0) > 0) message += '*Водный спорт:* +' + (totals.partnerWatersports || 0).toLocaleString() + ' THB\n';
+    if (totals.fees > 0) message += '*Парковые сборы:* +' + totals.fees.toLocaleString() + ' THB\n';
+    if (totals.transfer > 0) message += '*Трансфер:* +' + totals.transfer.toLocaleString() + ' THB\n';
+    message += '\n*ИТОГО К ОПЛАТЕ: ' + finalTotal.toLocaleString() + ' THB*';
+    if (customNotes) message += '\n\n*Примечания:*\n' + customNotes;
+    window.open('https://wa.me/?text=' + encodeURIComponent(message), '_blank');
+  };
   // ==================== TOGGLE FUNCTIONS ====================
   const toggleExtra = (option: BoatOption) => {
     const exists = selectedExtras.find(e => e.optionId === option.id);
@@ -1410,15 +1471,46 @@ export default function Home() {
                               )}
                             </div>
                             {set.dishes && set.dishes.length > 0 && (
-                              <div style={{ marginLeft: "30px", fontSize: "13px", color: "#15803d", display: "flex", flexDirection: "column", gap: "4px", marginTop: "6px" }}>
-                                {set.dishes.map((dish: string, i: number) => (
-                                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                                    <span style={{ color: "#22c55e", marginTop: "2px" }}>•</span>
-                                    <span>{dish}{set.dishes_ru && set.dishes_ru[i] ? ` (${set.dishes_ru[i]})` : ""}</span>
-                                  </div>
-                                ))}
+                              <div style={{ marginLeft: "30px", fontSize: "13px", color: "#15803d", display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
+                                {set.dishes.map((dish: string, i: number) => {
+                                  const isChoice = dish.match(/^Choice of|^Select|^Pick/i);
+                                  const dishRu = set.dishes_ru && set.dishes_ru[i] ? set.dishes_ru[i] : "";
+                                  const isChoiceRu = dishRu.match(/^На выбор/i);
+                                  if (isChoice || isChoiceRu) {
+                                    const label = dish.split(":")[0];
+                                    const labelRu = dishRu ? dishRu.split(":")[0] : "";
+                                    const options = dish.split(":").slice(1).join(":").split(",").map(o => o.trim()).filter(Boolean);
+                                    const optionsRu = dishRu ? dishRu.split(":").slice(1).join(":").split(",").map((o: string) => o.trim()).filter(Boolean) : [];
+                                    return (
+                                      <div key={i} style={{ padding: "10px 14px", backgroundColor: "#fef9c3", borderRadius: "8px", border: "1px solid #fde68a" }}>
+                                        <div style={{ fontWeight: "600", marginBottom: "8px", color: "#92400e" }}>{label}{labelRu ? ` (${labelRu})` : ""}:</div>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                          {options.map((opt, j) => {
+                                            const key = set.id + "_" + i + "_" + j;
+                                            const count = selectedDishes[key] || 0;
+                                            return (
+                                              <div key={j} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", borderRadius: "6px", backgroundColor: count > 0 ? "#dcfce7" : "#fefce8" }}>
+                                                <span style={{ flex: 1 }}>{opt}{optionsRu[j] ? ` (${optionsRu[j]})` : ""}</span>
+                                                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "12px" }}>
+                                                  <button onClick={() => setSelectedDishes(prev => ({...prev, [key]: Math.max(0, (prev[key] || 0) - 1)}))} style={{ width: "26px", height: "26px", border: "1px solid #d1d5db", borderRadius: "6px", backgroundColor: "white", cursor: "pointer", fontSize: "14px" }}>−</button>
+                                                  <span style={{ minWidth: "24px", textAlign: "center", fontWeight: "600" }}>{count}</span>
+                                                  <button onClick={() => setSelectedDishes(prev => ({...prev, [key]: (prev[key] || 0) + 1}))} style={{ width: "26px", height: "26px", border: "1px solid #22c55e", borderRadius: "6px", backgroundColor: "white", cursor: "pointer", fontSize: "14px", color: "#166534" }}>+</button>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                                      <span style={{ color: "#22c55e", marginTop: "2px" }}>•</span>
+                                      <span>{dish}{dishRu ? ` (${dishRu})` : ""}</span>
+                                    </div>
+                                  );
+                                })}
                               </div>
-
                             )}
                           </div>
                         );
