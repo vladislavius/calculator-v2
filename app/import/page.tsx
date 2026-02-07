@@ -281,7 +281,7 @@ export default function ImportPage() {
         schedule: b.schedule || '',
         photos_url: b.photos_url || '',
         notes: b.notes || '',
-        features: aiFeatures,
+        features: JSON.parse(JSON.stringify(aiFeatures)),
         routes: (b.routes || []).map((r: any) => ({
           destination: r.destination || r.name || '',
           departure_pier: r.departure_pier || b.departure_pier || 'Chalong Pier',
@@ -1067,7 +1067,7 @@ export default function ImportPage() {
       }
       
       // Save to import history
-      await getSupabase().from('import_history').insert({
+      const { error: histErr } = await getSupabase().from('import_history').insert({
         partner_id: partnerId,
         partner_name: selectedPartnerName || extractedData.partner_name,
         import_type: importMode || 'full_contract',
@@ -1076,6 +1076,7 @@ export default function ImportPage() {
         raw_data: extractedData,
         status: 'success'
       });
+      if (histErr) console.error('History save error:', histErr);
       
       setSaveStatus('✅ Успешно! Партнёр, лодки, ценовые правила (' + (extractedData.pricing_rules?.length || 0) + ' вариантов) и опции сохранены.');
     } catch (error: any) {

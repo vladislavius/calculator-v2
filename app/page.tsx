@@ -30,6 +30,27 @@ const getSupabase = (): any => {
 // FEES moved to route_fees table in DB
 
 // ==================== COMPONENT ====================
+
+const seasonLabel = (s: string) => {
+  const map: Record<string, string> = {
+    'peak': '🔥 Пик',
+    'high': '☀️ Высокий',
+    'low': '🌧️ Низкий',
+    'all': '📅 Все сезоны',
+    'nov_dec': '📅 Ноя-Дек',
+    'dec_feb': '📅 Дек-Фев',
+    'jan_feb': '📅 Янв-Фев',
+    'mar_apr': '📅 Мар-Апр',
+    'may_jun': '📅 Май-Июн',
+    'jul_aug': '📅 Июл-Авг',
+    'sep_oct': '📅 Сен-Окт',
+    'chinese_new_year': '🏮 Кит. Новый год',
+    'chinese_national_day': '🏮 Нац. день Китая',
+    'international_labour_day': '📅 День труда',
+  };
+  return map[s] || s;
+};
+
 export default function Home() {
   // Search state
   const [searchDate, setSearchDate] = useState('');
@@ -1216,10 +1237,11 @@ export default function Home() {
                   <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
                     <span>📏 {boat.length_ft} ft</span>
                     <span>👥 до {boat.max_guests} чел</span>
-                    <span>🛏️ {boat.cabin_count} каюты</span>
+                    {boat.cabin_count > 0 && <span>🛏️ {boat.cabin_count} каюты</span>}
                   </div>
                   <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', marginBottom: '12px' }}>
                     <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>🗺️ {boat.route_name}</p>
+                    {boat.season && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#8b5cf6' }}>{seasonLabel(boat.season)}</p>}
                     {boat.fuel_surcharge > 0 && (
                       <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#f59e0b' }}>⛽ +{boat.fuel_surcharge.toLocaleString()} THB топливо</p>
                     )}
@@ -1298,7 +1320,7 @@ export default function Home() {
                   <div>
                     <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>🚢 {selectedBoat.boat_name}</h2>
                     <p style={{ margin: '8px 0 0', fontSize: '16px', opacity: 0.9 }}>📍 {selectedBoat.route_name}</p>
-                    <p style={{ margin: '4px 0 0', fontSize: '14px', opacity: 0.8 }}>{selectedBoat.partner_name} • {selectedBoat.duration_hours || 8}ч • до {selectedBoat.max_guests} гостей</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '14px', opacity: 0.8 }}>{selectedBoat.partner_name} • {selectedBoat.duration_hours || 8}ч • до {selectedBoat.max_guests} гостей{selectedBoat.cabin_count > 0 && (" • " + selectedBoat.cabin_count + " кают")}{selectedBoat.season && (" • " + seasonLabel(selectedBoat.season))}</p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <p style={{ margin: 0, fontSize: '14px', opacity: 0.8 }}>Базовая цена</p>

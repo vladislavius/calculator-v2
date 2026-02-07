@@ -11,6 +11,7 @@ export interface SearchResult {
   partner_name: string;
   partner_id: number;
   route_name: string;
+  route_name_ru?: string;
   destination: string;
   duration_hours: number;
   duration?: string;
