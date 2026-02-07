@@ -370,7 +370,7 @@ export default function Home() {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const { data, error } = await getSupabase().rpc('search_available_boats', {
+      const { data, error } = await getSupabase().rpc('search_available_boats' as any, {
         p_date: searchDate,
         p_guests: totalGuests,
         p_time_slot: timeSlot,
