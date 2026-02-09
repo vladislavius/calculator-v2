@@ -216,7 +216,7 @@ DO NOT ADD items like "Life Jackets", "Insurance", "Captain" unless EXPLICITLY l
         { role: 'user', content: `Parse this charter contract. Extract ONLY what is explicitly written:\n\n${text.substring(0, 25000)}` }
       ],
       temperature: 0.05,
-      max_tokens: 8000,
+      max_tokens: 16000,
     });
 
     let content = response.choices[0].message.content || '{}';
