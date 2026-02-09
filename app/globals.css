@@ -16,3 +16,211 @@ textarea {
   color: #1f2937;
   background-color: white;
 }
+
+/* ========== MOBILE RESPONSIVE ========== */
+
+@media (max-width: 768px) {
+  /* Global: prevent horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* All flex containers: allow wrapping */
+  div[style*="display: flex"],
+  div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* Main page container padding */
+  div[style*="max-width: 1400px"],
+  div[style*="maxWidth: 1400px"],
+  div[style*="max-width:1400px"] {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  /* Search form: stack vertically */
+  div[style*="gap: 16px"][style*="flex"] > div[style*="flex:"] {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Search button: full width */
+  div[style*="flex: 0 0 auto"] {
+    flex: 1 1 100% !important;
+    margin-left: 0 !important;
+  }
+
+  div[style*="flex: 0 0 auto"] button {
+    width: 100% !important;
+  }
+
+  /* Modal: full screen on mobile */
+  div[style*="position: fixed"][style*="z-index: 1000"],
+  div[style*="position: fixed"][style*="zIndex: 1000"] {
+    padding: 0 !important;
+  }
+
+  div[style*="max-width: 1200px"],
+  div[style*="maxWidth: 1200px"],
+  div[style*="max-width:1200px"] {
+    max-width: 100% !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    height: 100vh !important;
+  }
+
+  /* Modal content padding */
+  div[style*="overflow: auto"][style*="padding: 24px"],
+  div[style*="overflow:auto"][style*="padding:24px"] {
+    padding: 12px !important;
+  }
+
+  /* Boat info header in modal */
+  div[style*="linear-gradient"][style*="padding: 20px"] {
+    padding: 12px !important;
+  }
+
+  div[style*="linear-gradient"][style*="padding: 20px"] p {
+    font-size: 12px !important;
+  }
+
+  /* Cards: reduce padding */
+  div[style*="border-radius: 12px"][style*="padding: 20px"] {
+    padding: 12px !important;
+  }
+
+  div[style*="borderRadius: 12px"][style*="padding: 20px"] {
+    padding: 12px !important;
+  }
+
+  /* Grids: single column */
+  div[style*="grid-template-columns"],
+  div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Flex rows with gaps: reduce gap */
+  div[style*="gap: 20px"] {
+    gap: 10px !important;
+  }
+
+  div[style*="gap: 16px"] {
+    gap: 8px !important;
+  }
+
+  /* Tables: make scrollable */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Inputs: proper sizing */
+  input[type="number"] {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  select {
+    max-width: 100% !important;
+  }
+
+  /* Section headers: smaller text */
+  h2 {
+    font-size: 18px !important;
+  }
+
+  h3 {
+    font-size: 16px !important;
+  }
+
+  /* Summary section total: wrap */
+  div[style*="font-size: 24px"] {
+    font-size: 18px !important;
+  }
+
+  /* BoatCard: stack content */
+  div[style*="gap: 20px"][style*="align-items: center"] > div {
+    flex: 1 1 100% !important;
+  }
+
+  /* Header navigation */
+  nav, 
+  div[style*="gap: 8px"] > a,
+  div[style*="gap: 12px"] > a {
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+  }
+
+  /* Search results cards */
+  div[style*="gap: 12px"][style*="flex-direction: column"] > div {
+    width: 100% !important;
+  }
+
+  /* Price displays */
+  span[style*="font-size: 28px"],
+  span[style*="fontSize: 28px"] {
+    font-size: 20px !important;
+  }
+
+  /* Buttons: readable on mobile */
+  button {
+    min-height: 44px;
+    font-size: 14px !important;
+  }
+
+  /* Guest selector flex */
+  div[style*="display: flex"][style*="gap"][style*="align-items: center"] {
+    gap: 6px !important;
+  }
+
+  /* Two column layouts to single */
+  div[style*="display: flex"] > div[style*="flex: 1"] {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Modal header actions */
+  div[style*="display: flex"][style*="gap: 8px"] {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  div[style*="display: flex"][style*="gap: 8px"] button {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Included options: wrap tags */
+  div[style*="flex-wrap: wrap"] {
+    gap: 4px !important;
+  }
+
+  div[style*="flex-wrap: wrap"] > span,
+  div[style*="flexWrap: wrap"] > span {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+}
+
+/* ========== SMALL PHONES ========== */
+@media (max-width: 380px) {
+  div[style*="padding: 12px"] {
+    padding: 8px !important;
+  }
+
+  button {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+  }
+
+  h3 {
+    font-size: 14px !important;
+  }
+
+  span[style*="font-size: 20px"] {
+    font-size: 16px !important;
+  }
+}
