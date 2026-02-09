@@ -1,15 +1,28 @@
 "use client";
 
-import { SearchResult } from "../lib/types";
-import { CalcResult } from "../lib/calculateTotals";
+import { useCharterStore } from '../store/useCharterStore';
+import { calculateTotals } from '../lib/calculateTotals';
 
-interface ModalHeaderProps {
-  selectedBoat: SearchResult;
-  totals: CalcResult;
-  closeModal: () => void;
-}
+export default function ModalHeader({ closeModal }: { closeModal: () => void }) {
+  const s = useCharterStore();
+  const selectedBoat = s.selectedBoat!;
+  const totals = calculateTotals({
+    selectedBoat: s.selectedBoat, selectedExtras: s.selectedExtras,
+    cateringOrders: s.cateringOrders, drinkOrders: s.drinkOrders,
+    selectedToys: s.selectedToys, selectedServices: s.selectedServices,
+    selectedFees: s.selectedFees, selectedPartnerWatersports: s.selectedPartnerWatersports,
+    transferPickup: s.transferPickup, transferDropoff: s.transferDropoff,
+    transferPrice: s.transferPrice, transferMarkup: s.transferMarkup,
+    landingEnabled: s.landingEnabled, landingFee: s.landingFee,
+    defaultParkFeeEnabled: s.defaultParkFeeEnabled, defaultParkFee: s.defaultParkFee,
+    defaultParkFeeAdults: s.defaultParkFeeAdults, defaultParkFeeChildren: s.defaultParkFeeChildren,
+    corkageFee: s.corkageFee, extraAdults: s.extraAdults, children3to11: s.children3to11,
+    childrenUnder3: s.childrenUnder3, adults: s.adults,
+    customAdultPrice: s.customAdultPrice, customChildPrice: s.customChildPrice,
+    boatMarkup: s.boatMarkup, fixedMarkup: s.fixedMarkup,
+    markupMode: s.markupMode, markupPercent: s.markupPercent, customPrices: s.customPrices,
+  });
 
-export default function ModalHeader({ selectedBoat, totals, closeModal }: ModalHeaderProps) {
   return (
     <>
       <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8fafc" }}>

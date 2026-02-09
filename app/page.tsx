@@ -980,7 +980,7 @@ export default function Home() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '16px', width: '100%', maxWidth: '1200px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             
-            <ModalHeader selectedBoat={selectedBoat} totals={totals} closeModal={closeModal} />
+            <ModalHeader closeModal={closeModal} />
 
             <div style={{ flex: 1, overflow: 'auto', padding: '24px' }}>
               {/* Boat info header */}
@@ -991,14 +991,7 @@ export default function Home() {
                   </div>
                 </div>
 
-<GuestSelector
-                selectedBoat={selectedBoat}
-                extraAdults={extraAdults} setExtraAdults={setExtraAdults}
-                children3to11={children3to11} setChildren3to11={setChildren3to11}
-                childrenUnder3={childrenUnder3} setChildrenUnder3={setChildrenUnder3}
-                customAdultPrice={customAdultPrice} setCustomAdultPrice={setCustomAdultPrice}
-                customChildPrice={customChildPrice} setCustomChildPrice={setCustomChildPrice}
-              />
+<GuestSelector />
               </div>
 
               {/* ==================== INCLUDED SECTION ==================== */}
