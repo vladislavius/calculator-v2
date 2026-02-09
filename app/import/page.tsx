@@ -730,9 +730,10 @@ export default function ImportPage() {
     if (!extractedData) return;
     setSaveStatus('Сохранение...');
     
-    try {
-      let partnerId: number;
-      
+    let saveError: any = null;
+    let partnerId: number = 0;
+    
+    try {      
       // Check if partner was pre-selected (single boat mode)
       if (selectedPartnerId && selectedPartnerId > 0) {
         partnerId = selectedPartnerId;
@@ -1191,26 +1192,42 @@ export default function ImportPage() {
         }
       }
       
-      // Save to import history
-      const { error: histErr } = await supabase.from('import_history').insert({
-        partner_id: partnerId,
-        partner_name: selectedPartnerName || extractedData.partner_name,
-        import_type: importMode || 'full_contract',
-        boats_added: extractedData.boats.length,
-        routes_added: extractedData.routes?.length || extractedData.boats?.reduce((sum: number, b: any) => sum + (b.routes?.length || 0), 0) || 0,
-        raw_data: extractedData,
-        status: 'success'
-      });
-      if (histErr) console.error('History save error:', histErr);
-      
-      setSaveStatus('✅ Успешно! Партнёр, лодки, ценовые правила (' + (extractedData.pricing_rules?.length || 0) + ' вариантов) и опции сохранены.');
-      fetchImportHistory();
+      saveError = null;
     } catch (error: any) {
+      saveError = error;
       console.error('Save error:', error);
-      setSaveStatus('❌ Ошибка: ' + error.message);
+    } finally {
+      // ALWAYS save to import history — success or error
+      try {
+        const boatNames = extractedData.boats?.map((b: any) => b.name).filter(Boolean) || [];
+        const routesCount = extractedData.routes?.length || 
+          extractedData.boats?.reduce((sum: number, b: any) => sum + (b.routes?.length || 0), 0) || 0;
+        
+        const { error: histErr } = await supabase.from('import_history').insert({
+          partner_id: partnerId || null,
+          partner_name: selectedPartnerName || extractedData.partner_name || 'Unknown',
+          import_type: importMode || 'full_contract',
+          boats_added: extractedData.boats?.length || 0,
+          routes_added: routesCount,
+          raw_data: extractedData,
+          status: saveError ? 'error' : 'success',
+          error_message: saveError?.message || null,
+          boat_names: boatNames.join(', ') || null
+        });
+        if (histErr) console.error('History save error:', histErr);
+        
+        fetchImportHistory();
+      } catch (histError) {
+        console.error('Failed to save import history:', histError);
+      }
+      
+      if (saveError) {
+        setSaveStatus('❌ Ошибка: ' + saveError.message);
+      } else {
+        setSaveStatus('✅ Успешно! Партнёр, лодки, ценовые правила (' + (extractedData.pricing_rules?.length || 0) + ' вариантов) и опции сохранены.');
+      }
     }
   };
-
   const inputStyle = {
     padding: '8px 12px',
     border: '1px solid #d1d5db',
