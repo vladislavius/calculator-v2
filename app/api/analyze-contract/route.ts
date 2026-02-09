@@ -25,6 +25,15 @@ DETECT CONTRACT TYPE:
 - TYPE A: Day charters with routes/destinations (Coral, Racha, Phi Phi, etc.)
 - TYPE B: Overnight/multi-day charters (2D/1N, 3D/2N, etc.)
 - TYPE C: Multiple boats with same routes (like Tiger Marine, Badaro)
+- TYPE D: Boat names listed at top, then SHARED pricing section below
+
+FOR TYPE C and D - CRITICAL:
+- If boats are listed together (e.g. "1. Catamaran Super-V  2. Catamaran Super-Y") with ONE price table
+- Create a SEPARATE boat entry for EACH boat name
+- COPY the same routes and prices to EACH boat
+- Extract boat names from numbered lists, headers, or any listing
+- Example: "Catamaran Super – V and Super Y" = 2 boats: "Super V" and "Super Y"
+- Each boat gets its OWN copy of all routes and prices from that section
 
 EXTRACT STRUCTURE:
 
