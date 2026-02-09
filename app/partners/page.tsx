@@ -24,6 +24,10 @@ export default function PartnersPage() {
   const [expandedPartners, setExpandedPartners] = useState<Set<number>>(new Set());
   const [editingPartner, setEditingPartner] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [editingOtherPartner, setEditingOtherPartner] = useState<any>(null);
+  const [editOtherForm, setEditOtherForm] = useState<any>({});
+  const [editingServiceItem, setEditingServiceItem] = useState<any>(null);
+  const [editServiceForm, setEditServiceForm] = useState<any>({});
 
   const [selectedBoat, setSelectedBoat] = useState<any>(null);
   const [boatRoutes, setBoatRoutes] = useState<any[]>([]);
@@ -764,6 +768,59 @@ export default function PartnersPage() {
   };
 
 
+
+  const startEditOtherPartner = async (partner: any) => {
+    const table = activeTab === 'catering' ? 'catering_partners' : 'watersports_partners';
+    const { data } = await getSupabase().from(table).select('*').eq('id', partner.id).single();
+    setEditOtherForm(data || partner);
+    setEditingOtherPartner(partner.id);
+  };
+
+  const saveOtherPartner = async () => {
+    if (!editingOtherPartner) return;
+    const table = activeTab === 'catering' ? 'catering_partners' : 'watersports_partners';
+    const { error } = await getSupabase().from(table).update({
+      name: editOtherForm.name,
+      contact_person: editOtherForm.contact_person || null,
+      phone: editOtherForm.phone || null,
+      email: editOtherForm.email || null,
+      website: editOtherForm.website || null,
+      address: editOtherForm.address || null,
+      bank_name: editOtherForm.bank_name || null,
+      bank_account_name: editOtherForm.bank_account_name || null,
+      bank_account_number: editOtherForm.bank_account_number || null,
+      bank_branch: editOtherForm.bank_branch || null,
+      swift_code: editOtherForm.swift_code || null,
+      tax_id: editOtherForm.tax_id || null,
+      notes: editOtherForm.notes || null,
+    }).eq('id', editingOtherPartner);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    setEditingOtherPartner(null);
+    loadData();
+  };
+
+  const startEditServiceItem = (item: any) => {
+    setEditServiceForm({...item});
+    setEditingServiceItem(item.id);
+  };
+
+  const saveServiceItem = async () => {
+    if (!editingServiceItem) return;
+    const table = activeTab === 'catering' ? 'catering_menu' : 'watersports_catalog';
+    const updateData: any = { name_en: editServiceForm.name_en, name_ru: editServiceForm.name_ru };
+    if (activeTab === 'catering') {
+      updateData.price_per_person = editServiceForm.price_per_person;
+      updateData.category = editServiceForm.category;
+    } else {
+      updateData.price_per_hour = editServiceForm.price_per_hour;
+      updateData.price_per_day = editServiceForm.price_per_day;
+    }
+    const { error } = await getSupabase().from(table).update(updateData).eq('id', editingServiceItem);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    setEditingServiceItem(null);
+    loadData();
+  };
+
   const startEditPartner = async (partner: any) => {
     const { data } = await getSupabase().from('partners').select('*').eq('id', partner.id).single();
     setEditForm(data || partner);
@@ -1367,13 +1424,25 @@ export default function PartnersPage() {
               {(activeTab === 'catering' ? cateringPartners : watersportsPartners).map(partner => (
                 <div key={partner.id}>
                   <div style={{ ...styles.listItem, backgroundColor: '#f9fafb', fontWeight: '600' }}>
-                    <span>{partner.name}</span>
-                    <button 
-                      style={styles.btnDanger}
-                      onClick={() => deletePartner(activeTab === 'catering' ? 'catering_partners' : 'watersports_partners', partner.id)}
-                    >
-                      Удалить
-                    </button>
+                    <div style={{ flex: 1 }}>
+                      <span>{partner.name}</span>
+                      {partner.phone && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6b7280' }}>📞 {partner.phone}</span>}
+                      {partner.email && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6b7280' }}>✉️ {partner.email}</span>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                        onClick={() => startEditOtherPartner(partner)}
+                      >
+                        ✏️ Редактировать
+                      </button>
+                      <button 
+                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                        onClick={() => deletePartner(activeTab === 'catering' ? 'catering_partners' : 'watersports_partners', partner.id)}
+                      >
+                        Удалить
+                      </button>
+                    </div>
                   </div>
                   {/* Show items for this partner */}
                   {(activeTab === 'catering' 
@@ -1381,19 +1450,43 @@ export default function PartnersPage() {
                     : watersportsCatalog.filter(w => w.partner_id === partner.id)
                   ).map(item => (
                     <div key={item.id} style={{ ...styles.listItem, paddingLeft: '20px', fontSize: '13px' }}>
-                      <span>
-                        {item.name_en} — 
-                        {activeTab === 'catering' 
-                          ? ` ${item.price_per_person} THB/чел`
-                          : ` ${item.price_per_hour || 0} THB/час, ${item.price_per_day || 0} THB/день`
-                        }
-                      </span>
-                      <button 
-                        style={styles.btnDanger}
-                        onClick={() => deleteMenuItem(activeTab === 'catering' ? 'catering_menu' : 'watersports_catalog', item.id)}
-                      >
-                        ✕
-                      </button>
+                      {editingServiceItem === item.id ? (
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flex: 1 }}>
+                          <input value={editServiceForm.name_en || ''} onChange={e => setEditServiceForm({...editServiceForm, name_en: e.target.value})}
+                            style={{ flex: 1, padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
+                          {activeTab === 'catering' ? (
+                            <input type="number" value={editServiceForm.price_per_person || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_person: Number(e.target.value)})}
+                              style={{ width: '80px', padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
+                          ) : (
+                            <>
+                              <input type="number" value={editServiceForm.price_per_hour || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_hour: Number(e.target.value)})}
+                                style={{ width: '70px', padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} placeholder="час" />
+                              <input type="number" value={editServiceForm.price_per_day || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_day: Number(e.target.value)})}
+                                style={{ width: '70px', padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} placeholder="день" />
+                            </>
+                          )}
+                          <button onClick={saveServiceItem} style={{ padding: '4px 10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✓</button>
+                          <button onClick={() => setEditingServiceItem(null)} style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+                        </div>
+                      ) : (
+                        <>
+                          <span style={{ flex: 1 }}>
+                            {item.name_en} — 
+                            {activeTab === 'catering' 
+                              ? ` ${item.price_per_person} THB/чел`
+                              : ` ${item.price_per_hour || 0} THB/час, ${item.price_per_day || 0} THB/день`
+                            }
+                          </span>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button onClick={() => startEditServiceItem(item)}
+                              style={{ padding: '4px 8px', backgroundColor: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️</button>
+                            <button 
+                              style={{ padding: '4px 8px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                              onClick={() => deleteMenuItem(activeTab === 'catering' ? 'catering_menu' : 'watersports_catalog', item.id)}
+                            >✕</button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1829,6 +1922,50 @@ export default function PartnersPage() {
           </div>
         )}
 
+
+      {/* Edit Other Partner Modal */}
+      {editingOtherPartner && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', maxWidth: '500px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, fontSize: '18px' }}>✏️ Редактировать партнёра</h2>
+              <button onClick={() => setEditingOtherPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Название</label>
+              <input value={editOtherForm.name || ''} onChange={e => setEditOtherForm({...editOtherForm, name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Контактное лицо</label>
+              <input value={editOtherForm.contact_person || ''} onChange={e => setEditOtherForm({...editOtherForm, contact_person: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Телефон</label>
+              <input value={editOtherForm.phone || ''} onChange={e => setEditOtherForm({...editOtherForm, phone: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Email</label>
+              <input value={editOtherForm.email || ''} onChange={e => setEditOtherForm({...editOtherForm, email: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Вебсайт</label>
+              <input value={editOtherForm.website || ''} onChange={e => setEditOtherForm({...editOtherForm, website: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Адрес</label>
+              <input value={editOtherForm.address || ''} onChange={e => setEditOtherForm({...editOtherForm, address: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Tax ID</label>
+              <input value={editOtherForm.tax_id || ''} onChange={e => setEditOtherForm({...editOtherForm, tax_id: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div style={{ padding: '12px', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                <p style={{ margin: '0 0 8px', fontWeight: '600', fontSize: '13px', color: '#0369a1' }}>🏦 Банковские реквизиты</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input placeholder="Название банка" value={editOtherForm.bank_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Имя владельца счёта" value={editOtherForm.bank_account_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Номер счёта" value={editOtherForm.bank_account_number || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_number: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Отделение (Branch)" value={editOtherForm.bank_branch || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_branch: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="SWIFT код" value={editOtherForm.swift_code || ''} onChange={e => setEditOtherForm({...editOtherForm, swift_code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+              </div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Заметки</label>
+              <textarea value={editOtherForm.notes || ''} onChange={e => setEditOtherForm({...editOtherForm, notes: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', minHeight: '60px' }} /></div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+              <button onClick={() => setEditingOtherPartner(null)} style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: 'white', cursor: 'pointer' }}>Отмена</button>
+              <button onClick={saveOtherPartner} style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>💾 Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
