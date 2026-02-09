@@ -212,53 +212,40 @@ export default function ImportPage() {
     setLoadingStatus('AI анализирует контракт...');
     
     try {
-      // Smart split: partner first, then boats in chunks
-      setLoadingStatus('AI анализирует партнёра и условия (1/?)...');
-      const resp1 = await fetch('/api/analyze-contract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: contractText, part: 1 })
-      });
-      const result1 = await resp1.json();
-      if (!result1.success) throw new Error(result1.error || 'Part 1 failed');
-
-      // Split contract text into boat sections
-      const boatSections: string[] = [];
-      const textLower = contractText.toLowerCase();
-      // Find boat markers like 'Charter Boat', 'Net Price', boat names
-      const markers = [...contractText.matchAll(/Charter\s+Boat[\s\S]*?(?=Charter\s+Boat|Term|$)/gi)];
-      if (markers.length > 0) {
-        // Split by Charter Boat sections
-        for (let i = 0; i < markers.length; i += 2) {
-          const chunk = markers.slice(i, i + 2).map(m => m[0]).join('\n');
-          if (chunk.length > 100) boatSections.push(chunk);
-        }
-      } else {
-        // Fallback: split text in half
-        const mid = Math.floor(contractText.length / 2);
-        const splitPoint = contractText.indexOf('\n', mid);
-        boatSections.push(contractText.substring(0, splitPoint));
-        boatSections.push(contractText.substring(splitPoint));
-      }
-
-      let allBoats: any[] = [];
-      let allPricing: any[] = [];
-      for (let i = 0; i < boatSections.length; i++) {
-        setLoadingStatus(`AI анализирует лодки (${i + 2}/${boatSections.length + 1})...`);
+      // Smart split: small contracts = 1 request, large = split
+      let ai: any;
+      if (contractText.length < 15000) {
+        // Small contract - single request
+        setLoadingStatus('AI анализирует контракт...');
         const resp = await fetch('/api/analyze-contract', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: boatSections[i], part: 2 })
+          body: JSON.stringify({ text: contractText })
         });
         const result = await resp.json();
-        if (result.success && result.data) {
-          if (result.data.boats) allBoats.push(...result.data.boats);
-          if (result.data.pricing_rules) allPricing.push(...result.data.pricing_rules);
-        }
-      }
+        if (!result.success) throw new Error(result.error || 'Analysis failed');
+        ai = result.data;
+      } else {
+        // Large contract - split into partner + boats
+        setLoadingStatus('AI анализирует партнёра и условия (1/2)...');
+        const resp1 = await fetch('/api/analyze-contract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: contractText, part: 1 })
+        });
+        const result1 = await resp1.json();
+        if (!result1.success) throw new Error(result1.error || 'Part 1 failed');
 
-      // Merge all results
-      const ai = { ...result1.data, boats: allBoats, pricing_rules: allPricing };
+        setLoadingStatus('AI анализирует лодки и цены (2/2)...');
+        const resp2 = await fetch('/api/analyze-contract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: contractText, part: 2 })
+        });
+        const result2 = await resp2.json();
+        if (!result2.success) throw new Error(result2.error || 'Part 2 failed');
+        ai = { ...result1.data, ...result2.data };
+      }
       const partner = ai.partner || {};
       
       // Build features from AI included and extras
