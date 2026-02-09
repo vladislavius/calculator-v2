@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder, TransferOrder } from './lib/types';
 import { t, Lang } from "./lib/i18n";import { inputStyle, labelStyle, cardStyle, tabStyle } from './lib/styles';
 import { calculateTotals } from './lib/calculateTotals';
+import Header from './components/Header';
+import SearchResults from './components/SearchResults';
 
 
 // ==================== MOCK DATA ====================
@@ -901,28 +903,7 @@ export default function Home() {
   // ==================== RENDER ====================
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      {/* Header */}
-      <header style={{ background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)', color: 'white', padding: '20px 24px' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>🚤 Phuket Charter Pro</h1>
-            <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '14px' }}>Профессиональный калькулятор чартеров</p>
-          </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div style={{ position: 'relative', display: 'inline-block' }} className="import-dropdown">
-              <a href="/import-all" style={{ padding: '8px 16px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', textDecoration: 'none', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                📦 Импорт
-              </a>
-            </div>
-            <a href="/partners" style={{ padding: '8px 16px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', textDecoration: 'none', fontSize: '14px' }}>
-              👥 Партнёры
-            </a>
-            <div style={{ display: "flex", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "8px", padding: "2px" }}>
-              <button onClick={() => setLang("ru")} style={{ padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: "600", backgroundColor: lang === "ru" ? "white" : "transparent", color: lang === "ru" ? "#1e40af" : "rgba(255,255,255,0.7)" }}>RU</button>
-              <button onClick={() => setLang("en")} style={{ padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: "600", backgroundColor: lang === "en" ? "white" : "transparent", color: lang === "en" ? "#1e40af" : "rgba(255,255,255,0.7)" }}>EN</button>
-            </div>          </div>
-        </div>
-      </header>
+<Header lang={lang} setLang={setLang} />
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
         {/* Search Panel - Modern UI */}
@@ -1135,69 +1116,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Results */}
-        {results.length > 0 && (
-          <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>
-              Найдено: {results.length} вариантов на {searchDate}
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px' }}>
-              {results.map((boat, idx) => (
-                <div key={idx} style={{ ...cardStyle, cursor: 'pointer', transition: 'transform 0.2s', border: '2px solid transparent' }}
-                  onClick={() => openBoatDetails(boat)}
-                  onMouseOver={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
-                  onMouseOut={(e) => (e.currentTarget.style.borderColor = 'transparent')}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111' }}>{boat.boat_name}</h3>
-                      <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6b7280' }}>{boat.partner_name}</p>
-                    </div>
-                    <span style={{ padding: '4px 12px', backgroundColor: '#e0e7ff', color: '#4338ca', borderRadius: '20px', fontSize: '12px', fontWeight: '500', height: 'fit-content' }}>
-                      {boat.boat_type}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
-                    <span>📏 {boat.length_ft} ft</span>
-                    <span>👥 до {boat.max_guests} чел</span>
-                    {boat.cabin_count > 0 && <span>🛏️ {boat.cabin_count} каюты</span>}
-                  </div>
-                  <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', marginBottom: '12px' }}>
-                    <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>🗺️ {boat.route_name}</p>
-                    {boat.season && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#8b5cf6' }}>{seasonLabel(boat.season || "")}</p>}
-                    {boat.fuel_surcharge > 0 && (
-                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#f59e0b' }}>⛽ +{boat.fuel_surcharge.toLocaleString()} THB топливо</p>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {showAgentPrice ? (
-                      <div>
-                        <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Agent: <span style={{ fontWeight: '600' }}>{(boat.calculated_agent_total || boat.base_price).toLocaleString()}</span></p>
-                        <p style={{ margin: '2px 0 0', fontSize: '16px', fontWeight: 'bold', color: '#059669' }}>Client: {Math.round((boat.calculated_total || 0) * (1 + markupPercent / 100)).toLocaleString()} THB{markupPercent > 0 && <span style={{ fontSize: '11px', color: '#8b5cf6' }}> (+{markupPercent}%)</span>}</p>
-                        <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#7c3aed' }}>
-                          Profit: {(Math.round((boat.calculated_total || 0) * (1 + markupPercent / 100)) - (boat.calculated_agent_total || boat.base_price)).toLocaleString()} THB
-                        </p>
-                      </div>
-                    ) : (
-                      <p style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#2563eb' }}>
-                        {Math.round((boat.calculated_total || 0) * (1 + markupPercent / 100)).toLocaleString()} THB
-                      </p>
-                    )}
-                    <button style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', cursor: 'pointer' }}>
-                      Выбрать →
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {results.length === 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
-            <p style={{ fontSize: '48px', marginBottom: '16px' }}>🚤</p>
-            <p style={{ fontSize: '18px' }}>Выберите параметры и нажмите "Найти лодки"</p>
-          </div>
-        )}
+        <SearchResults
+          results={results}
+          loading={loading}
+          searchDate={searchDate}
+          showAgentPrice={showAgentPrice}
+          markupPercent={markupPercent}
+          onSelectBoat={openBoatDetails}
+        />
       </div>
 
       {/* ==================== MODAL ==================== */}
