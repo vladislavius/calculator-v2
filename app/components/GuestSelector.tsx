@@ -4,7 +4,8 @@ import { useCharterStore } from '../store/useCharterStore';
 
 export default function GuestSelector() {
   const s = useCharterStore();
-  const selectedBoat = s.selectedBoat!;
+  const selectedBoat = s.selectedBoat;
+  if (!selectedBoat) return null;
 
   const surcharge = (s.extraAdults * (s.customAdultPrice !== null ? s.customAdultPrice : (selectedBoat.extra_pax_price || 0))) +
     (s.children3to11 * (s.customChildPrice !== null ? s.customChildPrice : (selectedBoat.child_price_3_11 || Math.round((selectedBoat.extra_pax_price || 0) * 0.5))));

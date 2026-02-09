@@ -5,7 +5,8 @@ import { calculateTotals } from '../lib/calculateTotals';
 
 export default function ModalHeader({ closeModal }: { closeModal: () => void }) {
   const s = useCharterStore();
-  const selectedBoat = s.selectedBoat!;
+  const selectedBoat = s.selectedBoat;
+  if (!selectedBoat) return null;
   const totals = calculateTotals({
     selectedBoat: s.selectedBoat, selectedExtras: s.selectedExtras,
     cateringOrders: s.cateringOrders, drinkOrders: s.drinkOrders,
