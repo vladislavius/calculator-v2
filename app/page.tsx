@@ -552,8 +552,7 @@ export default function Home() {
       return sum + ((f.pricePerPerson || 0) * (f.adults + f.children));
     }, 0) + (landingEnabled ? landingFee : 0) + (defaultParkFeeEnabled ? defaultParkFee * (defaultParkFeeAdults + defaultParkFeeChildren) : 0);
 
-    // Children discount (50% on base price only)
-    const childrenDiscount = Math.round(baseClient * 0.5 * (children3to11 / Math.max(1, adults + extraAdults + children3to11 + childrenUnder3)));
+    // Children discount removed: child pricing already handled via childPriceToUse (default 50% of extra_pax_price)
 
     const allExtras = extrasTotal + cateringTotal + drinksTotal + toysTotal + servicesTotal + transferTotal + feesTotal + partnerWatersportsTotal;
 
@@ -568,13 +567,13 @@ export default function Home() {
     const extraGuestsSurcharge = extraAdultsSurcharge + children3to11Surcharge;
     // Markup ONLY on boat base price, extra guests added without markup
     const boatPriceWithMarkup = markupMode === "fixed" ? baseClient + fixedMarkup : Math.round(baseClient * (1 + boatMarkup / 100));
-    const totalBeforeMarkup = boatPriceWithMarkup + extraGuestsSurcharge + allExtras - childrenDiscount;
+    const totalBeforeMarkup = boatPriceWithMarkup + extraGuestsSurcharge + allExtras ;
     const markupAmount = markupPercent > 0 ? Math.round(totalBeforeMarkup * markupPercent / 100) : 0;
     
     return {
       agent: baseAgent,
       client: baseClient,
-      childrenDiscount,
+      childrenDiscount: 0,
       extras: extrasTotal,
       catering: cateringTotal,
       drinks: drinksTotal,
@@ -584,7 +583,7 @@ export default function Home() {
       fees: feesTotal,
       partnerWatersports: partnerWatersportsTotal,
       markup: markupAmount,
-      totalAgent: baseAgent + allExtras - childrenDiscount,
+      totalAgent: baseAgent + allExtras ,
       totalClient: totalBeforeMarkup + markupAmount
     };
   };
