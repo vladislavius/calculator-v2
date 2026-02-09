@@ -222,7 +222,44 @@ DO NOT ADD items like "Life Jackets", "Insurance", "Captain" unless EXPLICITLY l
     let content = response.choices[0].message.content || '{}';
     content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-    const data = JSON.parse(content);
+    // Fix common JSON issues from AI responses
+    const fixJson = (str: string): any => {
+      // Try direct parse first
+      try { return JSON.parse(str); } catch {}
+      
+      // Remove trailing commas before } or ]
+      let fixed = str.replace(/,\s*([}\]])/g, '$1');
+      try { return JSON.parse(fixed); } catch {}
+      
+      // Fix unterminated strings - find last valid JSON structure
+      const lastBrace = fixed.lastIndexOf('}');
+      const lastBracket = fixed.lastIndexOf(']');
+      const cutAt = Math.max(lastBrace, lastBracket);
+      if (cutAt > 0) {
+        let truncated = fixed.substring(0, cutAt + 1);
+        // Balance braces/brackets
+        const openBraces = (truncated.match(/{/g) || []).length;
+        const closeBraces = (truncated.match(/}/g) || []).length;
+        const openBrackets = (truncated.match(/\[/g) || []).length;
+        const closeBrackets = (truncated.match(/\]/g) || []).length;
+        truncated += '}'.repeat(Math.max(0, openBraces - closeBraces));
+        truncated += ']'.repeat(Math.max(0, openBrackets - closeBrackets));
+        try { return JSON.parse(truncated); } catch {}
+      }
+      
+      // Last resort: extract JSON object
+      const match = str.match(/\{[\s\S]*\}/);
+      if (match) {
+        try { return JSON.parse(match[0]); } catch {}
+        // Try fixing the extracted part
+        let ext = match[0].replace(/,\s*([}\]])/g, '$1');
+        try { return JSON.parse(ext); } catch {}
+      }
+      
+      throw new Error('Failed to parse AI response as JSON');
+    };
+
+    const data = fixJson(content);
 
     return NextResponse.json({ success: true, data });
   } catch (error: any) {
