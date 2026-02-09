@@ -614,7 +614,7 @@ export default function ImportPage() {
       let partnerId: number;
       
       // Check if partner was pre-selected (single boat mode)
-      if (selectedPartnerId) {
+      if (selectedPartnerId && selectedPartnerId > 0) {
         partnerId = selectedPartnerId;
       } else {
         // 1. Smart partner upsert - find by partial name match
@@ -1204,7 +1204,7 @@ export default function ImportPage() {
                   
                   {/* Full Contract Mode */}
                   <div 
-                    onClick={() => setImportMode('full')}
+                    onClick={() => { setImportMode('full'); fetchExistingPartners(); }}
                     style={{
                       border: '2px solid #e5e7eb', borderRadius: '16px', padding: '32px',
                       cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
@@ -1235,7 +1235,7 @@ export default function ImportPage() {
                   </div>
                 </div>
               </div>
-            ) : importMode === 'single_boat' && !selectedPartnerId ? (
+            ) : (importMode === 'full' || importMode === 'single_boat') && !selectedPartnerId ? (
               <div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px'}}>
                   <button onClick={() => setImportMode(null)} style={{padding: '8px 16px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
@@ -1267,6 +1267,16 @@ export default function ImportPage() {
                   <span style={{color: '#666'}}>Партнёра нет в списке? </span>
                   <a href="/partners" style={{color: '#2563eb', textDecoration: 'underline'}}>Создать нового партнёра</a>
                 </div>
+                {importMode === 'full' && (
+                  <div style={{textAlign: 'center', marginTop: '16px'}}>
+                    <button 
+                      onClick={() => { setSelectedPartnerId(-1); setSelectedPartnerName(''); }}
+                      style={{padding: '12px 24px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '14px'}}
+                    >
+                      🤖 Пропустить — AI определит партнёра из контракта
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div>
