@@ -368,6 +368,25 @@ export default function ImportPage() {
         }
       }
 
+
+      // Deduplicate boat routes: same destination + duration + season + price = duplicate
+      for (const boat of boats) {
+        if (boat.routes && boat.routes.length > 0) {
+          const seen = new Set<string>();
+          boat.routes = boat.routes.filter((r: any) => {
+            const key = [
+              (r.destination || '').toLowerCase().trim(),
+              r.duration_hours || 0,
+              (r.season || 'all').toLowerCase(),
+              r.base_price || 0
+            ].join('|');
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        }
+      }
+
       // Map ROUTES (destinations/itineraries) from ai.routes
       const aiRoutes = (ai.routes || []).map((r: any) => ({
         name: r.name || '',
