@@ -8,6 +8,10 @@ import { calculateTotals } from './lib/calculateTotals';
 import Header from './components/Header';
 import SearchResults from './components/SearchResults';
 import IncludedSection from './components/IncludedSection';
+import FoodSection from './components/FoodSection';
+import SearchPanel from './components/SearchPanel';
+import ModalHeader from './components/ModalHeader';
+import GuestSelector from './components/GuestSelector';
 import ServicesSection from './components/ServicesSection';
 import DrinksSection from './components/DrinksSection';
 import FeesSection from './components/FeesSection';
@@ -1138,134 +1142,25 @@ export default function Home() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '16px', width: '100%', maxWidth: '1200px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             
-            {/* Modal Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 'bold' }}>{selectedBoat.boat_name}</h2>
-                <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '14px' }}>{selectedBoat.partner_name} • {selectedBoat.route_name}</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Итого</p>
-                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#059669' }}>{(totals.totalClient || 0).toLocaleString()} THB</p>
-                </div>
-                <button onClick={closeModal} style={{ padding: '8px 16px', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '20px' }}>✕</button>
-              </div>
-            </div>
+            <ModalHeader selectedBoat={selectedBoat} totals={totals} closeModal={closeModal} />
 
-            {/* Quick Navigation */}
-            <div style={{ padding: '12px 24px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#fafafa', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '14px', color: '#6b7280' }}>Быстрый переход:</span>
-              <a href="#included" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>✅ Включено</a>
-              <a href="#food" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>🍽️ Еда</a>
-              <a href="#drinks" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>🍺 Напитки</a>
-              <a href="#toys" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>🏄 Игрушки</a>
-              <a href="#services" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>🎉 Услуги</a>
-              <a href="#transfer" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>🚗 Трансфер</a>
-              <a href="#fees" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>🎫 Сборы</a>
-              <a href="#summary" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'none' }}>📋 Итого</a>
-            </div>
-
-            {/* All Sections - Single Scrollable Page */}
             <div style={{ flex: 1, overflow: 'auto', padding: '24px' }}>
-
-              {/* ==================== BOAT INFO HEADER ==================== */}
-              <div style={{ marginBottom: '24px', padding: '20px', background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)', borderRadius: '16px', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Boat info header */}
+              <div style={{ marginBottom: '20px', padding: '20px', background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)', borderRadius: '16px', color: 'white' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>🚢 {selectedBoat.boat_name}</h2>
-                    <p style={{ margin: '8px 0 0', fontSize: '16px', opacity: 0.9 }}>📍 {selectedBoat.route_name}</p>
-                    <p style={{ margin: '4px 0 0', fontSize: '14px', opacity: 0.8 }}>{selectedBoat.partner_name} • {selectedBoat.duration_hours || 8}ч • до {selectedBoat.max_guests} гостей{selectedBoat.cabin_count > 0 && (" • " + selectedBoat.cabin_count + " кают")}{selectedBoat.season && (" • " + seasonLabel(selectedBoat.season || ""))}</p>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ margin: 0, fontSize: '14px', opacity: 0.8 }}>Базовая цена</p>
-                    <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>{(selectedBoat.calculated_total || 0).toLocaleString()} THB</p>
+                    <p style={{ margin: '0 0 8px', fontSize: '14px', opacity: 0.9 }}>📏 {selectedBoat.length_ft} ft • 👥 до {selectedBoat.max_guests} чел • 🗺️ {selectedBoat.route_name}</p>
                   </div>
                 </div>
 
-                {/* Guest count & extra pax pricing */}
-                <div style={{ marginTop: '16px', padding: '16px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '12px' }}>
-                  <p style={{ margin: '0 0 12px', fontWeight: '600', fontSize: '15px' }}>👥 Гости на борту</p>
-                  
-                  {/* Info line */}
-                  <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '8px', fontSize: '13px' }}>
-                    <span>Базовая цена: <strong>{selectedBoat.base_pax || 8} чел</strong></span>
-                    <span style={{ margin: '0 8px' }}>•</span>
-                    <span>Макс: <strong>{selectedBoat.max_guests} чел</strong></span>
-                    {selectedBoat.cabin_count > 0 && (
-                      <>
-                        <span style={{ margin: '0 8px' }}>•</span>
-                        <span>🛏️ Кают: <strong>{selectedBoat.cabin_count}</strong></span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Guest inputs */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                    {/* Extra Adults */}
-                    <div style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
-                      <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '6px' }}>👨 Доп. взрослые</label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                        <button onClick={() => setExtraAdults(Math.max(0, extraAdults - 1))} style={{ width: '28px', height: '28px', border: 'none', borderRadius: '6px', backgroundColor: 'rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '16px', color: 'white' }}>−</button>
-                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '700', fontSize: '18px' }}>{extraAdults}</span>
-                        <button onClick={() => setExtraAdults(extraAdults + 1)} style={{ width: '28px', height: '28px', border: 'none', borderRadius: '6px', backgroundColor: 'rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '16px', color: 'white' }}>+</button>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <input
-                          type="number"
-                          value={customAdultPrice !== null ? customAdultPrice : (selectedBoat.extra_pax_price || 0)}
-                          onChange={(e) => setCustomAdultPrice(Number(e.target.value) || 0)}
-                          style={{ width: '65px', padding: '4px', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '4px', fontSize: '12px', textAlign: 'right', backgroundColor: 'rgba(255,255,255,0.8)' }}
-                        />
-                        <span style={{ fontSize: '10px', opacity: 0.8 }}>THB</span>
-                      </div>
-                    </div>
-
-                    {/* Children 3-11 */}
-                    <div style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
-                      <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '6px' }}>👧 Дети 3-11 лет</label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                        <button onClick={() => setChildren3to11(Math.max(0, children3to11 - 1))} style={{ width: '28px', height: '28px', border: 'none', borderRadius: '6px', backgroundColor: 'rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '16px', color: 'white' }}>−</button>
-                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '700', fontSize: '18px' }}>{children3to11}</span>
-                        <button onClick={() => setChildren3to11(children3to11 + 1)} style={{ width: '28px', height: '28px', border: 'none', borderRadius: '6px', backgroundColor: 'rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '16px', color: 'white' }}>+</button>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <input
-                          type="number"
-                          value={customChildPrice !== null ? customChildPrice : (selectedBoat.child_price_3_11 || Math.round((selectedBoat.extra_pax_price || 0) * 0.5))}
-                          onChange={(e) => setCustomChildPrice(Number(e.target.value) || 0)}
-                          style={{ width: '65px', padding: '4px', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '4px', fontSize: '12px', textAlign: 'right', backgroundColor: 'rgba(255,255,255,0.8)' }}
-                        />
-                        <span style={{ fontSize: '10px', opacity: 0.8 }}>THB</span>
-                      </div>
-                    </div>
-
-                    {/* Children under 3 */}
-                    <div style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
-                      <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '6px' }}>
-                        👶 Дети до 3 лет
-                        <span style={{ color: '#4ade80' }}> (бесплатно)</span>
-                      </label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button onClick={() => setChildrenUnder3(Math.max(0, childrenUnder3 - 1))} style={{ width: '28px', height: '28px', border: 'none', borderRadius: '6px', backgroundColor: 'rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '16px', color: 'white' }}>−</button>
-                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '700', fontSize: '18px' }}>{childrenUnder3}</span>
-                        <button onClick={() => setChildrenUnder3(childrenUnder3 + 1)} style={{ width: '28px', height: '28px', border: 'none', borderRadius: '6px', backgroundColor: 'rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '16px', color: 'white' }}>+</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Total guests & surcharge */}
-                  <div style={{ marginTop: '12px', padding: '10px', backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px' }}>
-                      Всего гостей: <strong>{(selectedBoat.base_pax || 8) + extraAdults + children3to11 + childrenUnder3}</strong> из {selectedBoat.max_guests}
-                    </span>
-                    {(extraAdults > 0 || children3to11 > 0) && (
-                      <span style={{ fontWeight: '700', fontSize: '16px', color: '#fbbf24' }}>
-                        Доплата: +{((extraAdults * (customAdultPrice !== null ? customAdultPrice : (selectedBoat.extra_pax_price || 0))) + (children3to11 * (customChildPrice !== null ? customChildPrice : (selectedBoat.child_price_3_11 || Math.round((selectedBoat.extra_pax_price || 0) * 0.5))))).toLocaleString()} THB
-                      </span>
-                    )}
-                  </div>
-                </div>
+<GuestSelector
+                selectedBoat={selectedBoat}
+                extraAdults={extraAdults} setExtraAdults={setExtraAdults}
+                children3to11={children3to11} setChildren3to11={setChildren3to11}
+                childrenUnder3={childrenUnder3} setChildrenUnder3={setChildrenUnder3}
+                customAdultPrice={customAdultPrice} setCustomAdultPrice={setCustomAdultPrice}
+                customChildPrice={customChildPrice} setCustomChildPrice={setCustomChildPrice}
+              />
               </div>
 
               {/* ==================== INCLUDED SECTION ==================== */}
@@ -1275,327 +1170,30 @@ export default function Home() {
                 loadingOptions={loadingOptions}
               />
 
-              {/* ==================== FOOD SECTION ==================== */}
-              <div id="food" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#fffbeb', borderRadius: '16px', border: '1px solid #fcd34d' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#92400e' }}>🍽️ ПИТАНИЕ</h3>
-                
-                {/* Included menu sets from partner */}
-                {boatMenu.filter(m => m.included && m.from_partner_menu).length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#166534' }}>✅ Включено в стоимость — выберите сеты:</p>
-                    {(() => {
-                      const menu = partnerMenus.find(pm => pm.partner_id === selectedBoat?.partner_id);
-                      return (menu?.conditions_ru || menu?.conditions) ? (
-                        <div style={{ marginBottom: '12px', padding: '10px 14px', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fcd34d', fontSize: '13px', color: '#92400e' }}>
-                          <strong>⚠️ ' + t('pdf.conditions', lang) + '</strong> {menu.conditions_ru || menu.conditions}
-                        </div>
-                      ) : null;
-                    })()}
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      {boatMenu.filter(m => m.included && m.from_partner_menu).map(set => {
-                        const isSelected = cateringOrders.some(c => c.packageId === set.id);
-                        const orderIndex = cateringOrders.findIndex(c => c.packageId === set.id);
-                        const order = orderIndex >= 0 ? cateringOrders[orderIndex] : null;
-                        const categoryLabels: Record<string, string> = { thai: '🇹🇭 Тайская', western: '🍝 Западная', vegetarian: '🥗 Вегетарианская', kids: '👶 Детская', seafood: '🦐 Морепродукты', bbq: '🍖 BBQ', other: '🍽️ Другое' };
-                        return (
-                          <div key={set.id} style={{ padding: '12px 16px', backgroundColor: isSelected ? '#dcfce7' : '#f0fdf4', borderRadius: '10px', border: isSelected ? '2px solid #22c55e' : '1px solid #86efac' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: set.dishes ? '8px' : '0' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <input 
-                                  type="checkbox" 
-                                  checked={isSelected}
-                                  onChange={() => {
-                                    if (isSelected) {
-                                      setCateringOrders(cateringOrders.filter(c => c.packageId !== set.id));
-                                    } else {
-                                      setCateringOrders([...cateringOrders, { packageId: set.id, packageName: set.name_en + (set.name_ru ? ' (' + set.name_ru + ')' : ''), pricePerPerson: 0, persons: adults + children3to11, notes: '' }]);
-                                    }
-                                  }}
-                                  style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#22c55e' }}
-                                />
-                                <div>
-                                  <span style={{ fontWeight: '600', color: '#166534' }}>{set.name_en}</span>
-                                  {set.name_ru && <span style={{ marginLeft: '8px', fontSize: '13px', color: '#15803d' }}>({set.name_ru})</span>}
-                                  <span style={{ marginLeft: '10px', padding: '2px 8px', backgroundColor: '#bbf7d0', borderRadius: '4px', fontSize: '11px', color: '#166534' }}>{categoryLabels[set.category] || set.category}</span>
-                                </div>
-                              </div>
-                              {isSelected && order && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons - 1)} style={{ width: '28px', height: '28px', border: '1px solid #22c55e', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold', color: '#166534' }}>−</button>
-                                  <span style={{ minWidth: '50px', textAlign: 'center', fontWeight: '600', color: '#166534' }}>{order.persons} чел</span>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons + 1)} style={{ width: '28px', height: '28px', border: '1px solid #22c55e', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold', color: '#166534' }}>+</button>
-                                </div>
-                              )}
-                            </div>
-                            {set.dishes && set.dishes.length > 0 && (
-                              <div style={{ marginLeft: "30px", fontSize: "13px", color: "#15803d", display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
-                                {set.dishes.map((dish: string, i: number) => {
-                                  const isChoice = dish.match(/^Choice of|^Select|^Pick/i);
-                                  const dishRu = set.dishes_ru && set.dishes_ru[i] ? set.dishes_ru[i] : "";
-                                  const isChoiceRu = dishRu.match(/^На выбор/i);
-                                  if (isChoice || isChoiceRu) {
-                                    const label = dish.split(":")[0];
-                                    const labelRu = dishRu ? dishRu.split(":")[0] : "";
-                                    const options = dish.split(":").slice(1).join(":").split(",").map(o => o.trim()).filter(Boolean);
-                                    const optionsRu = dishRu ? dishRu.split(":").slice(1).join(":").split(",").map((o: string) => o.trim()).filter(Boolean) : [];
-                                    return (
-                                      <div key={i} style={{ padding: "10px 14px", backgroundColor: "#fef9c3", borderRadius: "8px", border: "1px solid #fde68a" }}>
-                                        <div style={{ fontWeight: "600", marginBottom: "8px", color: "#92400e" }}>{label}{labelRu ? ` (${labelRu})` : ""}:</div>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                          {options.map((opt, j) => {
-                                            const key = set.id + "_" + i + "_" + j;
-                                            const count = selectedDishes[key] || 0;
-                                            return (
-                                              <div key={j} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", borderRadius: "6px", backgroundColor: count > 0 ? "#dcfce7" : "#fefce8" }}>
-                                                <span style={{ flex: 1 }}>{opt}{optionsRu[j] ? ` (${optionsRu[j]})` : ""}</span>
-                                                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "12px" }}>
-                                                  <button onClick={() => setSelectedDishes(prev => ({...prev, [key]: Math.max(0, (prev[key] || 0) - 1)}))} style={{ width: "26px", height: "26px", border: "1px solid #d1d5db", borderRadius: "6px", backgroundColor: "white", cursor: "pointer", fontSize: "14px" }}>−</button>
-                                                  <span style={{ minWidth: "24px", textAlign: "center", fontWeight: "600" }}>{count}</span>
-                                                  <button onClick={() => setSelectedDishes(prev => ({...prev, [key]: (prev[key] || 0) + 1}))} style={{ width: "26px", height: "26px", border: "1px solid #22c55e", borderRadius: "6px", backgroundColor: "white", cursor: "pointer", fontSize: "14px", color: "#166534" }}>+</button>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-                                  return (
-                                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                                      <span style={{ color: "#22c55e", marginTop: "2px" }}>•</span>
-                                      <span>{dish}{dishRu ? ` (${dishRu})` : ""}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Other included food (non-partner menu) */}
-                {(boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').length > 0 || boatMenu.filter(m => m.included && !m.from_partner_menu).length > 0) && (
-                  <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #86efac' }}>
-                    <span style={{ fontWeight: '600', color: '#166534' }}>Также включено: </span>
-                    {boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').map((o, i) => (
-                      <span key={o.id}>{i > 0 ? ', ' : ''}{o.option_name}</span>
-                    ))}
-                    {boatMenu.filter(m => m.included && !m.from_partner_menu).map((m, i) => (
-                      <span key={m.id}>{(i > 0 || boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').length > 0) ? ', ' : ''}{m.name_en}</span>
-                    ))}
-                  </div>
-                )}
-
-                <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#92400e', fontWeight: '500' }}>➕ Хотите улучшить?</p>
-
-                {/* Boat menu options */}
-                {boatMenu.filter(m => !m.included).length > 0 && (
-                  <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #fcd34d' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#92400e' }}>● Меню с яхты:</p>
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                      {boatMenu.filter(m => !m.included).map(item => {
-                        const isAdded = cateringOrders.some(c => c.packageId === 'menu_' + item.id);
-                        const orderIndex = cateringOrders.findIndex(c => c.packageId === 'menu_' + item.id);
-                        const order = orderIndex >= 0 ? cateringOrders[orderIndex] : null;
-                        return (
-                          <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#fef3c7' : '#fafafa', borderRadius: '8px', border: isAdded ? '2px solid #f59e0b' : '1px solid #e5e7eb' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={isAdded} 
-                                onChange={() => {
-                                  if (isAdded) {
-                                    setCateringOrders(cateringOrders.filter(c => c.packageId !== 'menu_' + item.id));
-                                  } else {
-                                    addMenuItem(item);
-                                  }
-                                }}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                              />
-                              <span style={{ fontWeight: '500' }}>{item.name_en}</span>
-                              {item.name_ru && <span style={{ fontSize: '13px', color: '#6b7280' }}>({item.name_ru})</span>}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              {isAdded && order && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons - 1)} style={{ width: '28px', height: '28px', border: '1px solid #d97706', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold' }}>−</button>
-                                  <span style={{ minWidth: '60px', textAlign: 'center', fontWeight: '600' }}>{order.persons} чел</span>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons + 1)} style={{ width: '28px', height: '28px', border: '1px solid #d97706', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
-                                </div>
-                              )}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <input
-                                  type="number"
-                                  value={getPrice(`menu_${item.id}`, item.price)}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    setPrice(`menu_${item.id}`, val);
-                                    if (isAdded && orderIndex >= 0) {
-                                      const newOrders = [...cateringOrders];
-                                      newOrders[orderIndex] = {...newOrders[orderIndex], pricePerPerson: val};
-                                      setCateringOrders(newOrders);
-                                    }
-                                  }}
-                                  style={{ width: '70px', padding: '4px 6px', border: '1px solid #d97706', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px', color: '#d97706' }}
-                                />
-                                <span style={{ fontWeight: '600', color: '#d97706' }}>THB</span>
-                                {isAdded && order && (
-                                  <span style={{ marginLeft: '8px', fontWeight: '700', color: '#059669', fontSize: '14px' }}>
-                                    = {(order.pricePerPerson * order.persons).toLocaleString()} THB
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Boat paid food options */}
-                {boatOptions.filter(o => o.category_code === 'food' && o.status === 'paid_optional').length > 0 && (
-                  <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #fcd34d' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#92400e' }}>● Дополнительное питание с яхты:</p>
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                      {boatOptions.filter(o => o.category_code === 'food' && o.status === 'paid_optional').map(opt => {
-                        const isAdded = selectedExtras.some(e => e.optionId === opt.id);
-                        const extra = selectedExtras.find(e => e.optionId === opt.id);
-                        return (
-                          <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#fef3c7' : '#fafafa', borderRadius: '8px', border: isAdded ? '2px solid #f59e0b' : '1px solid #e5e7eb' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={isAdded} 
-                                onChange={() => toggleExtra(opt)}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                              />
-                              <span style={{ fontWeight: '500' }}>{opt.option_name}</span>
-                            </div>
-                            <span style={{ fontWeight: '600', color: '#d97706' }}>+{opt.price} THB{opt.price_per === 'person' ? '/чел' : ''}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Catering partners - Collapsible */}
-                {cateringPartners.length > 0 && (
-                  <div style={{ borderRadius: '12px', border: '1px solid #e9d5ff', overflow: 'hidden' }}>
-                    {/* Header - clickable to expand */}
-                    <div 
-                      onClick={() => toggleSection('partnerCatering')}
-                      style={{ padding: '14px 16px', backgroundColor: '#faf5ff', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>{expandedSections.partnerCatering ? '▼' : '▶'}</span>
-                        <span style={{ fontWeight: '600', color: '#7c3aed' }}>🍽️ Кейтеринг от партнёров</span>
-                        <span style={{ fontSize: '13px', color: '#6b7280' }}>({cateringPartners.length} партнёров)</span>
-                      </div>
-                    </div>
-                    
-                    {/* Content - collapsible */}
-                    {expandedSections.partnerCatering && (
-                      <div style={{ padding: '16px', backgroundColor: 'white' }}>
-                        {cateringPartners.map(partner => (
-                          <div key={partner.id} style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#faf5ff', borderRadius: '10px', border: '1px solid #e9d5ff' }}>
-                            {/* Partner header with markup slider */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <div>
-                                <span style={{ fontWeight: '600', color: '#7c3aed', fontSize: '16px' }}>{partner.name}</span>
-                                {partner.description && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#6b7280' }}>{partner.description}</p>}
-                              </div>
-                            </div>
-                            
-                            {/* Menu items */}
-                            <div style={{ display: 'grid', gap: '8px' }}>
-                              {cateringMenu.filter(m => m.partner_id === partner.id).map(item => {
-                                const isAdded = cateringOrders.some(c => c.packageId === 'db_' + item.id);
-                                const orderIndex = cateringOrders.findIndex(c => c.packageId === 'db_' + item.id);
-                                const order = orderIndex >= 0 ? cateringOrders[orderIndex] : null;
-                                
-                                return (
-                                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#f3e8ff' : 'white', borderRadius: '8px', border: isAdded ? '2px solid #a855f7' : '1px solid #e5e7eb' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      <input 
-                                        type="checkbox" 
-                                        checked={isAdded} 
-                                        onChange={() => {
-                                          if (isAdded) {
-                                            setCateringOrders(cateringOrders.filter(c => c.packageId !== 'db_' + item.id));
-                                          } else {
-                                            // Add with markup applied
-                                            const customPrice = customPrices['catering_' + item.id] !== undefined ? customPrices['catering_' + item.id] : item.price_per_person;
-                                            setCateringOrders([...cateringOrders, {
-                                              packageId: 'db_' + item.id,
-                                              packageName: item.name_en + ' (' + partner.name + ')',
-                                              pricePerPerson: customPrice,
-                                              persons: Math.max(adults, item.min_persons),
-                                              minPersons: item.min_persons,
-                                              notes: ''
-                                            }]);
-                                          }
-                                        }}
-                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                                      />
-                                      <div>
-                                        <span style={{ fontWeight: '500' }}>{item.name_en}</span>
-                                        {item.name_ru && <span style={{ marginLeft: '6px', fontSize: '13px', color: '#6b7280' }}>({item.name_ru})</span>}
-                                        <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#9ca3af' }}>мин. {item.min_persons} чел</p>
-                                      </div>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      {isAdded && order && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <button onClick={() => updateCateringPersons(orderIndex, order.persons - 1)} style={{ width: '28px', height: '28px', border: '1px solid #7c3aed', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold' }}>−</button>
-                                          <span style={{ minWidth: '50px', textAlign: 'center', fontWeight: '600' }}>{order.persons} чел</span>
-                                          <button onClick={() => updateCateringPersons(orderIndex, order.persons + 1)} style={{ width: '28px', height: '28px', border: '1px solid #7c3aed', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
-                                        </div>
-                                      )}
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <input
-                                          type="number"
-                                          value={getPrice(`catering_${item.id}`, item.price_per_person)}
-                                          onClick={(e) => e.stopPropagation()}
-                                          onChange={(e) => {
-                                            const val = Number(e.target.value);
-                                            setPrice(`catering_${item.id}`, val);
-                                            if (isAdded && orderIndex >= 0) {
-                                              const newOrders = [...cateringOrders];
-                                              newOrders[orderIndex] = {...newOrders[orderIndex], pricePerPerson: val};
-                                              setCateringOrders(newOrders);
-                                            }
-                                          }}
-                                          style={{ width: '70px', padding: '4px 6px', border: '1px solid #7c3aed', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px', color: '#7c3aed' }}
-                                        />
-                                        <span style={{ fontWeight: '600', color: '#7c3aed' }}>THB</span>
-                                        {isAdded && order && (
-                                          <span style={{ marginLeft: '8px', fontWeight: '700', color: '#059669', fontSize: '14px' }}>
-                                            = {(order.pricePerPerson * order.persons).toLocaleString()} THB
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {boatMenu.length === 0 && boatOptions.filter(o => o.category_code === 'food').length === 0 && cateringPartners.length === 0 && (
-                  <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Информация о питании не загружена</p>
-                )}
-              </div>
+              <FoodSection
+                selectedBoat={selectedBoat}
+                boatMenu={boatMenu}
+                boatOptions={boatOptions}
+                cateringOrders={cateringOrders}
+                setCateringOrders={setCateringOrders}
+                cateringPartners={cateringPartners}
+                cateringMenu={cateringMenu}
+                partnerMenus={partnerMenus}
+                selectedExtras={selectedExtras}
+                toggleExtra={toggleExtra}
+                expandedSections={expandedSections}
+                toggleSection={toggleSection}
+                customPrices={customPrices}
+                getPrice={getPrice}
+                setPrice={setPrice}
+                addMenuItem={addMenuItem}
+                updateCateringPersons={updateCateringPersons}
+                adults={adults}
+                children3to11={children3to11}
+                selectedDishes={selectedDishes}
+                setSelectedDishes={setSelectedDishes}
+                lang={lang}
+              />
 
               <DrinksSection
                 boatDrinks={boatDrinks}
@@ -1699,28 +1297,7 @@ export default function Home() {
 
             </div>
 
-            {/* Navigation Buttons */}
-            <div style={{ display: 'none' }}>
-              <button 
-                onClick={() => {
-                  const tabs = ['included', 'food', 'drinks', 'toys', 'services', 'transfer', 'fees', 'summary'];
-                  const currentIndex = tabs.indexOf(activeTab);
-                  if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1] as any);
-                }}
-                style={{ padding: '12px 24px', backgroundColor: activeTab === 'included' ? '#e5e7eb' : '#6b7280', color: 'white', border: 'none', borderRadius: '8px', cursor: activeTab === 'included' ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
-                ← Назад
-              </button>
-              <button 
-                onClick={() => {
-                  const tabs = ['included', 'food', 'drinks', 'toys', 'services', 'transfer', 'fees', 'summary'];
-                  const currentIndex = tabs.indexOf(activeTab);
-                  if (currentIndex < tabs.length - 1) setActiveTab(tabs[currentIndex + 1] as any);
-                }}
-                style={{ padding: '12px 24px', backgroundColor: activeTab === 'summary' ? '#e5e7eb' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: activeTab === 'summary' ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
-                Далее →
-              </button>
             </div>
-          </div>
         </div>
       )}
     </div>
