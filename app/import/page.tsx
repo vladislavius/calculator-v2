@@ -324,6 +324,75 @@ export default function ImportPage() {
         }))
       }));
       
+
+      // Enrich boat routes with pricing_rules
+      const pRules = ai.pricing_rules || [];
+      if (pRules.length > 0) {
+        for (const boat of boats) {
+          const boatPrices = pRules.filter((p: any) => {
+            const pName = (p.boat_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const bName = (boat.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            return pName.includes(bName) || bName.includes(pName) || pName === '' ;
+          });
+          
+          if (boatPrices.length > 0 && boat.routes.length > 0) {
+            // Routes exist but may lack prices - enrich them
+            const enrichedRoutes: any[] = [];
+            for (const route of boat.routes) {
+              // Determine charter_type from duration
+              const rType = route.duration_hours <= 5 ? 'half_day' : 'full_day';
+              const matchingPrices = boatPrices.filter((p: any) => {
+                const pType = p.charter_type || 'full_day';
+                if (pType === rType) return true;
+                if (rType === 'half_day' && (pType === 'morning' || pType === 'afternoon')) return true;
+                if (pType === 'full_day' && rType === 'full_day') return true;
+                return false;
+              });
+              
+              if (matchingPrices.length > 0) {
+                // Create a route entry per matching price (season)
+                for (const mp of matchingPrices) {
+                  enrichedRoutes.push({
+                    ...route,
+                    base_price: mp.base_price || route.base_price,
+                    agent_price: mp.base_price || route.agent_price,
+                    season: mp.season || route.season,
+                    season_dates: mp.season_dates || '',
+                    extra_pax_price: mp.extra_pax_price || route.extra_pax_price,
+                    base_pax: mp.guests_to || route.base_pax,
+                    charter_type: mp.charter_type || rType,
+                    notes: mp.time_slot ? 'Time: ' + mp.time_slot : route.notes
+                  });
+                }
+              } else {
+                enrichedRoutes.push(route);
+              }
+            }
+            boat.routes = enrichedRoutes;
+          } else if (boatPrices.length > 0 && boat.routes.length === 0) {
+            // No routes but have prices - create routes from prices
+            for (const p of boatPrices) {
+              boat.routes.push({
+                destination: p.charter_type === 'morning' ? 'Morning Charter' : p.charter_type === 'afternoon' ? 'Afternoon Charter' : 'Full Day Charter',
+                departure_pier: boat.default_pier || 'Chalong Pier',
+                time_slot: p.time_slot || p.charter_type,
+                duration_hours: p.duration_hours || 8,
+                distance_nm: null,
+                base_price: p.base_price,
+                agent_price: p.base_price,
+                fuel_surcharge: 0,
+                extra_pax_price: p.extra_pax_price || null,
+                base_pax: p.guests_to || null,
+                season: p.season || 'high',
+                season_dates: p.season_dates || '',
+                min_notice_hours: null,
+                notes: p.time_slot ? 'Time: ' + p.time_slot : ''
+              });
+            }
+          }
+        }
+      }
+
       // Map ROUTES (destinations/itineraries) from ai.routes
       const aiRoutes = (ai.routes || []).map((r: any) => ({
         name: r.name || '',
@@ -1097,13 +1166,14 @@ export default function ImportPage() {
         partner_name: selectedPartnerName || extractedData.partner_name,
         import_type: importMode || 'full_contract',
         boats_added: extractedData.boats.length,
-        routes_added: extractedData.routes.length,
+        routes_added: extractedData.routes?.length || extractedData.boats?.reduce((sum: number, b: any) => sum + (b.routes?.length || 0), 0) || 0,
         raw_data: extractedData,
         status: 'success'
       });
       if (histErr) console.error('History save error:', histErr);
       
       setSaveStatus('✅ Успешно! Партнёр, лодки, ценовые правила (' + (extractedData.pricing_rules?.length || 0) + ' вариантов) и опции сохранены.');
+      fetchImportHistory();
     } catch (error: any) {
       console.error('Save error:', error);
       setSaveStatus('❌ Ошибка: ' + error.message);
