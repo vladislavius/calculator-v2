@@ -335,7 +335,8 @@ export default function ImportPage() {
             return pName.includes(bName) || bName.includes(pName) || pName === '' ;
           });
           
-          if (boatPrices.length > 0 && boat.routes.length > 0) {
+          const routesHavePrices = boat.routes.some((r: any) => r.base_price && r.base_price > 0);
+          if (boatPrices.length > 0 && boat.routes.length > 0 && !routesHavePrices) {
             // Routes exist but may lack prices - enrich them
             const enrichedRoutes: any[] = [];
             for (const route of boat.routes) {
