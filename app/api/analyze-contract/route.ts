@@ -220,46 +220,71 @@ DO NOT ADD items like "Life Jackets", "Insurance", "Captain" unless EXPLICITLY l
     });
 
     let content = response.choices[0].message.content || '{}';
+    console.log('Raw AI response length:', content.length);
+    console.log('Raw AI response first 500:', content.substring(0, 500));
+    console.log('Raw AI response last 500:', content.substring(content.length - 500));
+    
     content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-    // Fix common JSON issues from AI responses
+    // Robust JSON fixer for AI responses
     const fixJson = (str: string): any => {
-      // Try direct parse first
-      try { return JSON.parse(str); } catch {}
+      // Try direct parse
+      try { return JSON.parse(str); } catch (e: any) { console.log('Direct parse failed:', e.message); }
+
+      let fixed = str;
       
-      // Remove trailing commas before } or ]
-      let fixed = str.replace(/,\s*([}\]])/g, '$1');
+      // Remove trailing commas
+      fixed = fixed.replace(/,\s*([}\]])/g, '$1');
       try { return JSON.parse(fixed); } catch {}
       
-      // Fix unterminated strings - find last valid JSON structure
+      // Fix single quotes to double quotes in keys
+      fixed = fixed.replace(/([{,]\s*)'([^']+)'\s*:/g, '$1"$2":');
+      try { return JSON.parse(fixed); } catch {}
+      
+      // Fix unescaped newlines inside strings
+      fixed = fixed.replace(/(?<=": ")(.*?)(?="[,}\]])/g, (match) => {
+        return match.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+      });
+      try { return JSON.parse(fixed); } catch {}
+      
+      // Truncate to last complete object/array
       const lastBrace = fixed.lastIndexOf('}');
       const lastBracket = fixed.lastIndexOf(']');
       const cutAt = Math.max(lastBrace, lastBracket);
       if (cutAt > 0) {
         let truncated = fixed.substring(0, cutAt + 1);
-        // Balance braces/brackets
-        const openBraces = (truncated.match(/{/g) || []).length;
-        const closeBraces = (truncated.match(/}/g) || []).length;
-        const openBrackets = (truncated.match(/\[/g) || []).length;
-        const closeBrackets = (truncated.match(/\]/g) || []).length;
-        truncated += '}'.repeat(Math.max(0, openBraces - closeBraces));
-        truncated += ']'.repeat(Math.max(0, openBrackets - closeBrackets));
+        const ob = (truncated.match(/{/g) || []).length;
+        const cb = (truncated.match(/}/g) || []).length;
+        const osb = (truncated.match(/\[/g) || []).length;
+        const csb = (truncated.match(/\]/g) || []).length;
+        truncated += '}'.repeat(Math.max(0, ob - cb));
+        truncated += ']'.repeat(Math.max(0, osb - csb));
         try { return JSON.parse(truncated); } catch {}
+        
+        // Try removing last incomplete property
+        const lastComma = truncated.lastIndexOf(',');
+        if (lastComma > 0) {
+          let chopped = truncated.substring(0, lastComma);
+          const ob2 = (chopped.match(/{/g) || []).length;
+          const cb2 = (chopped.match(/}/g) || []).length;
+          chopped += '}'.repeat(Math.max(0, ob2 - cb2));
+          try { return JSON.parse(chopped); } catch {}
+        }
       }
       
-      // Last resort: extract JSON object
+      // Extract first JSON object
       const match = str.match(/\{[\s\S]*\}/);
       if (match) {
         try { return JSON.parse(match[0]); } catch {}
-        // Try fixing the extracted part
         let ext = match[0].replace(/,\s*([}\]])/g, '$1');
         try { return JSON.parse(ext); } catch {}
       }
       
+      console.log('All JSON fix attempts failed. Content sample:', str.substring(0, 1000));
       throw new Error('Failed to parse AI response as JSON');
     };
 
-    const data = fixJson(content);
+    const data = fixJson(content)
 
     return NextResponse.json({ success: true, data });
   } catch (error: any) {
