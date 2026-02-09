@@ -1,4 +1,5 @@
 'use client';
+import AdminGuard from '../components/AdminGuard';
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -178,6 +179,7 @@ export default function UnifiedImportPage() {
   };
 
   return (
+    <AdminGuard>
     <div style={{minHeight:'100vh',backgroundColor:'#f8fafc'}}>
       <div style={{maxWidth:'1200px',margin:'0 auto',padding:'24px'}}>
 
@@ -383,5 +385,6 @@ export default function UnifiedImportPage() {
       {/* Edit Modal */}
       {editingItem && activeType === 'boats' && null}
     </div>
+    </AdminGuard>
   );
 }

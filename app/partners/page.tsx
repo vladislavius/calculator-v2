@@ -1,4 +1,5 @@
 'use client';
+import AdminGuard from '../components/AdminGuard';
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
@@ -853,6 +854,7 @@ export default function PartnersPage() {
   };
 
   return (
+    <AdminGuard>
     <div style={styles.page}>
       
       {/* Boat Detail Modal */}
@@ -1967,5 +1969,6 @@ export default function PartnersPage() {
         </div>
       )}
     </div>
+    </AdminGuard>
   );
 }

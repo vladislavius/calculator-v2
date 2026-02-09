@@ -1,4 +1,5 @@
 'use client';
+import AdminGuard from '../components/AdminGuard';
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
@@ -1117,6 +1118,7 @@ export default function ImportPage() {
   });
 
   return (
+    <AdminGuard>
     <div style={{minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '24px'}}>
       <div style={{maxWidth: '1400px', margin: '0 auto'}}>
         {/* Header */}
@@ -1791,5 +1793,6 @@ export default function ImportPage() {
         )}
       </div>
     </div>
+    </AdminGuard>
   );
 }

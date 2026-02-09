@@ -264,6 +264,7 @@ export default function Home() {
   }, []);
   useEffect(() => {
     const loadPartnersData = async () => {
+      try {
       // Load catering partners & menu
       const { data: cpData } = await getSupabase().from('catering_partners').select('*');
       if (cpData) setCateringPartners(cpData);
@@ -304,8 +305,11 @@ export default function Home() {
       
       const { data: msData } = await getSupabase().from('menu_sets').select('*').eq('active', true);
       if (msData) setPartnerMenuSets(msData);
+      } catch (err) {
+        console.error('Ошибка загрузки данных:', err);
+      }
     };
-    
+
     loadPartnersData();
   }, []);
 
