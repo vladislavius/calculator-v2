@@ -369,15 +369,23 @@ export default function ImportPage() {
       }
 
 
-      // Deduplicate boat routes: same destination + duration + season + price = duplicate
+      // Deduplicate boat routes and merge holidays into "high" season
       for (const boat of boats) {
         if (boat.routes && boat.routes.length > 0) {
+          // Step 1: Normalize seasons - merge holiday seasons into "high"
+          for (const r of boat.routes) {
+            const s = (r.season || '').toLowerCase();
+            if (s === 'all' || s === 'peak' || s.includes('national') || s.includes('chinese') || s.includes('worker') || s.includes('holiday')) {
+              r.season = 'high';
+            }
+          }
+          // Step 2: Deduplicate by destination + duration + season + price
           const seen = new Set<string>();
           boat.routes = boat.routes.filter((r: any) => {
             const key = [
               (r.destination || '').toLowerCase().trim(),
               r.duration_hours || 0,
-              (r.season || 'all').toLowerCase(),
+              (r.season || 'high').toLowerCase(),
               r.base_price || 0
             ].join('|');
             if (seen.has(key)) return false;
