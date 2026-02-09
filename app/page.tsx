@@ -7,6 +7,13 @@ import { t, Lang } from "./lib/i18n";import { inputStyle, labelStyle, cardStyle,
 import { calculateTotals } from './lib/calculateTotals';
 import Header from './components/Header';
 import SearchResults from './components/SearchResults';
+import IncludedSection from './components/IncludedSection';
+import ServicesSection from './components/ServicesSection';
+import DrinksSection from './components/DrinksSection';
+import FeesSection from './components/FeesSection';
+import ToysSection from './components/ToysSection';
+import TransferSection from './components/TransferSection';
+import SummarySection from './components/SummarySection';
 
 
 // ==================== MOCK DATA ====================
@@ -1262,46 +1269,11 @@ export default function Home() {
               </div>
 
               {/* ==================== INCLUDED SECTION ==================== */}
-              <div id="included" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#ecfdf5', borderRadius: '16px', border: '2px solid #86efac' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#166534' }}>✅ ВКЛЮЧЕНО В СТОИМОСТЬ</h3>
-                {loadingOptions ? (
-                  <p>Загрузка...</p>
-                ) : (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {boatOptions.filter(o => o.status === 'included').map(opt => (
-                      <span key={opt.id} style={{ padding: '8px 16px', backgroundColor: '#dcfce7', borderRadius: '20px', fontSize: '14px', color: '#166534', border: '1px solid #86efac' }}>
-                        ✓ {opt.option_name}
-                      </span>
-                    ))}
-                    {boatOptions.filter(o => o.status === 'included').length === 0 && (
-                      <span style={{ color: '#6b7280', fontStyle: 'italic' }}>Информация о включённых опциях не указана в контракте</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* ==================== NOT INCLUDED SECTION ==================== */}
-              <div style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#fef2f2', borderRadius: '16px', border: '2px solid #fca5a5' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#dc2626' }}>❌ НЕ ВКЛЮЧЕНО (нужно доплатить или взять своё)</h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                  {routeFees.filter(f => f.mandatory).length > 0 && routeFees.filter(f => f.mandatory).map(fee => (
-                    <div key={fee.id} style={{ padding: '10px 16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #fca5a5', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>{fee.name_en}</span>
-                      <span style={{ fontWeight: '600', color: '#dc2626' }}>— {fee.price_per_person} THB/чел</span>
-                      <span style={{ padding: '2px 8px', backgroundColor: '#fecaca', borderRadius: '4px', fontSize: '11px', color: '#dc2626', fontWeight: '600' }}>⚠️ ОБЯЗАТЕЛЬНО</span>
-                    </div>
-                  ))}
-                  <div style={{ padding: '10px 16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #fca5a5' }}>
-                    <span>Алкоголь</span>
-                  </div>
-                  <div style={{ padding: '10px 16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #fca5a5' }}>
-                    <span>Трансфер от отеля</span>
-                  </div>
-                  <div style={{ padding: '10px 16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #fca5a5' }}>
-                    <span>VAT 7% (если нужен счёт)</span>
-                  </div>
-                </div>
-              </div>
+              <IncludedSection
+                boatOptions={boatOptions}
+                routeFees={routeFees}
+                loadingOptions={loadingOptions}
+              />
 
               {/* ==================== FOOD SECTION ==================== */}
               <div id="food" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#fffbeb', borderRadius: '16px', border: '1px solid #fcd34d' }}>
@@ -1625,755 +1597,105 @@ export default function Home() {
                 )}
               </div>
 
-              {/* ==================== DRINKS SECTION ==================== */}
-              <div id="drinks" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#fdf4ff', borderRadius: '16px', border: '1px solid #e9d5ff' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#7c3aed' }}>🍺 НАПИТКИ И АЛКОГОЛЬ</h3>
-                
-                {/* Included drinks */}
-                {boatDrinks.filter(d => d.included).length > 0 && (
-                  <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #86efac' }}>
-                    <span style={{ fontWeight: '600', color: '#166534' }}>Включено: </span>
-                    {boatDrinks.filter(d => d.included).map((d, i) => (
-                      <span key={d.id}>{i > 0 ? ', ' : ''}{d.name_en}</span>
-                    ))}
-                  </div>
-                )}
+              <DrinksSection
+                boatDrinks={boatDrinks}
+                drinkOrders={drinkOrders}
+                addDrink={addDrink}
+                removeDrink={removeDrink}
+                setDrinkOrders={setDrinkOrders}
+                getPrice={getPrice}
+                setPrice={setPrice}
+              />
 
-                <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#7c3aed', fontWeight: '500' }}>➕ Добавить алкоголь?</p>
+              <FeesSection
+                routeName={selectedBoat?.route_name || ''}
+                routeFees={routeFees}
+                selectedFees={selectedFees}
+                toggleFee={toggleFee}
+                setSelectedFees={setSelectedFees}
+                landingEnabled={landingEnabled}
+                setLandingEnabled={setLandingEnabled}
+                landingFee={landingFee}
+                setLandingFee={setLandingFee}
+                defaultParkFeeEnabled={defaultParkFeeEnabled}
+                setDefaultParkFeeEnabled={setDefaultParkFeeEnabled}
+                defaultParkFee={defaultParkFee}
+                setDefaultParkFee={setDefaultParkFee}
+                defaultParkFeeAdults={defaultParkFeeAdults}
+                setDefaultParkFeeAdults={setDefaultParkFeeAdults}
+                defaultParkFeeChildren={defaultParkFeeChildren}
+                setDefaultParkFeeChildren={setDefaultParkFeeChildren}
+                getPrice={getPrice}
+                setPrice={setPrice}
+              />
 
-                {/* Boat drinks for purchase */}
-                {boatDrinks.filter(d => !d.included && d.price > 0).length > 0 && (
-                  <div style={{ padding: '16px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #e9d5ff' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#7c3aed' }}>С яхты:</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                      {boatDrinks.filter(d => !d.included && d.price > 0).map(drink => {
-                        const order = drinkOrders.find(o => o.drinkId === drink.id);
-                        return (
-                          <div key={drink.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: order ? '#f3e8ff' : '#fafafa', borderRadius: '8px', border: order ? '2px solid #a855f7' : '1px solid #e5e7eb' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={!!order} 
-                                onChange={() => {
-                                  if (order) {
-                                    removeDrink(drink.id);
-                                  } else {
-                                    addDrink(drink);
-                                  }
-                                }}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                              />
-                              <span style={{ fontWeight: '500', fontSize: '14px' }}>{drink.name_en}</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {order && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <button onClick={() => setDrinkOrders(drinkOrders.map(d => d.drinkId === drink.id ? {...d, quantity: Math.max(1, d.quantity - 1)} : d))} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: 'white', cursor: 'pointer' }}>−</button>
-                                  <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '600' }}>{order.quantity}</span>
-                                  <button onClick={() => setDrinkOrders(drinkOrders.map(d => d.drinkId === drink.id ? {...d, quantity: d.quantity + 1} : d))} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: 'white', cursor: 'pointer' }}>+</button>
-                                </div>
-                              )}
-                              <span style={{ fontWeight: '600', color: '#7c3aed', fontSize: '14px', minWidth: '80px', textAlign: 'right' }}>
-                                {order ? (
-                                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <input
-                                      type="number"
-                                      value={getPrice(`drink_${drink.id}`, drink.price) * order.quantity}
-                                      onChange={(e) => setPrice(`drink_${drink.id}`, Math.round(Number(e.target.value) / order.quantity))}
-                                      onClick={(e) => e.stopPropagation()}
-                                      style={{ width: '70px', padding: '2px 4px', border: '1px solid #a855f7', borderRadius: '4px', textAlign: 'right', fontSize: '13px' }}
-                                    /> THB
-                                  </span>
-                                ) : (
-                                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    +<input
-                                      type="number"
-                                      value={getPrice(`drink_${drink.id}`, drink.price)}
-                                      onChange={(e) => setPrice(`drink_${drink.id}`, Number(e.target.value))}
-                                      onClick={(e) => e.stopPropagation()}
-                                      style={{ width: '60px', padding: '2px 4px', border: '1px solid #a855f7', borderRadius: '4px', textAlign: 'right', fontSize: '13px' }}
-                                    /> THB
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {boatDrinks.length === 0 && (
-                  <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Информация о напитках не указана в контракте</p>
-                )}
-              </div>
-
-              {/* ==================== PARK FEES SECTION ==================== */}
-              <div id="fees" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#fef2f2', borderRadius: '16px', border: '1px solid #fca5a5' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#dc2626' }}>🏝️ ПАРКОВЫЕ СБОРЫ И ВЫСАДКА</h3>
-                
-
-                {/* Landing fee */}
-                <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: landingEnabled ? '#fee2e2' : 'white', borderRadius: '12px', border: landingEnabled ? '2px solid #f87171' : '1px solid #e5e7eb' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <input
-                        type="checkbox"
-                        checked={landingEnabled}
-                        onChange={() => setLandingEnabled(!landingEnabled)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <div>
-                        <span style={{ fontWeight: '600' }}>🚤 Высадка на остров</span>
-                        <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6b7280' }}>Landing fee / Сбор за высадку</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <input
-                        type="number"
-                        value={landingFee}
-                        onChange={(e) => setLandingFee(Number(e.target.value) || 0)}
-                        style={{ width: '80px', padding: '8px', border: '1px solid #dc2626', borderRadius: '6px', fontSize: '14px', fontWeight: '600', textAlign: 'right' }}
-                      />
-                      <span style={{ fontWeight: '600', color: '#dc2626' }}>THB</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Default park fee - always shown */}
-                <div style={{ padding: '16px', backgroundColor: defaultParkFeeEnabled ? '#fee2e2' : 'white', borderRadius: '12px', border: defaultParkFeeEnabled ? '2px solid #f87171' : '1px solid #e5e7eb', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                      <input
-                        type="checkbox"
-                        checked={defaultParkFeeEnabled}
-                        onChange={() => setDefaultParkFeeEnabled(!defaultParkFeeEnabled)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer', marginTop: '2px' }}
-                      />
-                      <div>
-                        <span style={{ fontWeight: '600' }}>🌴 Парковый сбор (по умолчанию)</span>
-                        <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6b7280' }}>National Park Fee / Сбор за посещение нац. парка</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <input
-                        type="number"
-                        value={defaultParkFee}
-                        onChange={(e) => setDefaultParkFee(Number(e.target.value) || 0)}
-                        style={{ width: '60px', padding: '2px 4px', border: '1px solid #dc2626', borderRadius: '4px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#dc2626' }}
-                      />
-                      <span style={{ fontWeight: '600', color: '#dc2626' }}>THB/чел</span>
-                    </div>
-                  </div>
-                  {defaultParkFeeEnabled && (
-                    <div style={{ marginTop: '12px', marginLeft: '30px', display: 'flex', alignItems: 'center', gap: '20px', padding: '12px', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <label style={{ fontSize: '13px', color: '#6b7280' }}>Взрослых:</label>
-                        <button onClick={() => setDefaultParkFeeAdults(Math.max(0, defaultParkFeeAdults - 1))} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>−</button>
-                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '600' }}>{defaultParkFeeAdults}</span>
-                        <button onClick={() => setDefaultParkFeeAdults(defaultParkFeeAdults + 1)} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>+</button>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <label style={{ fontSize: '13px', color: '#6b7280' }}>Детей:</label>
-                        <button onClick={() => setDefaultParkFeeChildren(Math.max(0, defaultParkFeeChildren - 1))} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>−</button>
-                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '600' }}>{defaultParkFeeChildren}</span>
-                        <button onClick={() => setDefaultParkFeeChildren(defaultParkFeeChildren + 1)} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>+</button>
-                      </div>
-                      <div style={{ marginLeft: 'auto', fontWeight: '700', color: '#dc2626', fontSize: '16px' }}>
-                        = {(defaultParkFee * (defaultParkFeeAdults + defaultParkFeeChildren)).toLocaleString()} THB
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {routeFees.length > 0 ? (
-                  <div style={{ display: 'grid', gap: '12px' }}>
-                    <p style={{ margin: 0, fontSize: '14px', color: '#dc2626' }}>📍 {selectedBoat.route_name}:</p>
-                    {routeFees.map(fee => {
-                      const selected = selectedFees.find((f: any) => f.id === fee.id);
-                      return (
-                        <div key={fee.id} style={{ padding: '16px', backgroundColor: selected ? '#fee2e2' : 'white', borderRadius: '12px', border: selected ? '2px solid #f87171' : '1px solid #e5e7eb' }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={!!selected} 
-                                onChange={() => toggleFee(fee)}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer', marginTop: '2px' }} 
-                              />
-                              <div>
-                                <span style={{ fontWeight: '600' }}>{fee.name_en}</span>
-                                {fee.mandatory && <span style={{ marginLeft: '8px', padding: '2px 8px', backgroundColor: '#fecaca', borderRadius: '4px', fontSize: '11px', color: '#dc2626', fontWeight: '600' }}>⚠️ Обязательно</span>}
-                                {fee.name_ru && <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6b7280' }}>{fee.name_ru}</p>}
-                              </div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <input
-                                type="number"
-                                value={getPrice(`fee_${fee.id}`, fee.price_per_person)}
-                                onChange={(e) => setPrice(`fee_${fee.id}`, Number(e.target.value))}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{ width: '60px', padding: '2px 4px', border: '1px solid #dc2626', borderRadius: '4px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#dc2626' }}
-                              />
-                              <span style={{ fontWeight: '600', color: '#dc2626' }}>THB/чел</span>
-                            </div>
-                            </div>
-                          </div>
-                          {selected && (
-                            <div style={{ marginTop: '12px', marginLeft: '30px', display: 'flex', alignItems: 'center', gap: '20px', padding: '12px', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <label style={{ fontSize: '13px', color: '#6b7280' }}>Взрослых:</label>
-                                <button onClick={() => setSelectedFees(selectedFees.map((f: any) => f.id === fee.id ? {...f, adults: Math.max(0, f.adults - 1)} : f))} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>−</button>
-                                <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '600' }}>{selected.adults}</span>
-                                <button onClick={() => setSelectedFees(selectedFees.map((f: any) => f.id === fee.id ? {...f, adults: f.adults + 1} : f))} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>+</button>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <label style={{ fontSize: '13px', color: '#6b7280' }}>Детей:</label>
-                                <button onClick={() => setSelectedFees(selectedFees.map((f: any) => f.id === fee.id ? {...f, children: Math.max(0, f.children - 1)} : f))} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>−</button>
-                                <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '600' }}>{selected.children}</span>
-                                <button onClick={() => setSelectedFees(selectedFees.map((f: any) => f.id === fee.id ? {...f, children: f.children + 1} : f))} style={{ width: '28px', height: '28px', border: '1px solid #dc2626', borderRadius: '6px', backgroundColor: 'white', cursor: 'pointer' }}>+</button>
-                              </div>
-                              <div style={{ marginLeft: 'auto', fontWeight: '700', color: '#dc2626', fontSize: '16px' }}>
-                                = {(getPrice(`fee_${fee.id}`, fee.price_per_person) * (selected.adults + selected.children)).toLocaleString()} THB
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Информация о сборах для этого маршрута не найдена</p>
-                )}
-              </div>
-
-              {/* ==================== WATER TOYS SECTION ==================== */}
-              <div id="toys" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#ecfeff', borderRadius: '16px', border: '1px solid #a5f3fc' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#0891b2' }}>🎿 ВОДНЫЕ РАЗВЛЕЧЕНИЯ</h3>
-                
-                {/* Included water toys */}
-                {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys' || o.category_code === 'equipment') && o.status === 'included').length > 0 && (
-                  <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #86efac' }}>
-                    <span style={{ fontWeight: '600', color: '#166534' }}>Включено: </span>
-                    {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys' || o.category_code === 'equipment') && o.status === 'included').map((o, i) => (
-                      <span key={o.id}>{i > 0 ? ', ' : ''}{o.option_name}</span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Paid water toys from boat */}
-                {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').length > 0 && (
-                  <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #a5f3fc' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#0891b2' }}>➕ Добавить с яхты:</p>
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                      {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').map(opt => {
-                        const isAdded = selectedExtras.some(e => e.optionId === opt.id);
-                        return (
-                          <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#cffafe' : '#fafafa', borderRadius: '8px', border: isAdded ? '2px solid #22d3ee' : '1px solid #e5e7eb' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <input type="checkbox" checked={isAdded} onChange={() => toggleExtra(opt)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                              <span style={{ fontWeight: '500' }}>{opt.option_name}</span>
-                            </div>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', color: '#0891b2' }}>
-                              +<input
-                                type="number"
-                                value={getPrice(`opt_${opt.id}`, opt.price)}
-                                onChange={(e) => setPrice(`opt_${opt.id}`, Number(e.target.value))}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{ width: '60px', padding: '2px 4px', border: '1px solid #0891b2', borderRadius: '4px', textAlign: 'right', fontSize: '13px' }}
-                              /> THB{opt.price_per === 'hour' ? '/час' : opt.price_per === 'day' ? '/день' : ''}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Watersports catalog removed - using partners only */}
-
-                {/* Partner watersports - Collapsible */}
-                {watersportsPartners.length > 0 && (
-                  <div style={{ borderRadius: '12px', border: '1px solid #a5f3fc', overflow: 'hidden' }}>
-                    {/* Header - clickable */}
-                    <div 
-                      onClick={() => toggleSection('partnerWatersports')}
-                      style={{ padding: '14px 16px', backgroundColor: '#ecfeff', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>{expandedSections.partnerWatersports ? '▼' : '▶'}</span>
-                        <span style={{ fontWeight: '600', color: '#0891b2' }}>🏄 🏄 Водные развлечения от партнёров</span>
-                        <span style={{ fontSize: '13px', color: '#6b7280' }}>({watersportsPartners.length} партнёров)</span>
-                      </div>
-                    </div>
-                    
-                    {/* Content */}
-                    {expandedSections.partnerWatersports && (
-                      <div style={{ padding: '16px', backgroundColor: 'white' }}>
-                        {watersportsPartners.map(partner => (
-                          <div key={partner.id} style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#ecfeff', borderRadius: '10px', border: '1px solid #a5f3fc' }}>
-                            {/* Partner header with markup */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <div>
-                                <span style={{ fontWeight: '600', color: '#0891b2', fontSize: '16px' }}>{partner.name}</span>
-                                {partner.phone && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#6b7280' }}>📞 {partner.phone}</p>}
-                              </div>
-                            </div>
-                            
-                            {/* Items */}
-                            <div style={{ display: 'grid', gap: '8px' }}>
-                              {watersportsCatalog.filter(w => w.partner_id === partner.id).map(item => {
-                                const isAdded = selectedPartnerWatersports.some(w => w.id === item.id);
-                                const pw = selectedPartnerWatersports.find(w => w.id === item.id);
-                                const basePrice = (item.price_per_hour || 0) > 0 ? item.price_per_hour : item.price_per_day;
-                                // Using direct price edit
-                                const totalPrice = isAdded && pw ? ((pw.pricePerHour || 0) * (pw.hours || 0) + (pw.pricePerDay || 0) * (pw.days || 0)) : 0;
-                                // Using direct price edit
-                                
-                                return (
-                                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: isAdded ? '#cffafe' : 'white', borderRadius: '8px', border: isAdded ? '2px solid #22d3ee' : '1px solid #e5e7eb' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      <input 
-                                        type="checkbox" 
-                                        checked={isAdded} 
-                                        onChange={() => {
-                                          if (isAdded) {
-                                            removePartnerWatersport(item.id);
-                                          } else {
-                                            // Add with markup info
-                                            setSelectedPartnerWatersports([...selectedPartnerWatersports, {
-                                              id: item.id,
-                                              name: item.name_en,
-                                              partnerName: partner.name,
-                                              partnerId: partner.id,
-                                              pricePerHour: customPrices[`ws_${item.id}`] !== undefined ? (item.price_per_hour > 0 ? customPrices[`ws_${item.id}`] : 0) : (item.price_per_hour || 0),
-                                              pricePerDay: customPrices[`ws_${item.id}`] !== undefined ? (item.price_per_day > 0 ? customPrices[`ws_${item.id}`] : 0) : (item.price_per_day || 0),
-                                              hours: (item.price_per_hour || 0) > 0 ? 1 : 0,
-                                              days: (item.price_per_hour || 0) > 0 ? 0 : ((item.price_per_day || 0) > 0 ? 1 : 0),
-                                              // markup removed
-                                            }]);
-                                          }
-                                        }}
-                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                                      />
-                                      <div>
-                                        <span style={{ fontWeight: '500' }}>{item.name_en}</span>
-                                        {item.name_ru && <span style={{ marginLeft: '6px', fontSize: '13px', color: '#6b7280' }}>({item.name_ru})</span>}
-                                      </div>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      {isAdded && pw && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                          {(item.price_per_hour || 0) > 0 && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                              <button onClick={() => updatePartnerWatersport(item.id, 'hours', Math.max(1, (pw.hours || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>−</button>
-                                              <span style={{ minWidth: '40px', textAlign: 'center' }}>{pw.hours} ч</span>
-                                              <button onClick={() => updatePartnerWatersport(item.id, 'hours', (pw.hours || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>+</button>
-                                            </div>
-                                          )}
-                                          {(item.price_per_day || 0) > 0 && (item.price_per_hour || 0) === 0 && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                              <button onClick={() => updatePartnerWatersport(item.id, 'days', Math.max(1, (pw.days || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>−</button>
-                                              <span style={{ minWidth: '40px', textAlign: 'center' }}>{pw.days} дн</span>
-                                              <button onClick={() => updatePartnerWatersport(item.id, 'days', (pw.days || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>+</button>
-                                            </div>
-                                          )}
-                                        </div>
-                                      )}
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <input
-                                          type="number"
-                                          value={getPrice(`ws_${item.id}`, basePrice)}
-                                          onChange={(e) => {
-                                            const val = Number(e.target.value) || 0;
-                                            setPrice(`ws_${item.id}`, val);
-                                            if (isAdded) {
-                                              const updated = selectedPartnerWatersports.map(w => 
-                                                w.id === item.id ? {...w, pricePerHour: (item.price_per_hour || 0) > 0 ? val : 0, pricePerDay: (item.price_per_day || 0) > 0 ? val : 0} : w
-                                              );
-                                              setSelectedPartnerWatersports(updated);
-                                            }
-                                          }}
-                                          onClick={(e) => e.stopPropagation()}
-                                          style={{ width: '80px', padding: '6px 8px', border: '1px solid #0891b2', borderRadius: '6px', fontSize: '14px', fontWeight: '600', textAlign: 'right' }}
-                                        />
-                                        <span style={{ fontSize: '12px', color: '#6b7280' }}>THB/{(item.price_per_hour || 0) > 0 ? 'час' : 'день'}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <ToysSection
+                boatOptions={boatOptions}
+                selectedExtras={selectedExtras}
+                toggleExtra={toggleExtra}
+                watersportsPartners={watersportsPartners}
+                watersportsCatalog={watersportsCatalog}
+                selectedPartnerWatersports={selectedPartnerWatersports}
+                setSelectedPartnerWatersports={setSelectedPartnerWatersports}
+                removePartnerWatersport={removePartnerWatersport}
+                updatePartnerWatersport={updatePartnerWatersport}
+                expandedSections={expandedSections}
+                toggleSection={toggleSection}
+                customPrices={customPrices}
+                getPrice={getPrice}
+                setPrice={setPrice}
+              />
 
               {/* ==================== STAFF SERVICES SECTION ==================== */}
-              <div id="services" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#faf5ff', borderRadius: '16px', border: '1px solid #e9d5ff' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#7c3aed' }}>👨‍💼 ДОПОЛНИТЕЛЬНЫЙ ПЕРСОНАЛ</h3>
-                
-                {staffServices.length > 0 ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                    {staffServices.map(service => {
-                      const selected = selectedServices.find((s: any) => s.id === service.id);
-                      return (
-                        <div key={service.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: selected ? '#f3e8ff' : 'white', borderRadius: '10px', border: selected ? '2px solid #a855f7' : '1px solid #e5e7eb' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <input type="checkbox" checked={!!selected} onChange={() => toggleService(service)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                            <div>
-                              <span style={{ fontWeight: '500' }}>{service.name_en}</span>
-                              {service.name_ru && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6b7280' }}>{service.name_ru}</p>}
-                            </div>
-                          </div>
-                          <span style={{ fontWeight: '600', color: '#7c3aed' }}>+<span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <input
-                                type="number"
-                                value={getPrice(`service_${service.id}`, service.price || 0)}
-                                onChange={(e) => setPrice(`service_${service.id}`, Number(e.target.value))}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{ width: '70px', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right', fontSize: '12px' }}
-                              /> THB
-                            </span></span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Список персонала не загружен</p>
-                )}
-              </div>
+              <ServicesSection
+                staffServices={staffServices}
+                selectedServices={selectedServices}
+                toggleService={toggleService}
+                getPrice={getPrice}
+                setPrice={setPrice}
+              />
 
-              {/* ==================== TRANSFER SECTION ==================== */}
-              <div id="transfer" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#f0fdf4', borderRadius: '16px', border: '1px solid #86efac' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#166534' }}>🚗 ТРАНСФЕР</h3>
-                
-                {/* Direction selector */}
-                <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
-                  <button
-                    onClick={() => {
-                      setTransferDirection('round_trip');
-                      // Обновляем цену при смене направления
-                      if (useOwnTransfer) {
-                        setTransferPickup(prev => ({...prev, price: ownTransferPriceRoundTrip}));
-                        setCustomTransferPrice(ownTransferPriceRoundTrip);
-                      } else if (useOwnTransferVip) {
-                        setTransferPickup(prev => ({...prev, price: ownTransferVipPriceRoundTrip}));
-                        setCustomTransferPrice(ownTransferVipPriceRoundTrip);
-                      } else if (transferPickup.type !== 'none' && transferPickup.type !== 'own') {
-                        const opt = transferOptionsDB.find(o => String(o.id) === String(transferPickup.type));
-                        if (opt) {
-                          const newPrice = customPrices[`transfer_${opt.id}`] !== undefined 
-                            ? customPrices[`transfer_${opt.id}`] 
-                            : (Number(opt.price_round_trip) || 0);
-                          setTransferPickup(prev => ({...prev, price: newPrice}));
-                          setCustomTransferPrice(newPrice);
-                          // Сбросим кастомную цену чтобы взялась новая базовая
-                          setPrice(`transfer_${opt.id}`, Number(opt.price_round_trip) || 0);
-                        }
-                      }
-                    }}
-                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: transferDirection === 'round_trip' ? '2px solid #22c55e' : '1px solid #e5e7eb', backgroundColor: transferDirection === 'round_trip' ? '#dcfce7' : 'white', cursor: 'pointer', fontWeight: '600' }}
-                  >
-                    🔄 Туда и обратно
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTransferDirection('one_way');
-                      // Обновляем цену при смене направления
-                      if (useOwnTransfer) {
-                        setTransferPickup(prev => ({...prev, price: ownTransferPriceOneWay}));
-                        setCustomTransferPrice(ownTransferPriceOneWay);
-                      } else if (useOwnTransferVip) {
-                        setTransferPickup(prev => ({...prev, price: ownTransferVipPriceOneWay}));
-                        setCustomTransferPrice(ownTransferVipPriceOneWay);
-                      } else if (transferPickup.type !== 'none' && transferPickup.type !== 'own') {
-                        const opt = transferOptionsDB.find(o => String(o.id) === String(transferPickup.type));
-                        if (opt) {
-                          const newPrice = Number(opt.price_one_way) || 0;
-                          setTransferPickup(prev => ({...prev, price: newPrice}));
-                          setCustomTransferPrice(newPrice);
-                          // Обновим кастомную цену на новую базовую
-                          setPrice(`transfer_${opt.id}`, Number(opt.price_one_way) || 0);
-                        }
-                      }
-                    }}
-                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: transferDirection === 'one_way' ? '2px solid #22c55e' : '1px solid #e5e7eb', backgroundColor: transferDirection === 'one_way' ? '#dcfce7' : 'white', cursor: 'pointer', fontWeight: '600' }}
-                  >
-                    ➡️ Только в одну сторону
-                  </button>
-                </div>
-                
-                <div style={{ display: 'grid', gap: '10px' }}>
-                  {/* No transfer option */}
-                  <div 
-                    onClick={() => {
-                      setTransferPickup({...transferPickup, type: 'none', price: 0});
-                      setUseOwnTransfer(false);
-                      setCustomTransferPrice(null);
-                    }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: transferPickup.type === 'none' ? '#dcfce7' : 'white', borderRadius: '10px', border: transferPickup.type === 'none' ? '2px solid #22c55e' : '1px solid #e5e7eb', cursor: 'pointer' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: transferPickup.type === 'none' ? '6px solid #22c55e' : '2px solid #d1d5db', backgroundColor: 'white' }} />
-                      <div>
-                        <span style={{ fontWeight: '600' }}>Не нужен</span>
-                        <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#6b7280' }}>Клиент доберётся сам</p>
-                      </div>
-                    </div>
-                    <span style={{ fontWeight: '600', color: '#166534' }}>0 THB</span>
-                  </div>
+              <TransferSection
+                transferDirection={transferDirection}
+                setTransferDirection={setTransferDirection}
+                transferPickup={transferPickup}
+                setTransferPickup={setTransferPickup}
+                useOwnTransfer={useOwnTransfer}
+                setUseOwnTransfer={setUseOwnTransfer}
+                useOwnTransferVip={useOwnTransferVip}
+                setUseOwnTransferVip={setUseOwnTransferVip}
+                ownTransferPriceRoundTrip={ownTransferPriceRoundTrip}
+                setOwnTransferPriceRoundTrip={setOwnTransferPriceRoundTrip}
+                ownTransferPriceOneWay={ownTransferPriceOneWay}
+                setOwnTransferPriceOneWay={setOwnTransferPriceOneWay}
+                ownTransferVipPriceRoundTrip={ownTransferVipPriceRoundTrip}
+                setOwnTransferVipPriceRoundTrip={setOwnTransferVipPriceRoundTrip}
+                ownTransferVipPriceOneWay={ownTransferVipPriceOneWay}
+                setOwnTransferVipPriceOneWay={setOwnTransferVipPriceOneWay}
+                transferOptionsDB={transferOptionsDB}
+                customTransferPrice={customTransferPrice}
+                setCustomTransferPrice={setCustomTransferPrice}
+                customPrices={customPrices}
+                setPrice={setPrice}
+              />
 
-                  {/* Our own transfer */}
-                  <div 
-                    onClick={() => {
-                      const price = transferDirection === 'round_trip' ? ownTransferPriceRoundTrip : ownTransferPriceOneWay;
-                      setTransferPickup({...transferPickup, type: 'own', price: price});
-                      setUseOwnTransfer(true);
-                      setUseOwnTransferVip(false);
-                      setCustomTransferPrice(price);
-                    }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: String(transferPickup.type) === 'own' ? '#dcfce7' : 'white', borderRadius: '10px', border: String(transferPickup.type) === 'own' ? '2px solid #22c55e' : '1px solid #e5e7eb', cursor: 'pointer' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: String(transferPickup.type) === 'own' ? '6px solid #22c55e' : '2px solid #d1d5db', backgroundColor: 'white' }} />
-                      <div>
-                        <span style={{ fontWeight: '600' }}>🚐 Наш трансфер</span>
-                        <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#6b7280' }}>Стандартный минивэн</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="number"
-                        value={transferDirection === 'round_trip' ? ownTransferPriceRoundTrip : ownTransferPriceOneWay}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          if (transferDirection === 'round_trip') {
-                            setOwnTransferPriceRoundTrip(val);
-                            if (String(transferPickup.type) === 'own') {
-                              setTransferPickup({...transferPickup, price: val});
-                              setCustomTransferPrice(val);
-                            }
-                          } else {
-                            setOwnTransferPriceOneWay(val);
-                            if (String(transferPickup.type) === 'own') {
-                              setTransferPickup({...transferPickup, price: val});
-                              setCustomTransferPrice(val);
-                            }
-                          }
-                        }}
-                        style={{ width: '70px', padding: '4px 6px', border: '1px solid #22c55e', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px' }}
-                      />
-                      <span style={{ fontWeight: '600', color: '#166534' }}>THB</span>
-                    </div>
-                  </div>
-
-                  {/* VIP Transfer option */}
-                  <div
-                    onClick={() => {
-                      const price = transferDirection === 'round_trip' ? ownTransferVipPriceRoundTrip : ownTransferVipPriceOneWay;
-                      setTransferPickup({...transferPickup, type: 'vip', price});
-                      setUseOwnTransfer(false);
-                      setUseOwnTransferVip(true);
-                      setCustomTransferPrice(price);
-                    }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: useOwnTransferVip ? '#fef3c7' : 'white', borderRadius: '10px', border: useOwnTransferVip ? '2px solid #f59e0b' : '1px solid #e5e7eb', cursor: 'pointer' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: useOwnTransferVip ? '6px solid #f59e0b' : '2px solid #d1d5db', backgroundColor: 'white' }} />
-                      <div>
-                        <span style={{ fontWeight: '600' }}>👑 Наш трансфер VIP</span>
-                        <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#6b7280' }}>Премиум минивэн</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="number"
-                        value={transferDirection === 'round_trip' ? ownTransferVipPriceRoundTrip : ownTransferVipPriceOneWay}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          if (transferDirection === 'round_trip') {
-                            setOwnTransferVipPriceRoundTrip(val);
-                            if (useOwnTransferVip) {
-                              setTransferPickup({...transferPickup, price: val});
-                              setCustomTransferPrice(val);
-                            }
-                          } else {
-                            setOwnTransferVipPriceOneWay(val);
-                            if (useOwnTransferVip) {
-                              setTransferPickup({...transferPickup, price: val});
-                              setCustomTransferPrice(val);
-                            }
-                          }
-                        }}
-                        style={{ width: '70px', padding: '4px 6px', border: '1px solid #f59e0b', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px' }}
-                      />
-                      <span style={{ fontWeight: '600', color: '#d97706' }}>THB</span>
-                    </div>
-                  </div>
-
-                  
-                </div>
-
-                {/* Address input */}
-                {transferPickup.type !== 'none' && (
-                  <div style={{ marginTop: '16px', padding: '16px', backgroundColor: 'white', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151', fontSize: '14px' }}>📍 Адрес забора:</label>
-                    <input
-                      value={transferPickup.pickup}
-                      onChange={(e) => setTransferPickup({...transferPickup, pickup: e.target.value})}
-                      placeholder="Название отеля или адрес"
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
-                    />
-                  </div>
-                )}
-
-                {/* Total */}
-                {transferPickup.price > 0 && (
-                  <div style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: '#dcfce7', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: '600' }}>✓ Трансфер ({transferDirection === 'round_trip' ? 'round trip' : 'one way'}):</span>
-                    <span style={{ fontWeight: '700', color: '#166534', fontSize: '20px' }}>{transferPickup.price.toLocaleString()} THB</span>
-                  </div>
-                )}
-              </div>
-
-              <div id="summary" style={{ padding: '24px', background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)', borderRadius: '16px', color: 'white' }}>
-                <h3 style={{ margin: '0 0 20px', fontSize: '20px', fontWeight: '700' }}>📊 ИТОГО</h3>
-                
-                {/* Markup slider */}
-                <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span style={{ fontWeight: '600' }}>Наша наценка</span>
-                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '2px' }}>
-                      <button onClick={() => setMarkupMode('percent')} style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600', backgroundColor: markupMode === 'percent' ? 'white' : 'transparent', color: markupMode === 'percent' ? '#1e40af' : 'rgba(255,255,255,0.7)' }}>%</button>
-                      <button onClick={() => setMarkupMode('fixed')} style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600', backgroundColor: markupMode === 'fixed' ? 'white' : 'transparent', color: markupMode === 'fixed' ? '#1e40af' : 'rgba(255,255,255,0.7)' }}>THB</button>
-                    </div>
-                  </div>
-                  {markupMode === 'percent' ? (
-                    <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                        <input type="number" min="0" max="500" value={boatMarkup} onChange={(e) => setBoatMarkup(Number(e.target.value) || 0)} style={{ width: '100px', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '20px', fontWeight: 'bold', textAlign: 'center' }} />
-                        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>%</span>
-                        <span style={{ fontSize: '13px', opacity: 0.7 }}>= +{Math.round((selectedBoat?.calculated_total || 0) * boatMarkup / 100).toLocaleString()} THB</span>
-                      </div>
-                      <input type="range" min="0" max="200" value={boatMarkup} onChange={(e) => setBoatMarkup(Number(e.target.value))} style={{ width: '100%', height: '6px', cursor: 'pointer' }} />
-                    </>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <input type="number" min="0" step="1000" value={fixedMarkup} onChange={(e) => setFixedMarkup(Number(e.target.value) || 0)} style={{ width: '160px', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '20px', fontWeight: 'bold', textAlign: 'center' }} />
-                      <span style={{ fontSize: '16px', fontWeight: 'bold' }}>THB</span>
-                      <span style={{ fontSize: '13px', opacity: 0.7 }}>= {((selectedBoat?.calculated_total || 0) > 0 ? (fixedMarkup / (selectedBoat?.calculated_total || 1) * 100).toFixed(1) : 0)}%</span>
-                    </div>
-                  )}
-                </div>
-                <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                    <span>Яхта (базовая цена)</span>
-                    <span style={{ fontWeight: '600' }}>{(selectedBoat.calculated_total || 0).toLocaleString()} THB</span>
-                  </div>
-
-                  {(extraAdults + children3to11) > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.2)" }}>
-                      <span>Доп. гости ({extraAdults} взр + {children3to11} дет)</span>
-                      <span style={{ fontWeight: "600" }}>+{((extraAdults * (customPrices["extra_adult"] || selectedBoat?.extra_pax_price || 0)) + (children3to11 * (customPrices["child_3_11"] || Math.round((selectedBoat?.extra_pax_price || 0) * 0.5)))).toLocaleString()} THB</span>
-                    </div>
-                  )}                  
-                  {totals.fees > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span>Парковые сборы</span>
-                      <span style={{ fontWeight: '600' }}>+{totals.fees.toLocaleString()} THB</span>
-                    </div>
-                  )}
-                  
-                  {totals.catering > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span>Питание</span>
-                      <span style={{ fontWeight: '600' }}>+{totals.catering.toLocaleString()} THB</span>
-                    </div>
-                  )}
-                  
-                  {totals.drinks > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span>Напитки</span>
-                      <span style={{ fontWeight: '600' }}>+{totals.drinks.toLocaleString()} THB</span>
-                    </div>
-                  )}
-                  
-                  {totals.toys > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span>Водные развлечения</span>
-                      <span style={{ fontWeight: '600' }}>+{totals.toys.toLocaleString()} THB</span>
-                    </div>
-                  )}
-
-                  {(totals.partnerWatersports || 0) > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.2)" }}>
-                      <span>Водные услуги</span>
-                      <span style={{ fontWeight: "600" }}>+{(totals.partnerWatersports || 0).toLocaleString()} THB</span>
-                    </div>
-                  )}                  
-                  {totals.services > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span>Персонал</span>
-                      <span style={{ fontWeight: '600' }}>+{totals.services.toLocaleString()} THB</span>
-                    </div>
-                  )}
-                  
-                  {totals.transfer > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span>Трансфер</span>
-                      <span style={{ fontWeight: '600' }}>+{totals.transfer.toLocaleString()} THB</span>
-                    </div>
-                  )}
-                  
-                  {totals.extras > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span>Дополнительные опции</span>
-                      <span style={{ fontWeight: '600' }}>+{totals.extras.toLocaleString()} THB</span>
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)', color: '#fcd34d' }}>
-                    <span>Наценка {markupMode === "fixed" ? "(" + fixedMarkup.toLocaleString() + " THB)" : "(" + boatMarkup + "%)"}</span>
-                    <span style={{ fontWeight: "600" }}>+{markupMode === "fixed" ? fixedMarkup.toLocaleString() : Math.round((selectedBoat.calculated_total || 0) * boatMarkup / 100).toLocaleString()} THB</span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 0 0', fontSize: '24px', fontWeight: 'bold' }}>
-                    <span>💰 ЦЕНА ДЛЯ КЛИЕНТА</span>
-                    <span>{(totals.totalClient || 0).toLocaleString()} THB</span>
-                  </div>
-                </div>
-
-                {/* Custom notes */}
-                <div style={{ marginTop: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: 'white' }}>📝 Заметки / Примечания:</label>
-                  <textarea
-                    value={customNotes}
-                    onChange={(e) => setCustomNotes(e.target.value)}
-                    placeholder="Например: Обед в ресторане - кэш-ваучер 500 THB/чел для спидбота..."
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', fontSize: '14px', minHeight: '80px', resize: 'vertical', backgroundColor: 'rgba(255,255,255,0.95)' }}
-                  />
-                </div>
-
-                {/* Action buttons */}
-                <div style={{ marginTop: '20px', display: 'flex', gap: '12px' }}>
-                  <button 
-                    onClick={generatePDF}
-                    style={{ flex: 1, padding: '16px', backgroundColor: 'white', color: '#1e40af', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    📄 Создать PDF
-                  </button>
-                  <button 
-                    onClick={generateWhatsApp}
-                    style={{ flex: 1, padding: '16px', backgroundColor: '#25D366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    💬 Отправить в WhatsApp
-                  </button>
-                </div>
-              </div>
+              <SummarySection
+                selectedBoat={selectedBoat}
+                totals={totals}
+                markupMode={markupMode}
+                setMarkupMode={setMarkupMode}
+                boatMarkup={boatMarkup}
+                setBoatMarkup={setBoatMarkup}
+                fixedMarkup={fixedMarkup}
+                setFixedMarkup={setFixedMarkup}
+                extraAdults={extraAdults}
+                children3to11={children3to11}
+                customPrices={customPrices}
+                customNotes={customNotes}
+                setCustomNotes={setCustomNotes}
+                generatePDF={generatePDF}
+                generateWhatsApp={generateWhatsApp}
+              />
 
             </div>
 
