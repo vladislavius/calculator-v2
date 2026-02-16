@@ -4,7 +4,7 @@ import {
     SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder,
     TransferOrder, SelectedToy, SelectedService, SelectedFee,
     SelectedPartnerWatersport, Lang, Partner, SimpleBoat, SimpleRoute
-} from '@/lib/types';
+} from '../lib/types';
 
 export const useBookingState = () => {
     // Search state
