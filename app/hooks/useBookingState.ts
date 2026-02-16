@@ -3,8 +3,10 @@ import { useState } from 'react';
 import {
     SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder,
     TransferOrder, SelectedToy, SelectedService, SelectedFee,
-    SelectedPartnerWatersport, Lang, Partner, SimpleBoat, SimpleRoute
-} from '../lib/types';
+    SelectedPartnerWatersport, Lang, Partner, SimpleBoat, SimpleRoute,
+    BoatDrink, RouteFee, StaffService, CateringPartner, CateringMenuItem,
+    WatersportsPartner, WatersportsCatalogItem, TransferOptionDB
+} from '@/lib/types';
 
 export const useBookingState = () => {
     // Search state
@@ -51,13 +53,28 @@ export const useBookingState = () => {
     const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>([]);
     const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
     const [drinkOrders, setDrinkOrders] = useState<DrinkOrder[]>([]);
-    const [selectedToys, setSelectedToys] = useState<any[]>([]); // TODO: Type strictness later
+    const [selectedToys, setSelectedToys] = useState<any[]>([]);
     const [selectedServices, setSelectedServices] = useState<any[]>([]);
     const [selectedFees, setSelectedFees] = useState<any[]>([]);
     const [selectedPartnerWatersports, setSelectedPartnerWatersports] = useState<any[]>([]);
     const [specialOccasion, setSpecialOccasion] = useState('');
     const [dietaryRequirements, setDietaryRequirements] = useState('');
     const [specialRequests, setSpecialRequests] = useState('');
+
+    // Loaded Data from DB (Partners, Menus, etc.)
+    const [cateringPartners, setCateringPartners] = useState<CateringPartner[]>([]);
+    const [cateringMenu, setCateringMenu] = useState<CateringMenuItem[]>([]);
+    const [partnerMenus, setPartnerMenus] = useState<any[]>([]);
+    const [partnerMenuSets, setPartnerMenuSets] = useState<any[]>([]);
+    const [watersportsPartners, setWatersportsPartners] = useState<WatersportsPartner[]>([]);
+    const [watersportsCatalog, setWatersportsCatalog] = useState<WatersportsCatalogItem[]>([]);
+    const [transferOptionsDB, setTransferOptionsDB] = useState<TransferOptionDB[]>([]);
+
+    // Specific Boat Data
+    const [boatDrinks, setBoatDrinks] = useState<BoatDrink[]>([]);
+    const [routeFees, setRouteFees] = useState<RouteFee[]>([]);
+    const [staffServices, setStaffServices] = useState<StaffService[]>([]);
+    const [boatMenu, setBoatMenu] = useState<any[]>([]);
 
     // Transfer
     const [transferPickup, setTransferPickup] = useState<TransferOrder>({
@@ -82,6 +99,7 @@ export const useBookingState = () => {
     const [partnerMarkups, setPartnerMarkups] = useState<{ [key: string]: number }>({});
     const [customPrices, setCustomPrices] = useState<{ [key: string]: number }>({});
     const [corkageFee, setCorkageFee] = useState(0);
+    const [byobAllowed, setByobAllowed] = useState(false); // Added
     const [landingFee, setLandingFee] = useState<number>(0);
     const [landingEnabled, setLandingEnabled] = useState<boolean>(false);
     const [defaultParkFee, setDefaultParkFee] = useState<number>(0);
@@ -116,9 +134,11 @@ export const useBookingState = () => {
             results, loading, selectedBoat, boatOptions, loadingOptions, showAgentPrice, markupPercent, boatMarkup, markupMode, fixedMarkup,
             selectedExtras, cateringOrders, drinkOrders, selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
             specialOccasion, dietaryRequirements, specialRequests,
+            cateringPartners, cateringMenu, partnerMenus, partnerMenuSets, watersportsPartners, watersportsCatalog, transferOptionsDB,
+            boatDrinks, routeFees, staffServices, boatMenu,
             transferPickup, transferDropoff, transferDirection, customTransferPrice, useOwnTransfer, ownTransferPriceOneWay,
             ownTransferPriceRoundTrip, ownTransferVipPriceRoundTrip, ownTransferVipPriceOneWay, useOwnTransferVip, transferPrice, transferMarkup,
-            lang, partnerMarkups, customPrices, corkageFee, landingFee, landingEnabled, defaultParkFee, defaultParkFeeEnabled,
+            lang, partnerMarkups, customPrices, corkageFee, byobAllowed, landingFee, landingEnabled, defaultParkFee, defaultParkFeeEnabled,
             defaultParkFeeAdults, defaultParkFeeChildren, expandedSections, activeTab,
             customerName, customerPhone, customerEmail, selectedDishes
         },
@@ -129,9 +149,11 @@ export const useBookingState = () => {
             setResults, setLoading, setSelectedBoat, setBoatOptions, setLoadingOptions, setShowAgentPrice, setMarkupPercent, setBoatMarkup, setMarkupMode, setFixedMarkup,
             setSelectedExtras, setCateringOrders, setDrinkOrders, setSelectedToys, setSelectedServices, setSelectedFees, setSelectedPartnerWatersports,
             setSpecialOccasion, setDietaryRequirements, setSpecialRequests,
+            setCateringPartners, setCateringMenu, setPartnerMenus, setPartnerMenuSets, setWatersportsPartners, setWatersportsCatalog, setTransferOptionsDB,
+            setBoatDrinks, setRouteFees, setStaffServices, setBoatMenu,
             setTransferPickup, setTransferDropoff, setTransferDirection, setCustomTransferPrice, setUseOwnTransfer, setOwnTransferPriceOneWay,
             setOwnTransferPriceRoundTrip, setOwnTransferVipPriceRoundTrip, setOwnTransferVipPriceOneWay, setUseOwnTransferVip, setTransferPrice, setTransferMarkup,
-            setLang, setPartnerMarkups, setCustomPrices, setCorkageFee, setLandingFee, setLandingEnabled, setDefaultParkFee, setDefaultParkFeeEnabled,
+            setLang, setPartnerMarkups, setCustomPrices, setCorkageFee, setByobAllowed, setLandingFee, setLandingEnabled, setDefaultParkFee, setDefaultParkFeeEnabled,
             setDefaultParkFeeAdults, setDefaultParkFeeChildren, setExpandedSections, setActiveTab,
             setCustomerName, setCustomerPhone, setCustomerEmail, setSelectedDishes
         }
