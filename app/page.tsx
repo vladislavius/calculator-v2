@@ -784,7 +784,7 @@ export default function Home() {
                     }).slice(0, 8).map(route => (
                       <div
                         key={route.id}
-                        onClick={() => { setDestination(route.name_en || route.name_ru); setShowDestinationSuggestions(false); }}
+                        onClick={() => { setDestination(route.name_en || route.name_ru || ""); setShowDestinationSuggestions(false); }}
                         style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                         onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
