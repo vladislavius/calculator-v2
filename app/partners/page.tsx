@@ -1141,6 +1141,41 @@ export default function PartnersPage() {
             
             
             
+            
+            {/* Paid Options Section */}
+            <div style={{ marginTop: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>💰 Платные опции</h3>
+              {boatOptions.filter((o: any) => !o.included).length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {boatOptions.filter((o: any) => !o.included).map((opt: any) => (
+                    <div 
+                      key={opt.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 12px',
+                        backgroundColor: '#fef3c7',
+                        color: '#92400e',
+                        borderRadius: '16px',
+                        fontSize: '12px'
+                      }}
+                    >
+                      <span>💰</span>
+                      <span>{opt.options_catalog?.name_en || opt.option_id}</span>
+                      <span>+{Number(opt.price || 0).toLocaleString()} THB</span>
+                      {editMode && (
+                        <button 
+                          onClick={() => deleteBoatOption(opt.id)}
+                          style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '12px', padding: '0 2px' }}
+                        >✕</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: '#9ca3af', fontSize: '13px' }}>Нет платных опций</p>
+              )}
+            </div>
+
             {/* Pricing Rules / Тарифные тиры */}
             {boatPricingRules.length > 0 && (
             <div style={{ marginTop: '16px' }}>
@@ -1172,12 +1207,12 @@ export default function PartnersPage() {
             </div>
             )}
 
-            {/* Options Section */}
+            {/* Options Section — Included */}
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>✅ Опции лодки</h3>
-              {boatOptions.length > 0 ? (
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>✅ Включено в стоимость</h3>
+              {boatOptions.filter((o: any) => o.included).length > 0 ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {boatOptions.map((opt: any) => (
+                  {boatOptions.filter((o: any) => o.included).map((opt: any) => (
                     <div 
                       key={opt.id}
                       style={{
