@@ -254,3 +254,6 @@ export interface SimpleRoute {
   name_en: string;
   name_ru?: string;
 }
+
+export type Lang = "en" | "ru" | "th";
+
