@@ -192,6 +192,13 @@ RETURN JSON:
   "commission_info": "if mentioned"
 }
 
+TRANSLATION REQUIREMENT:
+- ALL text fields (names of included items, excluded items, extras, notes, details, vessel_specs, deck_plan, crew_details) must be translated to Russian
+- Keep proper nouns (boat names, company names, location names, pier names) in original language
+- Examples: "Fresh Fruit" -> "Свежие фрукты", "Professional crew" -> "Профессиональная команда", "Fuel" -> "Топливо"
+- "Relocation from KOH YAO YAI" -> "Релокация из KOH YAO YAI" (location stays in English)
+- Price types: "per_person" / "total" / "trip" — keep as-is (these are code values)
+
 IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.`;
 
     const response = await openai.chat.completions.create({

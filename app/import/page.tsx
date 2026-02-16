@@ -162,10 +162,7 @@ export default function ImportPage() {
   const [importMode, setImportMode] = useState<'full' | 'single_boat' | null>(null);
   const [importHistory, setImportHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [translating, setTranslating] = useState(false);
-  const [translations, setTranslations] = useState<Record<string, string>>({});
-  const [showTranslation, setShowTranslation] = useState(false);
-
+      
   // Fetch import history
   const fetchImportHistory = async () => {
     const { data } = await supabase
@@ -204,113 +201,6 @@ export default function ImportPage() {
 
   
   useEffect(() => { fetchImportHistory(); }, []);
-
-const handleTranslate = async () => {
-    if (!extractedData) return;
-    setTranslating(true);
-    try {
-      const response = await fetch('/api/translate-contract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: extractedData })
-      });
-      const result = await response.json();
-      if (result.success && result.translations) {
-        const t = result.translations;
-        setTranslations(t);
-        setShowTranslation(true);
-
-        // Deep clone to force React re-render
-        const updated = JSON.parse(JSON.stringify(extractedData));
-
-        // Translate inclusions
-        updated.general_inclusions = (updated.general_inclusions || []).map((item: string, i: number) => {
-          const tr = t['inclusion_' + i];
-          return tr ? item + ' / ' + tr : item;
-        });
-
-        // Translate exclusions
-        updated.general_exclusions = (updated.general_exclusions || []).map((item: string, i: number) => {
-          const tr = t['exclusion_' + i];
-          return tr ? item + ' / ' + tr : item;
-        });
-
-        // Translate extras
-        updated.extras = (updated.extras || []).map((e: any, i: number) => ({
-          ...e,
-          name_ru: t['extra_' + i + '_name'] || e.name_ru || '',
-          notes: t['extra_' + i + '_notes'] ? (e.notes ? e.notes + ' | ' + t['extra_' + i + '_notes'] : t['extra_' + i + '_notes']) : e.notes
-        }));
-
-        // Translate boats, features, routes
-        updated.boats = (updated.boats || []).map((boat: any, bi: number) => {
-          const newBoat = { ...boat };
-          
-          // Boat notes
-          if (t['boat_' + bi + '_notes']) {
-            newBoat.notes = (boat.notes || '') + ' / ' + t['boat_' + bi + '_notes'];
-          }
-
-          // Features included
-          newBoat.features = {
-            included: (boat.features?.included || []).map((f: any, fi: number) => {
-              const tr = t['boat_' + bi + '_feat_inc_' + fi];
-              return tr ? { ...f, notes: (f.notes ? f.notes + ' | ' : '') + tr } : { ...f };
-            }),
-            paid: (boat.features?.paid || []).map((f: any, fi: number) => {
-              const tr = t['boat_' + bi + '_feat_paid_' + fi];
-              return tr ? { ...f, notes: (f.notes ? f.notes + ' | ' : '') + tr } : { ...f };
-            })
-          };
-
-          // Routes
-          newBoat.routes = (boat.routes || []).map((r: any, ri: number) => {
-            const destTr = t['boat_' + bi + '_route_' + ri + '_dest'];
-            const notesTr = t['boat_' + bi + '_route_' + ri + '_notes'];
-            return {
-              ...r,
-              destination: destTr ? r.destination + ' / ' + destTr : r.destination,
-              notes: notesTr ? (r.notes ? r.notes + ' | ' + notesTr : notesTr) : r.notes
-            };
-          });
-
-          return newBoat;
-        });
-
-        // Contract terms
-        if (t['ct_payment']) {
-          updated.payment_terms = (updated.payment_terms || '') + '\n\n--- Перевод ---\n' + t['ct_payment'];
-        }
-        if (t['ct_cancel']) {
-          updated.cancellation_policy = (updated.cancellation_policy || '') + '\n\n--- Перевод ---\n' + t['ct_cancel'];
-        }
-        if (t['ct_commission'] || t['ct_rules']) {
-          updated.special_conditions = (updated.special_conditions || '')
-            + (t['ct_commission'] ? '\n\n--- Комиссия (перевод) ---\n' + t['ct_commission'] : '')
-            + (t['ct_rules'] ? '\n\n--- Правила (перевод) ---\n' + t['ct_rules'] : '');
-        }
-
-        // Relocation fees
-        if (updated.relocation_fees) {
-          updated.relocation_fees = (updated.relocation_fees || []).map((rf: any, i: number) => ({
-            ...rf,
-            departure_point: t['reloc_' + i] ? rf.departure_point + ' / ' + t['reloc_' + i] : rf.departure_point,
-            notes: t['reloc_' + i + '_notes'] ? (rf.notes ? rf.notes + ' | ' + t['reloc_' + i + '_notes'] : t['reloc_' + i + '_notes']) : rf.notes
-          }));
-        }
-
-        console.log('Translation applied, keys:', Object.keys(t).length);
-        setExtractedData(updated);
-      } else {
-        alert('Ошибка перевода: ' + (result.error || 'unknown'));
-      }
-    } catch (err: any) {
-      console.error('Translation error:', err);
-      alert('Ошибка: ' + err.message);
-    } finally {
-      setTranslating(false);
-    }
-  };
 
     const handleAnalyze = async () => {
     if (contractText.length < 50) {
@@ -1710,26 +1600,6 @@ const handleTranslate = async () => {
             <div style={{backgroundColor: 'white', borderRadius: '0 0 12px 12px', padding: '24px', minHeight: '500px'}}>
               
               {/* PARTNER TAB */}
-              {extractedData && (
-              <button
-                onClick={handleTranslate}
-                disabled={translating}
-                style={{
-                  padding: '8px 16px',
-                  background: translating ? '#666' : '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: translating ? 'wait' : 'pointer',
-                  fontSize: '14px',
-                  marginBottom: '12px'
-                }}
-              >
-                {translating ? '🔄 Переводим...' : '🇷🇺 Перевести на русский'}
-              </button>
-            )}
-
-            
               
 
             {activeTab === 'partner' && (
