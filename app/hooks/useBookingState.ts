@@ -6,7 +6,7 @@ import {
     SelectedPartnerWatersport, Lang, Partner, SimpleBoat, SimpleRoute,
     BoatDrink, RouteFee, StaffService, CateringPartner, CateringMenuItem,
     WatersportsPartner, WatersportsCatalogItem, TransferOptionDB
-} from '@/lib/types';
+} from '../lib/types';
 
 export const useBookingState = () => {
     // Search state
