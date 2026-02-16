@@ -63,9 +63,6 @@ interface ExtractedRoute {
   season: string;
   min_notice_hours: number | null;
   notes: string;
-  client_price?: number | null;
-  price_type?: string;
-  extra_hour_price?: number | null;
   // Additional fields used in UI/code
   charter_type?: string;
   name?: string;
@@ -105,8 +102,6 @@ interface ExtractedData {
   general_inclusions: string[];
   general_exclusions: string[];
   special_conditions: string;
-  relocation_fees?: any[];
-  contract_terms?: any;
   // Additional fields used in code
   included?: any[];
   optional_extras?: any[];
@@ -162,9 +157,6 @@ export default function ImportPage() {
   const [importMode, setImportMode] = useState<'full' | 'single_boat' | null>(null);
   const [importHistory, setImportHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [translating, setTranslating] = useState(false);
-  const [translations, setTranslations] = useState<Record<string, string>>({});
-  const [showTranslation, setShowTranslation] = useState(false);
 
   // Fetch import history
   const fetchImportHistory = async () => {
@@ -202,117 +194,7 @@ export default function ImportPage() {
   // Load partners when component mounts
   // Note: fetchExistingPartners is called when 'single_boat' mode is selected
 
-  
-  useEffect(() => { fetchImportHistory(); }, []);
-
-const handleTranslate = async () => {
-    if (!extractedData) return;
-    setTranslating(true);
-    try {
-      const response = await fetch('/api/translate-contract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: extractedData })
-      });
-      const result = await response.json();
-      if (result.success && result.translations) {
-        const t = result.translations;
-        setTranslations(t);
-        setShowTranslation(true);
-
-        // Deep clone to force React re-render
-        const updated = JSON.parse(JSON.stringify(extractedData));
-
-        // Translate inclusions
-        updated.general_inclusions = (updated.general_inclusions || []).map((item: string, i: number) => {
-          const tr = t['inclusion_' + i];
-          return tr ? item + ' / ' + tr : item;
-        });
-
-        // Translate exclusions
-        updated.general_exclusions = (updated.general_exclusions || []).map((item: string, i: number) => {
-          const tr = t['exclusion_' + i];
-          return tr ? item + ' / ' + tr : item;
-        });
-
-        // Translate extras
-        updated.extras = (updated.extras || []).map((e: any, i: number) => ({
-          ...e,
-          name_ru: t['extra_' + i + '_name'] || e.name_ru || '',
-          notes: t['extra_' + i + '_notes'] ? (e.notes ? e.notes + ' | ' + t['extra_' + i + '_notes'] : t['extra_' + i + '_notes']) : e.notes
-        }));
-
-        // Translate boats, features, routes
-        updated.boats = (updated.boats || []).map((boat: any, bi: number) => {
-          const newBoat = { ...boat };
-          
-          // Boat notes
-          if (t['boat_' + bi + '_notes']) {
-            newBoat.notes = (boat.notes || '') + ' / ' + t['boat_' + bi + '_notes'];
-          }
-
-          // Features included
-          newBoat.features = {
-            included: (boat.features?.included || []).map((f: any, fi: number) => {
-              const tr = t['boat_' + bi + '_feat_inc_' + fi];
-              return tr ? { ...f, notes: (f.notes ? f.notes + ' | ' : '') + tr } : { ...f };
-            }),
-            paid: (boat.features?.paid || []).map((f: any, fi: number) => {
-              const tr = t['boat_' + bi + '_feat_paid_' + fi];
-              return tr ? { ...f, notes: (f.notes ? f.notes + ' | ' : '') + tr } : { ...f };
-            })
-          };
-
-          // Routes
-          newBoat.routes = (boat.routes || []).map((r: any, ri: number) => {
-            const destTr = t['boat_' + bi + '_route_' + ri + '_dest'];
-            const notesTr = t['boat_' + bi + '_route_' + ri + '_notes'];
-            return {
-              ...r,
-              destination: destTr ? r.destination + ' / ' + destTr : r.destination,
-              notes: notesTr ? (r.notes ? r.notes + ' | ' + notesTr : notesTr) : r.notes
-            };
-          });
-
-          return newBoat;
-        });
-
-        // Contract terms
-        if (t['ct_payment']) {
-          updated.payment_terms = (updated.payment_terms || '') + '\n\n--- Перевод ---\n' + t['ct_payment'];
-        }
-        if (t['ct_cancel']) {
-          updated.cancellation_policy = (updated.cancellation_policy || '') + '\n\n--- Перевод ---\n' + t['ct_cancel'];
-        }
-        if (t['ct_commission'] || t['ct_rules']) {
-          updated.special_conditions = (updated.special_conditions || '')
-            + (t['ct_commission'] ? '\n\n--- Комиссия (перевод) ---\n' + t['ct_commission'] : '')
-            + (t['ct_rules'] ? '\n\n--- Правила (перевод) ---\n' + t['ct_rules'] : '');
-        }
-
-        // Relocation fees
-        if (updated.relocation_fees) {
-          updated.relocation_fees = (updated.relocation_fees || []).map((rf: any, i: number) => ({
-            ...rf,
-            departure_point: t['reloc_' + i] ? rf.departure_point + ' / ' + t['reloc_' + i] : rf.departure_point,
-            notes: t['reloc_' + i + '_notes'] ? (rf.notes ? rf.notes + ' | ' + t['reloc_' + i + '_notes'] : t['reloc_' + i + '_notes']) : rf.notes
-          }));
-        }
-
-        console.log('Translation applied, keys:', Object.keys(t).length);
-        setExtractedData(updated);
-      } else {
-        alert('Ошибка перевода: ' + (result.error || 'unknown'));
-      }
-    } catch (err: any) {
-      console.error('Translation error:', err);
-      alert('Ошибка: ' + err.message);
-    } finally {
-      setTranslating(false);
-    }
-  };
-
-    const handleAnalyze = async () => {
+  const handleAnalyze = async () => {
     if (contractText.length < 50) {
       alert('Вставьте текст контракта (минимум 50 символов)');
       return;
@@ -404,16 +286,11 @@ const handleTranslate = async () => {
           duration_hours: r.duration_hours || (r.time_slot === 'half_day' ? 4 : 8),
           distance_nm: r.distance_nm || null,
           base_price: r.base_price || null,
-          client_price: r.client_price || null,
-          price_type: r.price_type || 'total',
-          guests_from: r.guests_from || null,
-          guests_to: r.guests_to || null,
-          extra_hour_price: r.extra_hour_price || null,
           agent_price: r.agent_price || r.base_price || null,
           fuel_surcharge: r.fuel_surcharge || 0,
           extra_pax_price: r.extra_pax_price || null,
           base_pax: r.base_pax || b.base_pax || null,
-          season: (() => { const s = (r.season || 'all').toLowerCase(); return s; })(),
+          season: r.season || 'all',
           min_notice_hours: r.min_notice_hours || null,
           notes: r.notes || ''
         }))
@@ -431,20 +308,10 @@ const handleTranslate = async () => {
           });
           
           const routesHavePrices = boat.routes.some((r: any) => r.base_price && r.base_price > 0);
-          if (boatPrices.length > 0 && boat.routes.length > 0) { // FIXED: enrich routes without prices even if some have prices
+          if (boatPrices.length > 0 && boat.routes.length > 0 && !routesHavePrices) {
             // Routes exist but may lack prices - enrich them
             const enrichedRoutes: any[] = [];
             for (const route of boat.routes) {
-              // Skip routes that already have a valid price
-              if (route.base_price && route.base_price > 0) {
-                enrichedRoutes.push(route);
-                continue;
-              }
-              // FIXED: Skip routes that already have valid prices
-              if (route.base_price && route.base_price > 0) {
-                enrichedRoutes.push(route);
-                continue;
-              }
               // Determine charter_type from duration
               const rType = route.duration_hours <= 5 ? 'half_day' : 'full_day';
               const matchingPrices = boatPrices.filter((p: any) => {
@@ -456,24 +323,20 @@ const handleTranslate = async () => {
               });
               
               if (matchingPrices.length > 0) {
-                // Use minimum price for the route, tiers go to pricing_rules
-                const sorted = [...matchingPrices].sort((a, b) => (a.base_price || 0) - (b.base_price || 0));
-                const minPrice = sorted[0];
-                const maxPrice = sorted[sorted.length - 1];
-                enrichedRoutes.push({
-                  ...route,
-                  base_price: minPrice.base_price || route.base_price,
-                  agent_price: minPrice.base_price || route.agent_price,
-                  client_price: minPrice.client_price || null,
-                  season: minPrice.season || route.season,
-                  season_dates: minPrice.season_dates || '',
-                  extra_pax_price: minPrice.extra_pax_price || route.extra_pax_price,
-                  base_pax: minPrice.guests_from || route.base_pax,
-                  charter_type: minPrice.charter_type || rType,
-                  notes: matchingPrices.length > 1 
-                    ? 'Цена от ' + minPrice.base_price + ' (' + minPrice.guests_from + ' чел.) до ' + maxPrice.base_price + ' (' + maxPrice.guests_from + ' чел.)'
-                    : (minPrice.time_slot ? 'Time: ' + minPrice.time_slot : route.notes)
-                });
+                // Create a route entry per matching price (season)
+                for (const mp of matchingPrices) {
+                  enrichedRoutes.push({
+                    ...route,
+                    base_price: mp.base_price || route.base_price,
+                    agent_price: mp.base_price || route.agent_price,
+                    season: mp.season || route.season,
+                    season_dates: mp.season_dates || '',
+                    extra_pax_price: mp.extra_pax_price || route.extra_pax_price,
+                    base_pax: mp.guests_to || route.base_pax,
+                    charter_type: mp.charter_type || rType,
+                    notes: mp.time_slot ? 'Time: ' + mp.time_slot : route.notes
+                  });
+                }
               } else {
                 enrichedRoutes.push(route);
               }
@@ -493,7 +356,7 @@ const handleTranslate = async () => {
                 fuel_surcharge: 0,
                 extra_pax_price: p.extra_pax_price || null,
                 base_pax: p.guests_to || null,
-                season: p.season || 'all',
+                season: p.season || 'high',
                 season_dates: p.season_dates || '',
                 min_notice_hours: null,
                 notes: p.time_slot ? 'Time: ' + p.time_slot : ''
@@ -515,13 +378,13 @@ const handleTranslate = async () => {
 
           // Map known season aliases to canonical values
           if (!s) {
-            r.season = 'all'; // default if empty
+            r.season = 'high'; // default if empty
           } else if (s === 'all' || s === 'all_seasons' || s === 'year_round') {
             r.season = 'all_seasons';
           } else if (s === 'peak' || s === 'peak_season') {
             r.season = 'peak';
           } else if (s === 'high' || s === 'high_season') {
-            r.season = 'all';
+            r.season = 'high';
           } else if (s === 'low' || s === 'low_season' || s === 'green') {
             r.season = 'low';
           } else if (s.includes('chinese') && s.includes('new')) {
@@ -548,21 +411,20 @@ const handleTranslate = async () => {
           // else keep as-is
         }
 
-        // Step 2: Deduplicate by destination — keep one route per destination with min price
-        const routeMap = new Map<string, any>();
-        for (const r of boat.routes) {
-          const key = (r.destination || '').toLowerCase().trim();
-          const existing = routeMap.get(key);
-          if (!existing) {
-            routeMap.set(key, r);
-          } else {
-            // Keep the one with lower price (min tier)
-            if (r.base_price && existing.base_price && r.base_price < existing.base_price) {
-              routeMap.set(key, r);
-            }
-          }
-        }
-        boat.routes = Array.from(routeMap.values());
+        // Step 2: Deduplicate by composite key
+        const seen = new Set<string>();
+        boat.routes = boat.routes.filter((r: any) => {
+          const key = [
+            (r.destination || '').toLowerCase().trim(),
+            r.duration_hours || 0,
+            (r.season || 'high'),
+            r.base_price || 0
+          ].join('|');
+
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
       }
 
       // Map ROUTES (destinations/itineraries) from ai.routes
@@ -579,7 +441,7 @@ const handleTranslate = async () => {
       const pricingRules = (ai.pricing_rules || []).map((p: any) => ({
         boat_name: p.boat_name || '',
         charter_type: p.charter_type || 'full_day',
-        season: p.season || 'all',
+        season: p.season || 'high',
         season_dates: p.season_dates || '',
         season_months: p.season_months || '',
         guests_from: p.guests_from || 1,
@@ -636,7 +498,7 @@ const handleTranslate = async () => {
               destination: route.name,
               departure_pier: 'Chalong Pier',
               charter_type: route.charter_type,
-              season: 'all',
+              season: 'high',
               season_dates: '',
               duration_hours: route.duration_hours,
               duration_nights: 0,
@@ -685,7 +547,7 @@ const handleTranslate = async () => {
             destination: route.name,
             departure_pier: 'Chalong Pier',
             charter_type: route.charter_type,
-            season: 'all',
+            season: 'high',
             season_dates: '',
             duration_hours: route.duration_hours,
             duration_nights: 0,
@@ -716,20 +578,6 @@ const handleTranslate = async () => {
         max_order: null,
         notes: e.note || ''
       }));
-
-      // Convert relocation fees to extras (relocation to extras)
-      const relocExtras = (ai.relocation_fees || []).map((rf: any) => ({
-        category: 'Transfers',
-        name: 'Relocation from ' + (rf.departure_point || 'Unknown'),
-        name_ru: '',
-        included: false,
-        price: rf.fee || 0,
-        pricePer: 'trip',
-        min_order: null,
-        max_order: null,
-        notes: rf.notes || ''
-      }));
-      extras.push(...relocExtras);
       
       // Extract inclusions and exclusions from AI (not hardcoded!)
       const inclusions = (ai.included || []).map((i: any) => i.name);
@@ -757,10 +605,7 @@ const handleTranslate = async () => {
         extras: extras,
         general_inclusions: inclusions,
         general_exclusions: exclusions,
-        special_conditions: (ai.notes || []).join('\n') || ai.children_policy || '',
-        relocation_fees: (ai.relocation_fees || []).map((rf: any) => ({ departure_point: rf.departure_point || '', fee: rf.fee || 0, notes: rf.notes || '' })),
-        contract_terms: ai.contract_terms || {},
-        pricing_rules: ai.pricing_rules || []
+        special_conditions: (ai.notes || []).join('\n') || ai.children_policy || ''
       });
 
     } catch (error: any) {
@@ -833,7 +678,7 @@ const handleTranslate = async () => {
       routes: [...extractedData.routes, {
         destination: '', departure_pier: 'Chalong Pier', time_slot: 'full_day',
         duration_hours: 8, duration_nights: null, distance_nm: null, base_price: null, agent_price: null,
-        fuel_surcharge: 0, extra_pax_price: 2000, base_pax: 10, season: 'all',
+        fuel_surcharge: 0, extra_pax_price: 2000, base_pax: 10, season: 'high',
         min_notice_hours: 24, notes: ''
       }]
     });
@@ -889,7 +734,6 @@ const handleTranslate = async () => {
 
   const saveToDatabase = async () => {
     if (!extractedData) return;
-
     setSaveStatus('Сохранение...');
     
     let saveError: any = null;
@@ -901,14 +745,12 @@ const handleTranslate = async () => {
         partnerId = selectedPartnerId;
       } else {
         // 1. Smart partner upsert - find by partial name match
-        // Smart partner search — by first 2 words for better matching
-        const partnerWords = extractedData.partner_name.trim().split(/\s+/);
-        const searchName = partnerWords.slice(0, Math.min(2, partnerWords.length)).join(' ');
+        const partnerFirstWord = extractedData.partner_name.split(' ')[0];
         
         const { data: existingPartners } = await supabase
           .from('partners')
           .select('*')
-          .ilike('name', '%' + searchName + '%');
+          .ilike('name', '%' + partnerFirstWord + '%');
         
         
         if (existingPartners && existingPartners.length > 0) {
@@ -917,9 +759,10 @@ const handleTranslate = async () => {
           partnerId = existing.id;
           
           await supabase.from('partners').update({
-            contact_phone: extractedData.partner_phone || existing.contact_phone || null,
-            contact_email: extractedData.partner_email || existing.contact_email || null,
+            contact_phone: extractedData.partner_phone || existing.contact_phone,
+            contact_email: extractedData.partner_email || existing.contact_email,
             commission_percent: extractedData.commission_percent || existing.commission_percent || 15,
+            contract_valid_until: extractedData.contract_end || existing.contract_valid_until,
             notes: extractedData.partner_website || extractedData.partner_address 
               ? (existing.notes || '') + '\n---\nUpdated: ' + new Date().toISOString().split('T')[0] + '\nWebsite: ' + (extractedData.partner_website || '') + '\nAddress: ' + (extractedData.partner_address || '')
               : existing.notes
@@ -980,7 +823,7 @@ const handleTranslate = async () => {
           
           const { data: newBoat, error: boatError } = await supabase
             .from('boats')
-            .upsert({
+            .insert({
               code: boatCode,
               name: boat.name,
               partner_id: partnerId,
@@ -1036,50 +879,23 @@ const handleTranslate = async () => {
         
         for (const route of boatRoutes) {
           
-          // Find or create route - improved matching
-          const normalizedDest = (route.destination || '').trim().replace(/\s+/g, ' ');
-          if (!normalizedDest) {
-            console.warn('Skipping route with empty destination for boat:', boat.name);
-            continue;
-          }
-          
-          // Step 1: Exact match (case-insensitive)
+          // Find or create route - use exact match first, then create new
           const { data: exactMatch } = await supabase
             .from('routes')
-            .select('id, name')
-            .ilike('name', normalizedDest);
+            .select('id')
+            .ilike('name', route.destination.trim());
           
           let routeId: number;
           
           if (exactMatch && exactMatch.length > 0) {
             routeId = exactMatch[0].id;
           } else {
-            // Step 2: Partial match — search by first significant word
-            let partialRouteId: number | null = null;
-            const firstWord = normalizedDest.split(/[\s,+&]+/)[0];
-            if (firstWord && firstWord.length > 2) {
-              const { data: partialMatch } = await supabase
-                .from('routes')
-                .select('id, name')
-                .ilike('name', '%' + firstWord + '%');
-              if (partialMatch && partialMatch.length > 0) {
-                const best = partialMatch.find((r: any) =>
-                  r.name.toLowerCase().includes(normalizedDest.toLowerCase()) ||
-                  normalizedDest.toLowerCase().includes(r.name.toLowerCase())
-                );
-                if (best) partialRouteId = best.id;
-              }
-            }
-            
-            if (partialRouteId) {
-              routeId = partialRouteId;
-            } else {
-            // Step 3: Create new route with full name
+            // Create new route with full name
             const { data: newRoute, error: routeError } = await supabase
               .from('routes')
               .insert({
-                name: normalizedDest,
-                name_en: normalizedDest,
+                name: route.destination,
+                name_en: route.destination,
                 duration_hours: route.duration_hours || 8,
                 duration_nights: route.duration_nights || 0
               })
@@ -1087,25 +903,14 @@ const handleTranslate = async () => {
               .single();
 
             if (routeError) {
-              console.error('Route insert error:', routeError, 'Dest:', normalizedDest);
-              // Try to find by exact name one more time (race condition)
-              const { data: retryFind } = await supabase
-                .from('routes').select('id').eq('name', normalizedDest).limit(1).single();
-              if (retryFind) {
-                routeId = retryFind.id;
-              } else {
-                console.error('FATAL: Cannot create or find route:', normalizedDest);
-                continue;
-              }
-            } else {
-              routeId = newRoute.id;
+              console.error('Route insert error:', routeError);
+              continue;
             }
-            } // close partialRouteId else
+            routeId = newRoute.id;
           }
 
           // SEASONAL PRICE LOGIC
-          const season = (() => { const s = (route.season || 'all').toLowerCase(); return s; })();
-          const timeSlot = route.time_slot || route.charter_type || 'full_day';
+          const season = route.season || 'high';
           const today = new Date().toISOString().split('T')[0];
           
           // Find existing active price for this boat + route + season
@@ -1115,7 +920,6 @@ const handleTranslate = async () => {
             .eq('boat_id', boatId)
             .eq('route_id', routeId)
             .eq('season', season)
-            .eq('time_slot', timeSlot) // FIXED: match time_slot too
             .gte('valid_to', today)
             .order('valid_from', { ascending: false })
             .limit(1);
@@ -1130,11 +934,11 @@ const handleTranslate = async () => {
               .eq('id', oldPrice.id);
             
             // Create new price version
-            await supabase.from('route_prices').upsert({
+            await supabase.from('route_prices').insert({
               boat_id: boatId,
               route_id: routeId,
               season: season,
-              time_slot: timeSlot,
+              time_slot: route.time_slot || 'full_day',
               base_price: route.base_price || oldPrice.base_price,
               agent_price: route.agent_price || route.base_price || oldPrice.agent_price,
               client_price: route.base_price || oldPrice.client_price,
@@ -1143,45 +947,27 @@ const handleTranslate = async () => {
               base_pax: route.base_pax || boat.base_pax || oldPrice.base_pax || 2,
               valid_from: today,
               valid_to: '2027-12-31'
-            }, { onConflict: 'boat_id,route_id,time_slot,season' });
+            });
             
           } else {
             // Create new price
-            await supabase.from('route_prices').upsert({
+            await supabase.from('route_prices').insert({
               boat_id: boatId,
               route_id: routeId,
               season: season,
-              time_slot: timeSlot,
+              time_slot: route.time_slot || 'full_day',
               base_price: route.base_price || 50000,
               agent_price: route.agent_price || route.base_price || 50000,
-              client_price: route.client_price || route.base_price || 50000,
+              client_price: route.base_price || 50000,
               fuel_surcharge: route.fuel_surcharge || 0,
               extra_pax_price: route.extra_pax_price || boat.extra_pax_price || 2000,
               base_pax: route.base_pax || boat.base_pax || 2,
               valid_from: today,
               valid_to: '2027-12-31'
-            }, { onConflict: 'boat_id,route_id,time_slot,season' });
+            });
           }
         }
         
-        
-        // === relocation_fees save ===
-        // Save relocation fees as notes on the boat
-        if (extractedData.relocation_fees && extractedData.relocation_fees.length > 0 && boatId) {
-          const relocNotes = extractedData.relocation_fees
-            .map((rf: any) => rf.departure_point + ': +' + (rf.fee || 0).toLocaleString() + ' THB' + (rf.notes ? ' (' + rf.notes + ')' : ''))
-            .join('\n');
-          
-          // Update boat notes with relocation info
-          const { data: currentBoat } = await supabase.from('boats').select('notes').eq('id', boatId).single();
-          const existingNotes = currentBoat?.notes || '';
-          if (!existingNotes.includes('Relocation')) {
-            await supabase.from('boats').update({
-              notes: (existingNotes ? existingNotes + '\n\n' : '') + '--- Relocation Fees ---\n' + relocNotes
-            }).eq('id', boatId);
-          }
-        }
-
         // 4. Save boat options - find in options_catalog first
         if (boat.features) {
           const allFeatures = [...(boat.features.included || []), ...(boat.features.paid || [])];
@@ -1193,7 +979,7 @@ const handleTranslate = async () => {
             const { data: catalogOption } = await supabase
               .from('options_catalog')
               .select('id, name_en')
-              .ilike('name_en', feature.name)
+              .ilike('name_en', '%' + feature.name + '%')
               .limit(1)
               .maybeSingle();
             
@@ -1203,13 +989,26 @@ const handleTranslate = async () => {
               const { data: partialMatch } = await supabase
                 .from('options_catalog')
                 .select('id, name_en')
-                .ilike('name_en', feature.name.split(' ').slice(0, 3).join(' '))
+                .ilike('name_en', '%' + feature.name.split(' ').slice(0, 2).join(' ') + '%')
                 .limit(1)
                 .maybeSingle();
               matchedOption = partialMatch;
             }
             
-            // First-word fallback removed — too many false matches
+            // Last resort - first word only, but exclude common false matches
+            if (!matchedOption) {
+              const firstWord = feature.name.split(' ')[0].toLowerCase();
+              // Skip if first word is too generic
+              if (!['sea', 'life', 'water', 'soft', 'hand'].includes(firstWord)) {
+                const { data: firstWordMatch } = await supabase
+                  .from('options_catalog')
+                  .select('id, name_en')
+                  .ilike('name_en', '%' + firstWord + '%')
+                  .limit(1)
+                  .maybeSingle();
+                matchedOption = firstWordMatch;
+              }
+            }
             
             const catalogOption2 = matchedOption;
             
@@ -1298,36 +1097,22 @@ const handleTranslate = async () => {
             // Update existing
             await supabase.from('boat_pricing_rules').update({
               base_price: rule.base_price,
-              charter_type: (() => {
-                const ct = (rule.charter_type || 'day').toLowerCase();
-                if (ct.includes('overnight') || ct.includes('night')) return 'overnight';
-                if (ct.includes('multi') || ct.includes('2d') || ct.includes('3d')) return 'multi_day';
-                return 'day';
-              })(),
+              charter_type: rule.charter_type || 'overnight',
               notes: rule.notes,
               updated_at: new Date().toISOString()
             }).eq('id', existingRule.id);
           } else {
             // Insert new
-            const prData = {
+            await supabase.from('boat_pricing_rules').insert({
               boat_id: boatId,
-              charter_type: (() => {
-                const ct = (rule.charter_type || 'day').toLowerCase();
-                if (ct.includes('overnight') || ct.includes('night')) return 'overnight';
-                if (ct.includes('multi') || ct.includes('2d') || ct.includes('3d')) return 'multi_day';
-                return 'day';
-              })(),
-              season: (() => { const s = (rule.season || 'all').toLowerCase(); return s; })(),
+              charter_type: rule.charter_type || 'overnight',
+              season: rule.season,
               duration_nights: rule.duration_nights || 0,
-              guests_from: rule.guests_from || 1,
-              guests_to: rule.guests_to || 10,
-              base_price: rule.base_price || 0,
-              notes: rule.notes || ''
-            };
-            const { error: prError } = await supabase.from('boat_pricing_rules').upsert(prData);
-            if (prError) {
-              console.error('Pricing rule error:', prError.message, 'Data:', JSON.stringify(prData));
-            }
+              guests_from: rule.guests_from,
+              guests_to: rule.guests_to,
+              base_price: rule.base_price,
+              notes: rule.notes
+            });
           }
         }
       }
@@ -1341,7 +1126,7 @@ const handleTranslate = async () => {
             const { data: catalogOpt } = await supabase
               .from('options_catalog')
               .select('id')
-              .ilike('name_en', '%' + (item.name.length > 20 ? item.name.split(' ').slice(0, 3).join(' ') : item.name) + '%')
+              .ilike('name_en', '%' + item.name.split(' ')[0] + '%')
               .limit(1)
               .maybeSingle();
             
@@ -1424,11 +1209,10 @@ const handleTranslate = async () => {
         const routesCount = extractedData.routes?.length || 
           extractedData.boats?.reduce((sum: number, b: any) => sum + (b.routes?.length || 0), 0) || 0;
         
-        const importType: string = importMode === 'single_boat' ? 'single_boat' : 'full_contract';
         const { error: histErr } = await supabase.from('import_history').insert({
           partner_id: partnerId || null,
           partner_name: selectedPartnerName || extractedData.partner_name || 'Unknown',
-          import_type: importType,
+          import_type: importMode || 'full_contract',
           boats_added: extractedData.boats?.length || 0,
           routes_added: routesCount,
           raw_data: extractedData,
@@ -1446,7 +1230,7 @@ const handleTranslate = async () => {
       if (saveError) {
         setSaveStatus('❌ Ошибка: ' + saveError.message);
       } else {
-        setSaveStatus('✅ Успешно! Партнёр, лодки, маршруты и опции сохранены.');
+        setSaveStatus('✅ Успешно! Партнёр, лодки, ценовые правила (' + (extractedData.pricing_rules?.length || 0) + ' вариантов) и опции сохранены.');
       }
     }
   };
@@ -1710,29 +1494,7 @@ const handleTranslate = async () => {
             <div style={{backgroundColor: 'white', borderRadius: '0 0 12px 12px', padding: '24px', minHeight: '500px'}}>
               
               {/* PARTNER TAB */}
-              {extractedData && (
-              <button
-                onClick={handleTranslate}
-                disabled={translating}
-                style={{
-                  padding: '8px 16px',
-                  background: translating ? '#666' : '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: translating ? 'wait' : 'pointer',
-                  fontSize: '14px',
-                  marginBottom: '12px'
-                }}
-              >
-                {translating ? '🔄 Переводим...' : '🇷🇺 Перевести на русский'}
-              </button>
-            )}
-
-            
-              
-
-            {activeTab === 'partner' && (
+              {activeTab === 'partner' && (
                 <div>
                   <h3 style={{fontSize: '18px', fontWeight: '600', marginBottom: '20px'}}>Информация о партнёре</h3>
                   <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px'}}>
@@ -1804,8 +1566,8 @@ const handleTranslate = async () => {
                               <option value="yacht">Yacht</option>
                             </select>
                           </div>
-                          <div><label style={labelStyle}>Модель</label><input value={boat.model || ''} onChange={(e) => updateBoat(bi, 'model', e.target.value)} style={inputStyle} /></div>
-                          <div><label style={labelStyle}>Год</label><input value={boat.year_built || ''} onChange={(e) => updateBoat(bi, 'year_built', e.target.value)} style={inputStyle} /></div>
+                          <div><label style={labelStyle}>Модель</label><input value={boat.model} onChange={(e) => updateBoat(bi, 'model', e.target.value)} style={inputStyle} /></div>
+                          <div><label style={labelStyle}>Год</label><input value={boat.year_built} onChange={(e) => updateBoat(bi, 'year_built', e.target.value)} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Длина (ft)</label><input type="number" value={boat.length_ft || ''} onChange={(e) => updateBoat(bi, 'length_ft', Number(e.target.value))} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Ширина (ft)</label><input type="number" value={boat.beam_ft || ''} onChange={(e) => updateBoat(bi, 'beam_ft', Number(e.target.value))} style={inputStyle} /></div>
                         </div>
@@ -2038,33 +1800,6 @@ const handleTranslate = async () => {
                             ))}
                           </div>
                         )}
-
-                        {/* Тарифные тиры */}
-                        {extractedData.pricing_rules && extractedData.pricing_rules.length > 0 && (
-                          <div style={{marginTop: '16px'}}>
-                            <h4 style={{fontSize: '14px', fontWeight: '600', color: '#1d4ed8', marginBottom: '8px'}}>📊 Тарифные тиры ({extractedData.pricing_rules.length})</h4>
-                            <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '12px'}}>
-                              <thead>
-                                <tr style={{background: '#eff6ff'}}>
-                                  <th style={{padding: '6px 8px', textAlign: 'left', borderBottom: '1px solid #bfdbfe'}}>Гостей</th>
-                                  <th style={{padding: '6px 8px', textAlign: 'right', borderBottom: '1px solid #bfdbfe'}}>NET (агент)</th>
-                                  <th style={{padding: '6px 8px', textAlign: 'right', borderBottom: '1px solid #bfdbfe'}}>GROSS (клиент)</th>
-                                  <th style={{padding: '6px 8px', textAlign: 'right', borderBottom: '1px solid #bfdbfe'}}>Комиссия</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {extractedData.pricing_rules.filter((p: any) => p.boat_name?.toLowerCase().includes(boat.name?.toLowerCase().split(' ')[0] || '---') || !p.boat_name).map((tier: any, ti: number) => (
-                                  <tr key={ti}>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6'}}>{tier.guests_from || '?'} чел.</td>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', color: '#059669', fontWeight: '600'}}>{Number(tier.base_price || 0).toLocaleString()} ฿</td>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', fontWeight: '600'}}>{Number(tier.client_price || 0).toLocaleString()} ฿</td>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', color: '#d97706'}}>{Number(tier.commission_amount || 0).toLocaleString()} ฿</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
                       </div>
                     </div>
                   ))}
@@ -2194,9 +1929,7 @@ const handleTranslate = async () => {
                     <textarea value={extractedData.special_conditions} onChange={(e) => setExtractedData({...extractedData, special_conditions: e.target.value})} style={{...inputStyle, height: '80px'}} placeholder="Дополнительные условия контракта..." />
                   </div>
                 </div>
-              )
-
-            }
+              )}
             </div>
 
             {/* Actions */}

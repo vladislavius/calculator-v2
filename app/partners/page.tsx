@@ -25,6 +25,7 @@ export default function PartnersPage() {
   const [selectedBoat, setSelectedBoat] = useState<any>(null);
   const [boatRoutes, setBoatRoutes] = useState<any[]>([]);
   const [boatPrices, setBoatPrices] = useState<any[]>([]);
+  const [boatPricingRules, setBoatPricingRules] = useState<any[]>([]);
   const [boatOptions, setBoatOptions] = useState<any[]>([]);
   const [allRoutes, setAllRoutes] = useState<any[]>([]);
   const [showAddPriceModal, setShowAddPriceModal] = useState(false);
@@ -72,6 +73,15 @@ export default function PartnersPage() {
       .select('*, options_catalog(*)')
       .eq('boat_id', boat.id);
     if (options) setBoatOptions(options);
+
+    // Load pricing rules (per-pax tiers)
+    const { data: pricingRules } = await supabase
+      .from('boat_pricing_rules')
+      .select('*')
+      .eq('boat_id', boat.id)
+      .order('guests_from');
+    if (pricingRules) setBoatPricingRules(pricingRules);
+    else setBoatPricingRules([]);
   };
 
   // Save boat changes
@@ -408,12 +418,16 @@ export default function PartnersPage() {
       await supabase.from('boat_options').delete().in('boat_id', boatIds);
       // 2. Удаляем route_prices
       await supabase.from('route_prices').delete().in('boat_id', boatIds);
+      await supabase.from('boat_options').delete().in('boat_id', boatIds);
+      await supabase.from('boat_pricing_rules').delete().in('boat_id', boatIds);
       // 3. Удаляем лодки
       await supabase.from('boats').delete().eq('partner_id', id);
     }
     // 4. Удаляем partner_menus
     await supabase.from('partner_menus').delete().eq('partner_id', id);
-    // 5. Удаляем партнёра
+    // 5. Удаляем историю импорта
+    await supabase.from('import_history').delete().eq('partner_id', id);
+    // 6. Удаляем партнёра
     const { error } = await supabase.from('partners').delete().eq('id', id);
     if (!error) {
       setMessage('Партнёр и все связанные данные удалены');
@@ -1125,6 +1139,39 @@ export default function PartnersPage() {
               )}
             </div>
             
+            
+            
+            {/* Pricing Rules / Тарифные тиры */}
+            {boatPricingRules.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>📊 Тарифные тиры (по кол-ву гостей)</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb' }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Гостей</th>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Тип</th>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Сезон</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #e5e7eb' }}>Цена (NET)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boatPricingRules.map((rule: any) => (
+                    <tr key={rule.id}>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>
+                        {rule.guests_from === rule.guests_to ? rule.guests_from + ' чел.' : rule.guests_from + '–' + rule.guests_to + ' чел.'}
+                      </td>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>{rule.charter_type}</td>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>{rule.season}</td>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', fontWeight: '600', color: '#059669' }}>
+                        {Number(rule.base_price).toLocaleString()} ฿
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            )}
+
             {/* Options Section */}
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>✅ Опции лодки</h3>

@@ -413,7 +413,7 @@ const handleTranslate = async () => {
           fuel_surcharge: r.fuel_surcharge || 0,
           extra_pax_price: r.extra_pax_price || null,
           base_pax: r.base_pax || b.base_pax || null,
-          season: (() => { const s = (r.season || 'all').toLowerCase(); return s; })(),
+          season: (() => { const s = (r.season || 'high').toLowerCase(); return s === 'low' ? 'low' : s === 'peak' ? 'peak' : 'high'; })(),
           min_notice_hours: r.min_notice_hours || null,
           notes: r.notes || ''
         }))
@@ -456,24 +456,20 @@ const handleTranslate = async () => {
               });
               
               if (matchingPrices.length > 0) {
-                // Use minimum price for the route, tiers go to pricing_rules
-                const sorted = [...matchingPrices].sort((a, b) => (a.base_price || 0) - (b.base_price || 0));
-                const minPrice = sorted[0];
-                const maxPrice = sorted[sorted.length - 1];
-                enrichedRoutes.push({
-                  ...route,
-                  base_price: minPrice.base_price || route.base_price,
-                  agent_price: minPrice.base_price || route.agent_price,
-                  client_price: minPrice.client_price || null,
-                  season: minPrice.season || route.season,
-                  season_dates: minPrice.season_dates || '',
-                  extra_pax_price: minPrice.extra_pax_price || route.extra_pax_price,
-                  base_pax: minPrice.guests_from || route.base_pax,
-                  charter_type: minPrice.charter_type || rType,
-                  notes: matchingPrices.length > 1 
-                    ? 'Цена от ' + minPrice.base_price + ' (' + minPrice.guests_from + ' чел.) до ' + maxPrice.base_price + ' (' + maxPrice.guests_from + ' чел.)'
-                    : (minPrice.time_slot ? 'Time: ' + minPrice.time_slot : route.notes)
-                });
+                // Create a route entry per matching price (season)
+                for (const mp of matchingPrices) {
+                  enrichedRoutes.push({
+                    ...route,
+                    base_price: mp.base_price || route.base_price,
+                    agent_price: mp.base_price || route.agent_price,
+                    season: mp.season || route.season,
+                    season_dates: mp.season_dates || '',
+                    extra_pax_price: mp.extra_pax_price || route.extra_pax_price,
+                    base_pax: mp.guests_to || route.base_pax,
+                    charter_type: mp.charter_type || rType,
+                    notes: mp.time_slot ? 'Time: ' + mp.time_slot : route.notes
+                  });
+                }
               } else {
                 enrichedRoutes.push(route);
               }
@@ -493,7 +489,7 @@ const handleTranslate = async () => {
                 fuel_surcharge: 0,
                 extra_pax_price: p.extra_pax_price || null,
                 base_pax: p.guests_to || null,
-                season: p.season || 'all',
+                season: p.season || 'high',
                 season_dates: p.season_dates || '',
                 min_notice_hours: null,
                 notes: p.time_slot ? 'Time: ' + p.time_slot : ''
@@ -515,13 +511,13 @@ const handleTranslate = async () => {
 
           // Map known season aliases to canonical values
           if (!s) {
-            r.season = 'all'; // default if empty
+            r.season = 'high'; // default if empty
           } else if (s === 'all' || s === 'all_seasons' || s === 'year_round') {
             r.season = 'all_seasons';
           } else if (s === 'peak' || s === 'peak_season') {
             r.season = 'peak';
           } else if (s === 'high' || s === 'high_season') {
-            r.season = 'all';
+            r.season = 'high';
           } else if (s === 'low' || s === 'low_season' || s === 'green') {
             r.season = 'low';
           } else if (s.includes('chinese') && s.includes('new')) {
@@ -548,21 +544,20 @@ const handleTranslate = async () => {
           // else keep as-is
         }
 
-        // Step 2: Deduplicate by destination — keep one route per destination with min price
-        const routeMap = new Map<string, any>();
-        for (const r of boat.routes) {
-          const key = (r.destination || '').toLowerCase().trim();
-          const existing = routeMap.get(key);
-          if (!existing) {
-            routeMap.set(key, r);
-          } else {
-            // Keep the one with lower price (min tier)
-            if (r.base_price && existing.base_price && r.base_price < existing.base_price) {
-              routeMap.set(key, r);
-            }
-          }
-        }
-        boat.routes = Array.from(routeMap.values());
+        // Step 2: Deduplicate by composite key
+        const seen = new Set<string>();
+        boat.routes = boat.routes.filter((r: any) => {
+          const key = [
+            (r.destination || '').toLowerCase().trim(),
+            r.duration_hours || 0,
+            (r.season || 'high'),
+            r.base_price || 0
+          ].join('|');
+
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
       }
 
       // Map ROUTES (destinations/itineraries) from ai.routes
@@ -579,7 +574,7 @@ const handleTranslate = async () => {
       const pricingRules = (ai.pricing_rules || []).map((p: any) => ({
         boat_name: p.boat_name || '',
         charter_type: p.charter_type || 'full_day',
-        season: p.season || 'all',
+        season: p.season || 'high',
         season_dates: p.season_dates || '',
         season_months: p.season_months || '',
         guests_from: p.guests_from || 1,
@@ -636,7 +631,7 @@ const handleTranslate = async () => {
               destination: route.name,
               departure_pier: 'Chalong Pier',
               charter_type: route.charter_type,
-              season: 'all',
+              season: 'high',
               season_dates: '',
               duration_hours: route.duration_hours,
               duration_nights: 0,
@@ -685,7 +680,7 @@ const handleTranslate = async () => {
             destination: route.name,
             departure_pier: 'Chalong Pier',
             charter_type: route.charter_type,
-            season: 'all',
+            season: 'high',
             season_dates: '',
             duration_hours: route.duration_hours,
             duration_nights: 0,
@@ -833,7 +828,7 @@ const handleTranslate = async () => {
       routes: [...extractedData.routes, {
         destination: '', departure_pier: 'Chalong Pier', time_slot: 'full_day',
         duration_hours: 8, duration_nights: null, distance_nm: null, base_price: null, agent_price: null,
-        fuel_surcharge: 0, extra_pax_price: 2000, base_pax: 10, season: 'all',
+        fuel_surcharge: 0, extra_pax_price: 2000, base_pax: 10, season: 'high',
         min_notice_hours: 24, notes: ''
       }]
     });
@@ -1104,7 +1099,7 @@ const handleTranslate = async () => {
           }
 
           // SEASONAL PRICE LOGIC
-          const season = (() => { const s = (route.season || 'all').toLowerCase(); return s; })();
+          const season = (() => { const s = (route.season || 'high').toLowerCase(); if (s === 'all' || s === 'all_seasons') return 'high'; if (s === 'low' || s.includes('low')) return 'low'; if (s === 'peak' || s.includes('peak')) return 'peak'; return 'high'; })();
           const timeSlot = route.time_slot || route.charter_type || 'full_day';
           const today = new Date().toISOString().split('T')[0];
           
@@ -1143,7 +1138,7 @@ const handleTranslate = async () => {
               base_pax: route.base_pax || boat.base_pax || oldPrice.base_pax || 2,
               valid_from: today,
               valid_to: '2027-12-31'
-            }, { onConflict: 'boat_id,route_id,time_slot,season' });
+            });
             
           } else {
             // Create new price
@@ -1160,7 +1155,7 @@ const handleTranslate = async () => {
               base_pax: route.base_pax || boat.base_pax || 2,
               valid_from: today,
               valid_to: '2027-12-31'
-            }, { onConflict: 'boat_id,route_id,time_slot,season' });
+            });
           }
         }
         
@@ -1317,7 +1312,7 @@ const handleTranslate = async () => {
                 if (ct.includes('multi') || ct.includes('2d') || ct.includes('3d')) return 'multi_day';
                 return 'day';
               })(),
-              season: (() => { const s = (rule.season || 'all').toLowerCase(); return s; })(),
+              season: (() => { const s = (rule.season || 'high').toLowerCase(); if (s === 'low' || s.includes('low')) return 'low'; if (s === 'peak' || s.includes('peak')) return 'peak'; return 'high'; })(),
               duration_nights: rule.duration_nights || 0,
               guests_from: rule.guests_from || 1,
               guests_to: rule.guests_to || 10,
@@ -1804,8 +1799,8 @@ const handleTranslate = async () => {
                               <option value="yacht">Yacht</option>
                             </select>
                           </div>
-                          <div><label style={labelStyle}>Модель</label><input value={boat.model || ''} onChange={(e) => updateBoat(bi, 'model', e.target.value)} style={inputStyle} /></div>
-                          <div><label style={labelStyle}>Год</label><input value={boat.year_built || ''} onChange={(e) => updateBoat(bi, 'year_built', e.target.value)} style={inputStyle} /></div>
+                          <div><label style={labelStyle}>Модель</label><input value={boat.model} onChange={(e) => updateBoat(bi, 'model', e.target.value)} style={inputStyle} /></div>
+                          <div><label style={labelStyle}>Год</label><input value={boat.year_built} onChange={(e) => updateBoat(bi, 'year_built', e.target.value)} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Длина (ft)</label><input type="number" value={boat.length_ft || ''} onChange={(e) => updateBoat(bi, 'length_ft', Number(e.target.value))} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Ширина (ft)</label><input type="number" value={boat.beam_ft || ''} onChange={(e) => updateBoat(bi, 'beam_ft', Number(e.target.value))} style={inputStyle} /></div>
                         </div>
@@ -1902,7 +1897,7 @@ const handleTranslate = async () => {
                                 fuel_surcharge: 0,
                                 extra_pax_price: null,
                                 base_pax: null,
-                                season: 'all',
+                                season: 'high',
                                 min_notice_hours: null,
                                 notes: ''
                               }];
@@ -1976,7 +1971,7 @@ const handleTranslate = async () => {
                                   <div>
                                     <label style={{fontSize: '11px', color: '#6b7280'}}>Сезон</label>
                                     <select 
-                                      value={route.season || 'all'}
+                                      value={route.season || 'high'}
                                       onChange={(e) => {
                                         const boats = [...extractedData.boats];
                                         boats[bi].routes[ri].season = e.target.value;
@@ -2036,33 +2031,6 @@ const handleTranslate = async () => {
                                 </div>
                               </div>
                             ))}
-                          </div>
-                        )}
-
-                        {/* Тарифные тиры */}
-                        {extractedData.pricing_rules && extractedData.pricing_rules.length > 0 && (
-                          <div style={{marginTop: '16px'}}>
-                            <h4 style={{fontSize: '14px', fontWeight: '600', color: '#1d4ed8', marginBottom: '8px'}}>📊 Тарифные тиры ({extractedData.pricing_rules.length})</h4>
-                            <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '12px'}}>
-                              <thead>
-                                <tr style={{background: '#eff6ff'}}>
-                                  <th style={{padding: '6px 8px', textAlign: 'left', borderBottom: '1px solid #bfdbfe'}}>Гостей</th>
-                                  <th style={{padding: '6px 8px', textAlign: 'right', borderBottom: '1px solid #bfdbfe'}}>NET (агент)</th>
-                                  <th style={{padding: '6px 8px', textAlign: 'right', borderBottom: '1px solid #bfdbfe'}}>GROSS (клиент)</th>
-                                  <th style={{padding: '6px 8px', textAlign: 'right', borderBottom: '1px solid #bfdbfe'}}>Комиссия</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {extractedData.pricing_rules.filter((p: any) => p.boat_name?.toLowerCase().includes(boat.name?.toLowerCase().split(' ')[0] || '---') || !p.boat_name).map((tier: any, ti: number) => (
-                                  <tr key={ti}>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6'}}>{tier.guests_from || '?'} чел.</td>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', color: '#059669', fontWeight: '600'}}>{Number(tier.base_price || 0).toLocaleString()} ฿</td>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', fontWeight: '600'}}>{Number(tier.client_price || 0).toLocaleString()} ฿</td>
-                                    <td style={{padding: '4px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', color: '#d97706'}}>{Number(tier.commission_amount || 0).toLocaleString()} ฿</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
                           </div>
                         )}
                       </div>

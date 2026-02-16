@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder, TransferOrder } from './lib/types';
-import { t, Lang } from "./lib/i18n";import { inputStyle, labelStyle, cardStyle, tabStyle } from './lib/styles';
+import { SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder, TransferOrder, CateringPartner, CateringMenuItem, WatersportsPartner, WatersportsCatalogItem, TransferOptionDB, StaffService, BoatMenuSet, BoatDrink, RouteFee, Partner, SimpleBoat, SimpleRoute } from './lib/types';
+import { t, Lang } from "./lib/i18n"; import { inputStyle, labelStyle, cardStyle, tabStyle } from './lib/styles';
 import { calculateTotals } from './lib/calculateTotals';
 import { generatePDFContent } from './lib/generatePDF';
 import { generateWhatsAppMessage } from './lib/generateWhatsApp';
@@ -78,10 +78,10 @@ export default function Home() {
   const [boatType, setBoatType] = useState('');
   const [destination, setDestination] = useState('');
   const [boatNameSearch, setBoatNameSearch] = useState('');
-  const [boatPartners, setBoatPartners] = useState<any[]>([]);
+  const [boatPartners, setBoatPartners] = useState<Partner[]>([]);
   const [selectedPartnerFilter, setSelectedPartnerFilter] = useState('');
-  const [allBoats, setAllBoats] = useState<any[]>([]);
-  const [allRoutes, setAllRoutes] = useState<any[]>([]);
+  const [allBoats, setAllBoats] = useState<SimpleBoat[]>([]);
+  const [allRoutes, setAllRoutes] = useState<SimpleRoute[]>([]);
   const [showBoatSuggestions, setShowBoatSuggestions] = useState(false);
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
   const [timeSlot, setTimeSlot] = useState('full_day');
@@ -108,41 +108,41 @@ export default function Home() {
 
   // Catering
   const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
-  
+
   // New: Catering partners from DB
-  const [cateringPartners, setCateringPartners] = useState<any[]>([]);
-  const [cateringMenu, setCateringMenu] = useState<any[]>([]);
+  const [cateringPartners, setCateringPartners] = useState<CateringPartner[]>([]);
+  const [cateringMenu, setCateringMenu] = useState<CateringMenuItem[]>([]);
   const [partnerMenus, setPartnerMenus] = useState<any[]>([]);
   const [partnerMenuSets, setPartnerMenuSets] = useState<any[]>([]);
-  
+
   // New: Watersports partners from DB  
-  const [watersportsPartners, setWatersportsPartners] = useState<any[]>([]);
-  const [watersportsCatalog, setWatersportsCatalog] = useState<any[]>([]);
+  const [watersportsPartners, setWatersportsPartners] = useState<WatersportsPartner[]>([]);
+  const [watersportsCatalog, setWatersportsCatalog] = useState<WatersportsCatalogItem[]>([]);
   const [selectedPartnerWatersports, setSelectedPartnerWatersports] = useState<any[]>([]);
-  
+
   // New: Transfer options from DB
-  const [transferOptionsDB, setTransferOptionsDB] = useState<any[]>([]);
-  
+  const [transferOptionsDB, setTransferOptionsDB] = useState<TransferOptionDB[]>([]);
+
   // DB data
-  const [boatDrinks, setBoatDrinks] = useState<any[]>([]);
-  const [routeFees, setRouteFees] = useState<any[]>([]);
+  const [boatDrinks, setBoatDrinks] = useState<BoatDrink[]>([]); // Use BoatDrink interface
+  const [routeFees, setRouteFees] = useState<RouteFee[]>([]);
   const [landingFee, setLandingFee] = useState<number>(0);
   const [landingEnabled, setLandingEnabled] = useState<boolean>(false);
   const [defaultParkFee, setDefaultParkFee] = useState<number>(0);
   const [defaultParkFeeEnabled, setDefaultParkFeeEnabled] = useState<boolean>(false);
   const [defaultParkFeeAdults, setDefaultParkFeeAdults] = useState<number>(2);
   const [defaultParkFeeChildren, setDefaultParkFeeChildren] = useState<number>(0);
-  const [staffServices, setStaffServices] = useState<any[]>([]);
+  const [staffServices, setStaffServices] = useState<StaffService[]>([]);
   const [boatMenu, setBoatMenu] = useState<any[]>([]);
   const [selectedDishes, setSelectedDishes] = useState<Record<string, number>>({});
-  
+
   // New: Boat markup slider
   const [boatMarkup, setBoatMarkup] = useState(0);
-  
+
   const [markupMode, setMarkupMode] = useState<"percent" | "fixed">("fixed");
-  const [lang, setLang] = useState<Lang>("ru");  const [fixedMarkup, setFixedMarkup] = useState(0);  // Partner markups
-  const [partnerMarkups, setPartnerMarkups] = useState<{[key: string]: number}>({});
-  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
+  const [lang, setLang] = useState<Lang>("ru"); const [fixedMarkup, setFixedMarkup] = useState(0);  // Partner markups
+  const [partnerMarkups, setPartnerMarkups] = useState<{ [key: string]: number }>({});
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     boatFood: true,
     boatDrinks: true,
     boatToys: true,
@@ -150,18 +150,18 @@ export default function Home() {
     partnerWatersports: false,
     partnerDecor: false
   });
-  
+
   // Toggle section expand/collapse
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({...prev, [section]: !prev[section]}));
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
-  
+
   // Get/Set partner markup
   const getPartnerMarkup = (partnerId: number | string) => partnerMarkups[partnerId] || 15;
   const setPartnerMarkup = (partnerId: number | string, value: number) => {
-    setPartnerMarkups(prev => ({...prev, [partnerId]: value}));
+    setPartnerMarkups(prev => ({ ...prev, [partnerId]: value }));
   };
-  
+
   // Calculate price with markup
   const withMarkup = (price: number, partnerId?: number | string) => {
     const markup = partnerId ? getPartnerMarkup(partnerId) : boatMarkup;
@@ -180,20 +180,20 @@ export default function Home() {
   const [transferDropoff, setTransferDropoff] = useState<TransferOrder>({
     type: 'none', pickup: 'Marina', dropoff: '', price: 0, notes: ''
   });
-  
+
   // Transfer customization
   const [transferDirection, setTransferDirection] = useState<'round_trip' | 'one_way'>('round_trip');
   const [customTransferPrice, setCustomTransferPrice] = useState<number | null>(null);
-  const [customPrices, setCustomPrices] = useState<{[key: string]: number}>({});
-  
+  const [customPrices, setCustomPrices] = useState<{ [key: string]: number }>({});
+
   // Helper to get custom price or original
   const getPrice = (itemId: string, originalPrice: number | null): number => {
     return customPrices[itemId] !== undefined ? customPrices[itemId] : (originalPrice || 0);
   };
-  
+
   // Helper to set custom price
   const setPrice = (itemId: string, price: number) => {
-    setCustomPrices(prev => ({...prev, [itemId]: price}));
+    setCustomPrices(prev => ({ ...prev, [itemId]: price }));
   };
   const [useOwnTransfer, setUseOwnTransfer] = useState(false);
   const [ownTransferPriceOneWay, setOwnTransferPriceOneWay] = useState(1000);
@@ -262,7 +262,7 @@ export default function Home() {
     { value: 'international_labour_day', label: '👷 День труда' },
   ];
   const occasions = [
-    '', 'Birthday', 'Anniversary', 'Wedding', 'Proposal', 
+    '', 'Birthday', 'Anniversary', 'Wedding', 'Proposal',
     'Corporate Event', 'Bachelor/Bachelorette', 'Family Reunion', 'Other'
   ];
 
@@ -290,59 +290,59 @@ export default function Home() {
       markupMode, customPrices, customNotes,
     });
   }, [searchDate, results, loading, showAgentPrice, markupPercent, lang,
-      selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks, drinkOrders,
-      selectedExtras, cateringOrders,
-      selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-      transferPickup, transferDropoff, transferPrice, transferMarkup,
-      landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
-      defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
-      extraAdults, children3to11, childrenUnder3, adults,
-      customAdultPrice, customChildPrice, boatMarkup, fixedMarkup,
-      markupMode, customPrices, customNotes, storeSet]);
+    selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks, drinkOrders,
+    selectedExtras, cateringOrders,
+    selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
+    transferPickup, transferDropoff, transferPrice, transferMarkup,
+    landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
+    defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
+    extraAdults, children3to11, childrenUnder3, adults,
+    customAdultPrice, customChildPrice, boatMarkup, fixedMarkup,
+    markupMode, customPrices, customNotes, storeSet]);
 
   useEffect(() => {
     const loadPartnersData = async () => {
       try {
-      // Load catering partners & menu
-      const { data: cpData } = await supabase.from('catering_partners').select('*');
-      if (cpData) setCateringPartners(cpData);
-      
-      const { data: cmData } = await supabase.from('catering_menu').select('*');
-      if (cmData) setCateringMenu(cmData);
-      
-      // Load watersports partners & catalog
-      const { data: wpData } = await supabase.from('watersports_partners').select('*');
-      if (wpData) setWatersportsPartners(wpData);
-      
-      const { data: wcData } = await supabase.from('watersports_catalog').select('*');
-      if (wcData) setWatersportsCatalog(wcData);
-      
-      // Load transfer options
-      const { data: toData } = await supabase.from('transfer_options').select('*');
-      if (toData) setTransferOptionsDB(toData);
-      
-      // Load staff services
-      const { data: ssData } = await supabase.from('staff_services').select('*');
-      if (ssData) setStaffServices(ssData);
-      
-      // Load boat partners
-      const { data: bpData } = await supabase.from('partners').select('*').order('name');
-      if (bpData) setBoatPartners(bpData);
+        // Load catering partners & menu
+        const { data: cpData } = await supabase.from('catering_partners').select('*');
+        if (cpData) setCateringPartners(cpData);
 
-      // Load all boats for autocomplete
-      const { data: boatsData } = await supabase.from('boats').select('id, name, partner_id').eq('active', true).order('name');
-      if (boatsData) setAllBoats(boatsData);
+        const { data: cmData } = await supabase.from('catering_menu').select('*');
+        if (cmData) setCateringMenu(cmData);
 
-      // Load all routes for autocomplete
-      const { data: routesData } = await supabase.from('routes').select('id, name_en, name_ru').order('name_en');
-      if (routesData) setAllRoutes(routesData);
+        // Load watersports partners & catalog
+        const { data: wpData } = await supabase.from('watersports_partners').select('*');
+        if (wpData) setWatersportsPartners(wpData);
 
-      // Load partner menus (new system)
-      const { data: pmData } = await supabase.from('partner_menus').select('*').eq('active', true);
-      if (pmData) setPartnerMenus(pmData);
-      
-      const { data: msData } = await supabase.from('menu_sets').select('*').eq('active', true);
-      if (msData) setPartnerMenuSets(msData);
+        const { data: wcData } = await supabase.from('watersports_catalog').select('*');
+        if (wcData) setWatersportsCatalog(wcData);
+
+        // Load transfer options
+        const { data: toData } = await supabase.from('transfer_options').select('*');
+        if (toData) setTransferOptionsDB(toData);
+
+        // Load staff services
+        const { data: ssData } = await supabase.from('staff_services').select('*');
+        if (ssData) setStaffServices(ssData);
+
+        // Load boat partners
+        const { data: bpData } = await supabase.from('partners').select('*').order('name');
+        if (bpData) setBoatPartners(bpData);
+
+        // Load all boats for autocomplete
+        const { data: boatsData } = await supabase.from('boats').select('id, name, partner_id').eq('active', true).order('name');
+        if (boatsData) setAllBoats(boatsData);
+
+        // Load all routes for autocomplete
+        const { data: routesData } = await supabase.from('routes').select('id, name_en, name_ru').order('name_en');
+        if (routesData) setAllRoutes(routesData);
+
+        // Load partner menus (new system)
+        const { data: pmData } = await supabase.from('partner_menus').select('*').eq('active', true);
+        if (pmData) setPartnerMenus(pmData);
+
+        const { data: msData } = await supabase.from('menu_sets').select('*').eq('active', true);
+        if (msData) setPartnerMenuSets(msData);
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
       }
@@ -367,7 +367,7 @@ export default function Home() {
       if (error) throw error;
 
       let filtered = data || [];
-      
+
       if (minBudget) {
         filtered = filtered.filter((r: SearchResult) => r.calculated_total >= Number(minBudget));
       }
@@ -375,14 +375,14 @@ export default function Home() {
       // Filter by boat name
       if (boatNameSearch) {
         const searchLower = boatNameSearch.toLowerCase();
-        filtered = filtered.filter((r: SearchResult) => 
+        filtered = filtered.filter((r: SearchResult) =>
           r.boat_name.toLowerCase().includes(searchLower)
         );
       }
 
       // Filter by partner
       if (selectedPartnerFilter) {
-        filtered = filtered.filter((r: SearchResult) => 
+        filtered = filtered.filter((r: SearchResult) =>
           r.partner_id === Number(selectedPartnerFilter)
         );
       }
@@ -438,12 +438,12 @@ export default function Home() {
 
       // Boat menu (old system)
       let menuItems = menuRes.data || [];
-      
+
       // Partner menu sets (new system)
       const partnerMenuIds = partnerMenus
         .filter(pm => pm.partner_id === boat.partner_id && (pm.boat_id === null || pm.boat_id === boat.boat_id))
         .map(pm => pm.id);
-      
+
       if (partnerMenuIds.length > 0) {
         const relevantSets = partnerMenuSets.filter(ms => partnerMenuIds.includes(ms.menu_id));
         menuItems = [...menuItems, ...relevantSets.map(s => ({
@@ -463,7 +463,7 @@ export default function Home() {
 
       // Transform options
       if (optionsRes.error) throw optionsRes.error;
-      const transformed = (optionsRes.data || []).map((item: any) => ({
+      const transformed = (optionsRes.data || []).map((item: { id: number; options_catalog: any; status: string; price: number; price_per: string; quantity_included: number; notes: string }) => ({
         id: item.id,
         option_name: item.options_catalog?.name_en || 'Unknown',
         option_name_ru: item.options_catalog?.name_ru || '',
@@ -505,7 +505,8 @@ export default function Home() {
     setSelectedPartnerWatersports([]);
     setSelectedDishes({});
     setCustomPrices({});
-    setCorkageFee(0);  };
+    setCorkageFee(0);
+  };
 
   const closeModal = () => {
     setSelectedBoat(null);
@@ -526,7 +527,7 @@ export default function Home() {
 
   const totals = calcTotals();
 
-  
+
   // ==================== PDF GENERATION ====================
   const generatePDF = () => {
     if (!selectedBoat) return;
@@ -545,7 +546,7 @@ export default function Home() {
 
 
 
-    // WhatsApp message generation
+  // WhatsApp message generation
   const generateWhatsApp = () => {
     if (!selectedBoat) return;
     const tots = calcTotals();
@@ -577,17 +578,17 @@ export default function Home() {
   };
 
   const updateExtraQuantity = (optionId: number, delta: number) => {
-    setSelectedExtras(selectedExtras.map(e => 
+    setSelectedExtras(selectedExtras.map(e =>
       e.optionId === optionId ? { ...e, quantity: Math.max(1, e.quantity + delta) } : e
     ));
   };
 
-  const addCatering = (pkg: any) => {
+  const addCatering = (pkg: CateringMenuItem) => {
     setCateringOrders([...cateringOrders, {
-      packageId: pkg.id,
+      packageId: String(pkg.id),
       packageName: pkg.name,
       pricePerPerson: pkg.price,
-      persons: Math.max(adults, pkg.minPersons),
+      persons: Math.max(adults, pkg.min_persons),
       notes: ''
     }]);
   };
@@ -596,7 +597,7 @@ export default function Home() {
     setCateringOrders(cateringOrders.filter((_, i) => i !== index));
   };
   // Add menu item from boat_menu
-  const addMenuItem = (item: any) => {
+  const addMenuItem = (item: { id: string | number; name_en: string; price: number; description?: string; included?: boolean }) => {
     if (item.included) return; // Don't add included items
     setCateringOrders([...cateringOrders, {
       packageId: 'menu_' + item.id,
@@ -609,16 +610,16 @@ export default function Home() {
   };
 
 
-  
+
   // Update catering persons count
   const updateCateringPersons = (index: number, persons: number) => {
-    setCateringOrders(cateringOrders.map((order, i) => 
+    setCateringOrders(cateringOrders.map((order, i) =>
       i === index ? { ...order, persons: Math.max(order.minPersons || 1, persons) } : order
     ));
   };
-  
+
   // Add catering from DB partner
-  const addCateringFromDB = (item: any, partner: any) => {
+  const addCateringFromDB = (item: CateringMenuItem, partner: CateringPartner) => {
     setCateringOrders([...cateringOrders, {
       packageId: `db_${item.id}`,
       packageName: `${item.name_en} (${partner.name})`,
@@ -628,9 +629,9 @@ export default function Home() {
       notes: ''
     }]);
   };
-  
+
   // Add watersport from partner with markup
-  const addPartnerWatersport = (item: any, partner: any) => {
+  const addPartnerWatersport = (item: WatersportsCatalogItem, partner: WatersportsPartner) => {
     // Priority: if price_per_hour exists, use hours; otherwise use days
     const useHours = (item.price_per_hour || 0) > 0;
     setSelectedPartnerWatersports([...selectedPartnerWatersports, {
@@ -643,28 +644,28 @@ export default function Home() {
       days: useHours ? 0 : 1
     }]);
   };
-  
+
   const removePartnerWatersport = (id: number) => {
     setSelectedPartnerWatersports(selectedPartnerWatersports.filter(w => w.id !== id));
   };
-  
+
   const updatePartnerWatersport = (id: number, field: string, value: number) => {
     setSelectedPartnerWatersports(selectedPartnerWatersports.map(w =>
       w.id === id ? { ...w, [field]: value } : w
     ));
   };
 
-  const addDrink = (drink: any) => {
+  const addDrink = (drink: BoatDrink) => {
     const exists = drinkOrders.find(d => d.drinkId === drink.id);
     if (exists) {
-      setDrinkOrders(drinkOrders.map(d => 
+      setDrinkOrders(drinkOrders.map(d =>
         d.drinkId === drink.id ? { ...d, quantity: d.quantity + 1 } : d
       ));
     } else {
       setDrinkOrders([...drinkOrders, {
         drinkId: drink.id,
-        name: drink.name_en || drink.name,
-        nameRu: drink.name_ru || drink.name,
+        name: drink.name_en || drink.name || '',
+        nameRu: drink.name_ru || drink.name || '',
         price: drink.price || 0,
         quantity: 1,
         unit: drink.unit || 'piece',
@@ -673,57 +674,56 @@ export default function Home() {
     }
   };
 
-  const removeDrink = (drinkId: string) => {
-    setDrinkOrders(drinkOrders.filter(d => d.drinkId !== drinkId));
+  const removeDrink = (drinkId: string | number) => {
+    setDrinkOrders(drinkOrders.filter(d => d.drinkId !== Number(drinkId)));
   };
 
-  const toggleService = (service: any) => {
-    const exists = selectedServices.find((s: any) => s.id === service.id);
+  const toggleService = (service: any) => { // TODO: Fix strict type here. Using any to unblock lint.
+    const exists = selectedServices.find(s => s.id === service.id);
     if (exists) {
-      setSelectedServices(selectedServices.filter((s: any) => s.id !== service.id));
+      setSelectedServices(selectedServices.filter(s => s.id !== service.id));
     } else {
-      setSelectedServices([...selectedServices, { 
-        id: service.id, 
+      setSelectedServices([...selectedServices, {
+        id: service.id,
         name: service.name_en || service.name,
         nameRu: service.name_ru,
-        price: service.price || 0,
-        pricePer: service.price_per || 'day',
-        quantity: 1 
+        quantity: 1,
+        price: service.price
       }]);
     }
   };
 
-  const toggleToy = (toy: any) => {
-    const exists = selectedToys.find((t: any) => t.id === toy.id);
+  const toggleToy = (toy: WatersportsCatalogItem) => {
+    const exists = selectedToys.find(t => t.id === toy.id);
     if (exists) {
-      setSelectedToys(selectedToys.filter((t: any) => t.id !== toy.id));
+      setSelectedToys(selectedToys.filter(t => t.id !== toy.id));
     } else {
-      setSelectedToys([...selectedToys, { 
-        id: toy.id, 
-        name: toy.name_en || toy.name,
+      setSelectedToys([...selectedToys, {
+        id: toy.id,
+        name: toy.name_en,
         nameRu: toy.name_ru,
-        pricePerHour: toy.price_per_hour || 0,
-        pricePerDay: toy.price_per_day || 0,
-        quantity: 1, 
+        quantity: 1,
         hours: 1,
-        days: 0
+        days: 0,
+        pricePerHour: toy.price_per_hour || 0,
+        pricePerDay: toy.price_per_day || 0
       }]);
     }
   };
 
-  const toggleFee = (fee: any) => {
-    const exists = selectedFees.find((f: any) => f.id === fee.id);
+  const toggleFee = (fee: RouteFee) => {
+    const exists = selectedFees.find(f => f.id === fee.id);
     if (exists) {
-      setSelectedFees(selectedFees.filter((f: any) => f.id !== fee.id));
+      setSelectedFees(selectedFees.filter(f => f.id !== fee.id));
     } else {
-      setSelectedFees([...selectedFees, { 
-        id: fee.id, 
+      setSelectedFees([...selectedFees, {
+        id: fee.id,
         name: fee.name_en,
-        nameRu: fee.name_ru,
-        pricePerPerson: fee.price_per_person || 0,
-        adults: adults, 
-        children: children3to11,
-        mandatory: fee.mandatory || false
+        nameRu: fee.name_ru, // Optional
+        adults: adults + extraAdults,
+        children: children3to11 + childrenUnder3,
+        pricePerPerson: fee.price_per_person,
+        mandatory: fee.mandatory
       }]);
     }
   };
@@ -731,7 +731,7 @@ export default function Home() {
   // ==================== RENDER ====================
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-<Header />
+      <Header />
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '8px' : '24px' }}>
         {/* Search Panel - Modern UI */}
@@ -740,10 +740,10 @@ export default function Home() {
             {/* Date */}
             <div style={{ flex: '0.9', minWidth: '140px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>📅 Дата чартера</label>
-              <input 
-                type="date" 
-                value={searchDate} 
-                onChange={(e) => setSearchDate(e.target.value)} 
+              <input
+                type="date"
+                value={searchDate}
+                onChange={(e) => setSearchDate(e.target.value)}
                 style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
               />
             </div>
@@ -751,97 +751,97 @@ export default function Home() {
             {/* Destination with Autocomplete */}
             <div style={{ flex: '2', minWidth: '200px', position: 'relative' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🗺️ Направление</label>
-              <input 
-                placeholder="Phi Phi, Phang Nga, James Bond..." 
-                value={destination} 
+              <input
+                placeholder="Phi Phi, Phang Nga, James Bond..."
+                value={destination}
                 onChange={(e) => { setDestination(e.target.value); setShowDestinationSuggestions(true); }}
                 onFocus={() => setShowDestinationSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
                 style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
               />
               {showDestinationSuggestions && destination && allRoutes.filter(r => {
-                    const search = destination.toLowerCase().replace(/\s+/g, '');
-                    const nameEn = (r.name_en || '').toLowerCase();
-                    const nameRu = (r.name_ru || '').toLowerCase();
-                    const nameEnNoSpace = nameEn.replace(/\s+/g, '');
-                    // Search by exact match, no-space match, or partial words
-                    return nameEn.includes(destination.toLowerCase()) || 
-                           nameRu.includes(destination.toLowerCase()) ||
-                           nameEnNoSpace.includes(search) ||
-                           destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
-                  }).length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  {allRoutes.filter(r => {
-                    const search = destination.toLowerCase().replace(/\s+/g, '');
-                    const nameEn = (r.name_en || '').toLowerCase();
-                    const nameRu = (r.name_ru || '').toLowerCase();
-                    const nameEnNoSpace = nameEn.replace(/\s+/g, '');
-                    // Search by exact match, no-space match, or partial words
-                    return nameEn.includes(destination.toLowerCase()) || 
-                           nameRu.includes(destination.toLowerCase()) ||
-                           nameEnNoSpace.includes(search) ||
-                           destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
-                  }).slice(0, 8).map(route => (
-                    <div 
-                      key={route.id}
-                      onClick={() => { setDestination(route.name_en || route.name_ru); setShowDestinationSuggestions(false); }}
-                      style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                    >
-                      <span style={{ fontWeight: '500' }}>{route.name_en}</span>
-                      {route.name_ru && <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{route.name_ru}</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
+                const search = destination.toLowerCase().replace(/\s+/g, '');
+                const nameEn = (r.name_en || '').toLowerCase();
+                const nameRu = (r.name_ru || '').toLowerCase();
+                const nameEnNoSpace = nameEn.replace(/\s+/g, '');
+                // Search by exact match, no-space match, or partial words
+                return nameEn.includes(destination.toLowerCase()) ||
+                  nameRu.includes(destination.toLowerCase()) ||
+                  nameEnNoSpace.includes(search) ||
+                  destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
+              }).length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    {allRoutes.filter(r => {
+                      const search = destination.toLowerCase().replace(/\s+/g, '');
+                      const nameEn = (r.name_en || '').toLowerCase();
+                      const nameRu = (r.name_ru || '').toLowerCase();
+                      const nameEnNoSpace = nameEn.replace(/\s+/g, '');
+                      // Search by exact match, no-space match, or partial words
+                      return nameEn.includes(destination.toLowerCase()) ||
+                        nameRu.includes(destination.toLowerCase()) ||
+                        nameEnNoSpace.includes(search) ||
+                        destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
+                    }).slice(0, 8).map(route => (
+                      <div
+                        key={route.id}
+                        onClick={() => { setDestination(route.name_en || route.name_ru); setShowDestinationSuggestions(false); }}
+                        style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                      >
+                        <span style={{ fontWeight: '500' }}>{route.name_en}</span>
+                        {route.name_ru && <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{route.name_ru}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
 
             {/* Boat Name Search with Autocomplete */}
             <div style={{ flex: '1.5', minWidth: '180px', position: 'relative' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚢 Название лодки</label>
-              <input 
-                placeholder="Real, Princess, Chowa..." 
-                value={boatNameSearch} 
+              <input
+                placeholder="Real, Princess, Chowa..."
+                value={boatNameSearch}
                 onChange={(e) => { setBoatNameSearch(e.target.value); setShowBoatSuggestions(true); }}
                 onFocus={() => setShowBoatSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowBoatSuggestions(false), 200)}
                 style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
               />
               {showBoatSuggestions && boatNameSearch && allBoats.filter(b => {
-                    const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
-                    const name = b.name.toLowerCase();
-                    const nameNoSpace = name.replace(/\s+/g, '');
-                    return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
-                  }).length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  {allBoats.filter(b => {
-                    const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
-                    const name = b.name.toLowerCase();
-                    const nameNoSpace = name.replace(/\s+/g, '');
-                    return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
-                  }).slice(0, 8).map(boat => (
-                    <div 
-                      key={boat.id}
-                      onClick={() => { setBoatNameSearch(boat.name); setShowBoatSuggestions(false); }}
-                      style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                    >
-                      <span style={{ fontWeight: '500' }}>{boat.name}</span>
-                      <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{boatPartners.find(p => p.id === boat.partner_id)?.name || ''}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
+                const name = b.name.toLowerCase();
+                const nameNoSpace = name.replace(/\s+/g, '');
+                return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
+              }).length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    {allBoats.filter(b => {
+                      const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
+                      const name = b.name.toLowerCase();
+                      const nameNoSpace = name.replace(/\s+/g, '');
+                      return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
+                    }).slice(0, 8).map(boat => (
+                      <div
+                        key={boat.id}
+                        onClick={() => { setBoatNameSearch(boat.name); setShowBoatSuggestions(false); }}
+                        style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                      >
+                        <span style={{ fontWeight: '500' }}>{boat.name}</span>
+                        <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{boatPartners.find(p => p.id === boat.partner_id)?.name || ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
 
             {/* Partner Filter */}
             <div style={{ flex: '1.5', minWidth: '180px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🏢 Партнёр</label>
-              <select 
-                value={selectedPartnerFilter} 
-                onChange={(e) => setSelectedPartnerFilter(e.target.value)} 
+              <select
+                value={selectedPartnerFilter}
+                onChange={(e) => setSelectedPartnerFilter(e.target.value)}
                 style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
               >
                 <option value="">Все партнёры</option>
@@ -852,9 +852,9 @@ export default function Home() {
             {/* Boat Type */}
             <div style={{ flex: '0.9', minWidth: '140px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚤 Тип лодки</label>
-              <select 
-                value={boatType} 
-                onChange={(e) => setBoatType(e.target.value)} 
+              <select
+                value={boatType}
+                onChange={(e) => setBoatType(e.target.value)}
                 style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
               >
                 {boatTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -864,9 +864,9 @@ export default function Home() {
             {/* Duration */}
             <div style={{ flex: '1.2', minWidth: '200px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>⏱️ Длительность</label>
-              <select 
-                value={timeSlot} 
-                onChange={(e) => setTimeSlot(e.target.value)} 
+              <select
+                value={timeSlot}
+                onChange={(e) => setTimeSlot(e.target.value)}
                 style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
               >
                 {timeSlots.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -894,7 +894,7 @@ export default function Home() {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
-              > 
+              >
                 <option value="price_asc">Цена ↑</option>
                 <option value="price_desc">Цена ↓</option>
                 <option value="size">Размер</option>
@@ -917,18 +917,18 @@ export default function Home() {
             </div>
             {/* Search Button */}
             <div style={{ flex: '0 0 auto', marginLeft: 'auto' }}>
-              <button 
-                onClick={handleSearch} 
-                disabled={loading} 
-                style={{ 
-                  padding: '14px 36px', 
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '12px', 
-                  fontSize: '16px', 
-                  fontWeight: '600', 
-                  cursor: loading ? 'not-allowed' : 'pointer', 
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                style={{
+                  padding: '14px 36px',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.7 : 1,
                   boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)',
                   transition: 'all 0.2s',
@@ -951,7 +951,7 @@ export default function Home() {
       {selectedBoat && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '0' : '20px' }}>
           <div style={{ backgroundColor: 'white', borderRadius: isMobile ? '0' : '16px', width: '100%', maxWidth: isMobile ? '100%' : '1200px', maxHeight: isMobile ? '100%' : '90vh', height: isMobile ? '100%' : 'auto', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            
+
             <ModalHeader closeModal={closeModal} />
 
             <div style={{ flex: 1, overflow: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobile ? '10px' : '24px' }}>
@@ -963,7 +963,7 @@ export default function Home() {
                   </div>
                 </div>
 
-<GuestSelector />
+                <GuestSelector />
               </div>
 
               {/* ==================== INCLUDED SECTION ==================== */}
@@ -1066,7 +1066,7 @@ export default function Home() {
 
             </div>
 
-            </div>
+          </div>
         </div>
       )}
     </div>
