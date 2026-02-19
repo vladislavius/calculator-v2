@@ -11,7 +11,6 @@ export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect
   const isMobile    = useIsMobile();
   const clientPrice = Math.round((boat.calculated_total || 0) * (1 + markupPercent / 100));
   const agentPrice  = boat.calculated_agent_total || boat.base_price || 0;
-  const profit      = clientPrice - agentPrice;
 
   return (
     <div className="os-boat-card" onClick={() => onSelect(boat)}>
@@ -23,7 +22,6 @@ export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect
         <div className="os-boat-card__badges">
           <span className="os-badge os-badge--type">{typeIcon(boat.boat_type)} {boat.boat_type}</span>
           {boat.season && boat.season !== 'all' && <span className="os-badge os-badge--season">{seasonLabel(boat.season)}</span>}
-          {showAgentPrice && profit > 0 && <span className="os-badge os-badge--profit">+{profit.toLocaleString()} ฿</span>}
         </div>
       </div>
       <div className="os-boat-card__body">
@@ -35,7 +33,6 @@ export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect
           <div className="os-boat-card__price-wrap">
             {showAgentPrice && <div className="os-boat-card__agent">Агент: {agentPrice.toLocaleString()} ฿</div>}
             <div className="os-boat-card__price">{clientPrice.toLocaleString()} ฿</div>
-            {showAgentPrice && profit > 0 && <div className="os-boat-card__profit">profit: +{profit.toLocaleString()}</div>}
           </div>
         </div>
         <div className="os-boat-card__specs">
