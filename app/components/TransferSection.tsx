@@ -40,8 +40,8 @@ export default function TransferSection({
   customPrices, setPrice
 }: TransferSectionProps) {
   return (
-    <div id="transfer" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#f0fdf4', borderRadius: '16px', border: '1px solid #86efac' }}>
-      <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#166534' }}>🚗 ТРАНСФЕР</h3>
+    <div id="transfer" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#0d2137', borderRadius: '16px', border: '1px solid rgba(46,204,113,0.2)' }}>
+      <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#2ECC71' }}>🚗 ТРАНСФЕР</h3>
       
       {/* Direction selector */}
       <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
@@ -66,7 +66,7 @@ export default function TransferSection({
               }
             }
           }}
-          style={{ flex: 1, padding: '12px', borderRadius: '8px', border: transferDirection === 'round_trip' ? '2px solid #22c55e' : '1px solid #e5e7eb', backgroundColor: transferDirection === 'round_trip' ? '#dcfce7' : 'white', cursor: 'pointer', fontWeight: '600' }}
+          style={{ flex: 1, padding: '12px', borderRadius: '8px', border: transferDirection === 'round_trip' ? '2px solid #2ECC71' : '1px solid rgba(255,255,255,0.1)', backgroundColor: transferDirection === 'round_trip' ? '#0e3a2a' : '#0f2337', cursor: 'pointer', fontWeight: '600' }}
         >
           🔄 Туда и обратно
         </button>
@@ -89,7 +89,7 @@ export default function TransferSection({
               }
             }
           }}
-          style={{ flex: 1, padding: '12px', borderRadius: '8px', border: transferDirection === 'one_way' ? '2px solid #22c55e' : '1px solid #e5e7eb', backgroundColor: transferDirection === 'one_way' ? '#dcfce7' : 'white', cursor: 'pointer', fontWeight: '600' }}
+          style={{ flex: 1, padding: '12px', borderRadius: '8px', border: transferDirection === 'one_way' ? '2px solid #2ECC71' : '1px solid rgba(255,255,255,0.1)', backgroundColor: transferDirection === 'one_way' ? '#0e3a2a' : '#0f2337', cursor: 'pointer', fontWeight: '600' }}
         >
           ➡️ Только в одну сторону
         </button>
@@ -103,16 +103,16 @@ export default function TransferSection({
             setUseOwnTransfer(false);
             setCustomTransferPrice(null);
           }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: transferPickup.type === 'none' ? '#dcfce7' : 'white', borderRadius: '10px', border: transferPickup.type === 'none' ? '2px solid #22c55e' : '1px solid #e5e7eb', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: transferPickup.type === 'none' ? '#0e3a2a' : '#0f2337', borderRadius: '10px', border: transferPickup.type === 'none' ? '2px solid #2ECC71' : '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: transferPickup.type === 'none' ? '6px solid #22c55e' : '2px solid #d1d5db', backgroundColor: 'white' }} />
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: transferPickup.type === 'none' ? '6px solid #2ECC71' : '2px solid rgba(255,255,255,0.2)', backgroundColor: '#132840' }} />
             <div>
               <span style={{ fontWeight: '600' }}>Не нужен</span>
-              <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#6b7280' }}>Клиент доберётся сам</p>
+              <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748b' }}>Клиент доберётся сам</p>
             </div>
           </div>
-          <span style={{ fontWeight: '600', color: '#166534' }}>0 THB</span>
+          <span style={{ fontWeight: '600', color: '#2ECC71' }}>0 THB</span>
         </div>
 
         {/* Own transfer */}
@@ -124,13 +124,13 @@ export default function TransferSection({
             setUseOwnTransferVip(false);
             setCustomTransferPrice(price);
           }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: String(transferPickup.type) === 'own' ? '#dcfce7' : 'white', borderRadius: '10px', border: String(transferPickup.type) === 'own' ? '2px solid #22c55e' : '1px solid #e5e7eb', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: String(transferPickup.type) === 'own' ? '#0e3a2a' : '#0f2337', borderRadius: '10px', border: String(transferPickup.type) === 'own' ? '2px solid #2ECC71' : '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: String(transferPickup.type) === 'own' ? '6px solid #22c55e' : '2px solid #d1d5db', backgroundColor: 'white' }} />
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: String(transferPickup.type) === 'own' ? '6px solid #2ECC71' : '2px solid rgba(255,255,255,0.2)', backgroundColor: '#132840' }} />
             <div>
               <span style={{ fontWeight: '600' }}>🚐 Наш трансфер</span>
-              <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#6b7280' }}>Стандартный минивэн</p>
+              <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748b' }}>Стандартный минивэн</p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
@@ -155,7 +155,7 @@ export default function TransferSection({
               }}
               style={{ width: '70px', padding: '4px 6px', border: '1px solid #22c55e', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px' }}
             />
-            <span style={{ fontWeight: '600', color: '#166534' }}>THB</span>
+            <span style={{ fontWeight: '600', color: '#2ECC71' }}>THB</span>
           </div>
         </div>
 
@@ -168,13 +168,13 @@ export default function TransferSection({
             setUseOwnTransferVip(true);
             setCustomTransferPrice(price);
           }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: useOwnTransferVip ? '#fef3c7' : 'white', borderRadius: '10px', border: useOwnTransferVip ? '2px solid #f59e0b' : '1px solid #e5e7eb', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: useOwnTransferVip ? '#1a2a0a' : '#0f2337', borderRadius: '10px', border: useOwnTransferVip ? '2px solid #F4C430' : '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: useOwnTransferVip ? '6px solid #f59e0b' : '2px solid #d1d5db', backgroundColor: 'white' }} />
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: useOwnTransferVip ? '6px solid #F4C430' : '2px solid rgba(255,255,255,0.2)', backgroundColor: '#132840' }} />
             <div>
               <span style={{ fontWeight: '600' }}>👑 Наш трансфер VIP</span>
-              <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#6b7280' }}>Премиум минивэн</p>
+              <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#64748b' }}>Премиум минивэн</p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
@@ -199,29 +199,29 @@ export default function TransferSection({
               }}
               style={{ width: '70px', padding: '4px 6px', border: '1px solid #f59e0b', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px' }}
             />
-            <span style={{ fontWeight: '600', color: '#d97706' }}>THB</span>
+            <span style={{ fontWeight: '600', color: '#F4C430' }}>THB</span>
           </div>
         </div>
       </div>
 
       {/* Address input */}
       {transferPickup.type !== 'none' && (
-        <div style={{ marginTop: '16px', padding: '16px', backgroundColor: 'white', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151', fontSize: '14px' }}>📍 Адрес забора:</label>
+        <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#132840', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#cbd5e1', fontSize: '14px' }}>📍 Адрес забора:</label>
           <input
             value={transferPickup.pickup}
             onChange={(e) => setTransferPickup({...transferPickup, pickup: e.target.value})}
             placeholder="Название отеля или адрес"
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', fontSize: '14px' }}
           />
         </div>
       )}
 
       {/* Total */}
       {transferPickup.price > 0 && (
-        <div style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: '#dcfce7', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: '#0e3a2a', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: '600' }}>✓ Трансфер ({transferDirection === 'round_trip' ? 'round trip' : 'one way'}):</span>
-          <span style={{ fontWeight: '700', color: '#166534', fontSize: '20px' }}>{transferPickup.price.toLocaleString()} THB</span>
+          <span style={{ fontWeight: '700', color: '#2ECC71', fontSize: '20px' }}>{transferPickup.price.toLocaleString()} THB</span>
         </div>
       )}
     </div>

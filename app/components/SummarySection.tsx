@@ -1,122 +1,112 @@
 'use client';
-
 import { useCharterStore } from '../store/useCharterStore';
 import { calculateTotals } from '../lib/calculateTotals';
-import { useIsMobile } from '../hooks/useIsMobile';
 
-interface SummarySectionProps {
-  generatePDF: () => void;
-  generateWhatsApp: () => void;
-}
-
-export default function SummarySection({ generatePDF, generateWhatsApp }: SummarySectionProps) {
-  const s = useCharterStore();
-  const selectedBoat = s.selectedBoat;
-  const isMobile = useIsMobile();
-  if (!selectedBoat) return null;
+export default function SummarySection({ generatePDF, generateWhatsApp }: { generatePDF:()=>void; generateWhatsApp:()=>void }) {
+  const s    = useCharterStore();
+  const boat = s.selectedBoat;
+  if (!boat) return null;
 
   const totals = calculateTotals({
-    selectedBoat: s.selectedBoat, selectedExtras: s.selectedExtras,
-    cateringOrders: s.cateringOrders, drinkOrders: s.drinkOrders,
-    selectedToys: s.selectedToys, selectedServices: s.selectedServices,
-    selectedFees: s.selectedFees, selectedPartnerWatersports: s.selectedPartnerWatersports,
-    transferPickup: s.transferPickup, transferDropoff: s.transferDropoff,
-    transferPrice: s.transferPrice, transferMarkup: s.transferMarkup,
-    landingEnabled: s.landingEnabled, landingFee: s.landingFee,
-    defaultParkFeeEnabled: s.defaultParkFeeEnabled, defaultParkFee: s.defaultParkFee,
-    defaultParkFeeAdults: s.defaultParkFeeAdults, defaultParkFeeChildren: s.defaultParkFeeChildren,
-    corkageFee: s.corkageFee, extraAdults: s.extraAdults, children3to11: s.children3to11,
-    childrenUnder3: s.childrenUnder3, adults: s.adults,
-    customAdultPrice: s.customAdultPrice, customChildPrice: s.customChildPrice,
-    boatMarkup: s.boatMarkup, fixedMarkup: s.fixedMarkup,
-    markupMode: s.markupMode, markupPercent: s.markupPercent, customPrices: s.customPrices,
+    selectedBoat:s.selectedBoat, selectedExtras:s.selectedExtras, cateringOrders:s.cateringOrders,
+    drinkOrders:s.drinkOrders, selectedToys:s.selectedToys, selectedServices:s.selectedServices,
+    selectedFees:s.selectedFees, selectedPartnerWatersports:s.selectedPartnerWatersports,
+    transferPickup:s.transferPickup, transferDropoff:s.transferDropoff, transferPrice:s.transferPrice,
+    transferMarkup:s.transferMarkup, landingEnabled:s.landingEnabled, landingFee:s.landingFee,
+    defaultParkFeeEnabled:s.defaultParkFeeEnabled, defaultParkFee:s.defaultParkFee,
+    defaultParkFeeAdults:s.defaultParkFeeAdults, defaultParkFeeChildren:s.defaultParkFeeChildren,
+    corkageFee:s.corkageFee, extraAdults:s.extraAdults, children3to11:s.children3to11,
+    childrenUnder3:s.childrenUnder3, adults:s.adults, customAdultPrice:s.customAdultPrice,
+    customChildPrice:s.customChildPrice, boatMarkup:s.boatMarkup, fixedMarkup:s.fixedMarkup,
+    markupMode:s.markupMode, markupPercent:s.markupPercent, customPrices:s.customPrices,
   });
 
-  const baseLine = (label: string, value: number) => (
-    value > 0 ? (
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: isMobile ? '5px 0' : '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)', fontSize: isMobile ? '12px' : '14px' }}>
-        <span>{label}</span>
-        <span style={{ fontWeight: '600' }}>+{value.toLocaleString()}</span>
-      </div>
-    ) : null
-  );
+  const base         = boat.client_price || boat.base_price || 0;
+  const markupAmt    = s.markupMode === 'fixed' ? s.fixedMarkup : Math.round(base * s.boatMarkup / 100);
+  const markupPct    = s.markupMode === 'fixed' ? (base > 0 ? (s.fixedMarkup/base*100).toFixed(1) : '0') : s.boatMarkup;
+  const guestSurcharge = s.extraAdults*(s.customAdultPrice??boat.extra_pax_price??0) + s.children3to11*(s.customChildPrice??Math.round((boat.extra_pax_price??0)*0.5));
+  const usd          = ((totals.totalClient||0)/34).toLocaleString('en-US',{maximumFractionDigits:0});
+  const rub          = ((totals.totalClient||0)*2.7).toLocaleString('ru-RU',{maximumFractionDigits:0});
 
-  const guestSurcharge = (s.extraAdults + s.children3to11) > 0
-    ? (s.extraAdults * (s.customPrices["extra_adult"] || selectedBoat?.extra_pax_price || 0)) +
-      (s.children3to11 * (s.customPrices["child_3_11"] || Math.round((selectedBoat?.extra_pax_price || 0) * 0.5)))
-    : 0;
+  const lines = [
+    { label:'🛥️ Яхта',          val: base,                           show: true },
+    { label:'👥 Доп. гости',     val: guestSurcharge,                 show: guestSurcharge > 0 },
+    { label:'🎫 Сборы',          val: totals.fees,                    show: totals.fees > 0 },
+    { label:'🍽️ Питание',        val: totals.catering,                show: totals.catering > 0 },
+    { label:'🍹 Напитки',        val: totals.drinks,                  show: totals.drinks > 0 },
+    { label:'🤿 Водные развл.',   val: totals.toys,                    show: totals.toys > 0 },
+    { label:'🌊 Партн. водные',  val: totals.partnerWatersports||0,   show: (totals.partnerWatersports||0) > 0 },
+    { label:'🎉 Персонал',       val: totals.services,                show: totals.services > 0 },
+    { label:'🚐 Трансфер',       val: totals.transfer,                show: totals.transfer > 0 },
+    { label:'➕ Доп. опции',     val: totals.extras,                  show: totals.extras > 0 },
+  ];
 
   return (
-    <div id="summary" style={{ padding: isMobile ? '12px' : '24px', background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)', borderRadius: isMobile ? '10px' : '16px', color: 'white' }}>
-      <h3 style={{ margin: '0 0 10px', fontSize: isMobile ? '16px' : '20px', fontWeight: '700' }}>📊 ИТОГО</h3>
+    <div id="summary" className="os-summary">
+      <div className="os-summary__header">
+        <div className="os-summary__title">📊 Итоговый расчёт</div>
+        <span className="os-tag os-tag--aqua">{s.adults+s.extraAdults+s.children3to11+s.childrenUnder3} гостей</span>
+      </div>
 
-      <div style={{ marginBottom: '10px', padding: isMobile ? '8px' : '16px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span style={{ fontWeight: '600', fontSize: isMobile ? '12px' : '14px' }}>Наценка</span>
-          <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '2px' }}>
-            <button onClick={() => s.set({ markupMode: 'percent' })} style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '600', backgroundColor: s.markupMode === 'percent' ? 'white' : 'transparent', color: s.markupMode === 'percent' ? '#1e40af' : 'rgba(255,255,255,0.7)' }}>%</button>
-            <button onClick={() => s.set({ markupMode: 'fixed' })} style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '600', backgroundColor: s.markupMode === 'fixed' ? 'white' : 'transparent', color: s.markupMode === 'fixed' ? '#1e40af' : 'rgba(255,255,255,0.7)' }}>THB</button>
-          </div>
+      <div className="os-markup-bar">
+        <div className="os-markup-label">Наценка менеджера</div>
+        <div className="os-markup-mode">
+          <button className={`os-markup-mode-btn${s.markupMode==='percent'?' active':''}`} onClick={()=>s.set({markupMode:'percent'})}>% авто</button>
+          <button className={`os-markup-mode-btn${s.markupMode==='fixed'?' active':''}`}   onClick={()=>s.set({markupMode:'fixed'})}>฿ фиксированно</button>
         </div>
         {s.markupMode === 'percent' ? (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
-              <input type="number" min="0" max="500" value={s.boatMarkup} onChange={(e) => s.set({ boatMarkup: Number(e.target.value) || 0 })} style={{ width: isMobile ? '60px' : '100px', padding: '6px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', fontSize: isMobile ? '16px' : '20px', fontWeight: 'bold', textAlign: 'center' }} />
-              <span style={{ fontSize: isMobile ? '16px' : '20px', fontWeight: 'bold' }}>%</span>
-              <span style={{ fontSize: isMobile ? '10px' : '13px', opacity: 0.7 }}>= +{Math.round(((selectedBoat?.client_price || selectedBoat?.base_price) || 0) * s.boatMarkup / 100).toLocaleString()} THB</span>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+              <input type="number" min="0" max="500" value={s.boatMarkup} onChange={e=>s.set({boatMarkup:Number(e.target.value)||0})} className="os-markup-input" style={{ width:90 }} />
+              <span style={{ fontSize:28, fontWeight:800, color:'var(--os-text-2)' }}>%</span>
             </div>
-            <input type="range" min="0" max="200" value={s.boatMarkup} onChange={(e) => s.set({ boatMarkup: Number(e.target.value) })} style={{ width: '100%', height: '6px', cursor: 'pointer' }} />
-          </>
+            <input type="range" min="0" max="200" value={s.boatMarkup} onChange={e=>s.set({boatMarkup:Number(e.target.value)})} style={{ width:'100%', accentColor:'var(--os-aqua)', cursor:'pointer' }} />
+            <div className="os-markup-hint">= <span>+{markupAmt.toLocaleString()} ฿</span> к цене лодки</div>
+          </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <input type="number" min="0" step="1000" value={s.fixedMarkup} onChange={(e) => s.set({ fixedMarkup: Number(e.target.value) || 0 })} style={{ width: isMobile ? '100px' : '160px', padding: '6px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', fontSize: isMobile ? '16px' : '20px', fontWeight: 'bold', textAlign: 'center' }} />
-            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>THB</span>
-            <span style={{ fontSize: isMobile ? '10px' : '13px', opacity: 0.7 }}>= {(((selectedBoat?.client_price || selectedBoat?.base_price) || 0) > 0 ? (s.fixedMarkup / ((selectedBoat?.client_price || selectedBoat?.base_price) || 1) * 100).toFixed(1) : 0)}%</span>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <input type="number" min="0" step="500" value={s.fixedMarkup} onChange={e=>s.set({fixedMarkup:Number(e.target.value)||0})} className="os-markup-input" style={{ width:140 }} />
+            <span style={{ fontSize:18, fontWeight:700, color:'var(--os-text-2)' }}>฿</span>
+            <div className="os-markup-hint" style={{ marginTop:0 }}>≈ <span>{markupPct}%</span></div>
           </div>
         )}
       </div>
 
-      <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', padding: isMobile ? '10px' : '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: isMobile ? '5px 0' : '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)', fontSize: isMobile ? '12px' : '14px' }}>
-          <span>Яхта</span>
-          <span style={{ fontWeight: '600' }}>{((selectedBoat.client_price || selectedBoat.base_price) || 0).toLocaleString()}</span>
-        </div>
-        {guestSurcharge > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: isMobile ? '5px 0' : '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)', fontSize: isMobile ? '12px' : '14px' }}>
-            <span>Доп. гости</span>
-            <span style={{ fontWeight: '600' }}>+{guestSurcharge.toLocaleString()}</span>
+      <div className="os-summary-lines">
+        {lines.filter(l=>l.show).map(l=>(
+          <div key={l.label} className="os-summary-line">
+            <span>{l.label}</span>
+            <span className="os-summary-line__val">{l.val.toLocaleString()} ฿</span>
           </div>
-        )}
-        {baseLine('Сборы', totals.fees)}
-        {baseLine('Питание', totals.catering)}
-        {baseLine('Напитки', totals.drinks)}
-        {baseLine('Вод. развл.', totals.toys)}
-        {baseLine('Вод. услуги', totals.partnerWatersports || 0)}
-        {baseLine('Персонал', totals.services)}
-        {baseLine('Трансфер', totals.transfer)}
-        {baseLine('Доп. опции', totals.extras)}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: isMobile ? '5px 0' : '10px 0', borderBottom: '1px solid rgba(255,255,255,0.2)', color: '#fcd34d', fontSize: isMobile ? '12px' : '14px' }}>
-          <span>Наценка</span>
-          <span style={{ fontWeight: '600' }}>+{s.markupMode === 'fixed' ? s.fixedMarkup.toLocaleString() : Math.round(((selectedBoat.client_price || selectedBoat.base_price) || 0) * s.boatMarkup / 100).toLocaleString()}</span>
+        ))}
+        <div className="os-summary-line markup">
+          <span>📈 Наценка</span>
+          <span className="os-summary-line__val">+{markupAmt.toLocaleString()} ฿</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', fontSize: isMobile ? '16px' : '24px', fontWeight: 'bold' }}>
-          <span>💰 КЛИЕНТ</span>
-          <span>{(totals.totalClient || 0).toLocaleString()} THB</span>
+        <div className="os-summary-line profit">
+          <span style={{ fontSize:11, color:'var(--os-text-3)' }}>Агент (себестоимость)</span>
+          <span className="os-summary-line__val" style={{ fontSize:12 }}>{(boat.calculated_agent_total||boat.base_price||0).toLocaleString()} ฿</span>
         </div>
       </div>
 
-      <div style={{ marginTop: '10px' }}>
-        <label style={{ display: 'block', marginBottom: '4px', fontSize: isMobile ? '11px' : '14px', fontWeight: '600' }}>📝 Заметки:</label>
-        <textarea value={s.customNotes} onChange={(e) => s.set({ customNotes: e.target.value })} placeholder="Обед, кэш-ваучер..." style={{ width: '100%', padding: isMobile ? '8px' : '12px', borderRadius: '8px', border: 'none', fontSize: isMobile ? '13px' : '14px', minHeight: isMobile ? '40px' : '80px', resize: 'vertical', backgroundColor: 'rgba(255,255,255,0.95)', boxSizing: 'border-box' }} />
+      <div className="os-summary-total">
+        <div className="os-summary-total__label">💰 Клиент платит</div>
+        <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
+          <span className="os-summary-total__amount">{(totals.totalClient||0).toLocaleString()}</span>
+          <span className="os-summary-total__unit">฿</span>
+        </div>
       </div>
 
-      <div style={{ marginTop: '10px', display: 'flex', gap: isMobile ? '8px' : '12px', flexDirection: isMobile ? 'column' : 'row' }}>
-        <button onClick={generatePDF} style={{ flex: 1, padding: isMobile ? '12px' : '16px', backgroundColor: 'white', color: '#1e40af', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: isMobile ? '14px' : '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          📄 PDF
-        </button>
-        <button onClick={generateWhatsApp} style={{ flex: 1, padding: isMobile ? '12px' : '16px', backgroundColor: '#25D366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: isMobile ? '14px' : '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          💬 WhatsApp
-        </button>
+      <div className="os-summary-currency">≈ {usd} USD · ≈ {rub} RUB</div>
+
+      <div style={{ padding:'12px 20px', borderTop:'1px solid var(--os-border)' }}>
+        <div className="os-markup-label" style={{ marginBottom:6 }}>📝 Заметки для клиента</div>
+        <textarea value={s.customNotes} onChange={e=>s.set({customNotes:e.target.value})} placeholder="Особые пожелания, кэш-ваучер, детали встречи..." className="os-notes-input" />
+      </div>
+
+      <div className="os-summary-actions">
+        <button onClick={generatePDF}       className="os-action-btn os-action-btn--pdf">📄 PDF</button>
+        <button onClick={generateWhatsApp}  className="os-action-btn os-action-btn--wa">💬 WhatsApp</button>
       </div>
     </div>
   );

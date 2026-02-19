@@ -52,12 +52,12 @@ export default function ToysSection({
   expandedSections, toggleSection, customPrices, getPrice, setPrice
 }: ToysSectionProps) {
   return (
-    <div id="toys" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#ecfeff', borderRadius: '16px', border: '1px solid #a5f3fc' }}>
+    <div id="toys" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#0d2137', borderRadius: '16px', border: '1px solid rgba(0,201,255,0.2)' }}>
       <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#0891b2' }}>🎿 ВОДНЫЕ РАЗВЛЕЧЕНИЯ</h3>
       
       {/* Included water toys */}
       {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys' || o.category_code === 'equipment') && o.status === 'included').length > 0 && (
-        <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #86efac' }}>
+        <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid rgba(46,204,113,0.2)' }}>
           <span style={{ fontWeight: '600', color: '#166534' }}>Включено: </span>
           {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys' || o.category_code === 'equipment') && o.status === 'included').map((o, i) => (
             <span key={o.id}>{i > 0 ? ', ' : ''}{o.option_name}</span>
@@ -67,13 +67,13 @@ export default function ToysSection({
 
       {/* Paid water toys from boat */}
       {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').length > 0 && (
-        <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #a5f3fc' }}>
+        <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#132840', borderRadius: '12px', border: '1px solid rgba(0,201,255,0.2)' }}>
           <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#0891b2' }}>➕ Добавить с яхты:</p>
           <div style={{ display: 'grid', gap: '8px' }}>
             {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').map(opt => {
               const isAdded = selectedExtras.some(e => e.optionId === opt.id);
               return (
-                <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#cffafe' : '#fafafa', borderRadius: '8px', border: isAdded ? '2px solid #22d3ee' : '1px solid #e5e7eb' }}>
+                <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#0e3a4a' : '#0f2337', borderRadius: '8px', border: isAdded ? '2px solid #00C9FF' : '1px solid rgba(255,255,255,0.08)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <input type="checkbox" checked={isAdded} onChange={() => toggleExtra(opt)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                     <span style={{ fontWeight: '500' }}>{opt.option_name}</span>
@@ -96,26 +96,26 @@ export default function ToysSection({
 
       {/* Partner watersports - Collapsible */}
       {watersportsPartners.length > 0 && (
-        <div style={{ borderRadius: '12px', border: '1px solid #a5f3fc', overflow: 'hidden' }}>
+        <div style={{ borderRadius: '12px', border: '1px solid rgba(0,201,255,0.2)', overflow: 'hidden' }}>
           <div 
             onClick={() => toggleSection('partnerWatersports')}
-            style={{ padding: '14px 16px', backgroundColor: '#ecfeff', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            style={{ padding: '14px 16px', backgroundColor: '#0d2137', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '18px' }}>{expandedSections.partnerWatersports ? '▼' : '▶'}</span>
               <span style={{ fontWeight: '600', color: '#0891b2' }}>🏄 🏄 Водные развлечения от партнёров</span>
-              <span style={{ fontSize: '13px', color: '#6b7280' }}>({watersportsPartners.length} партнёров)</span>
+              <span style={{ fontSize: '13px', color: '#64748b' }}>({watersportsPartners.length} партнёров)</span>
             </div>
           </div>
           
           {expandedSections.partnerWatersports && (
-            <div style={{ padding: '16px', backgroundColor: 'white' }}>
+            <div style={{ padding: '16px', backgroundColor: '#132840' }}>
               {watersportsPartners.map(partner => (
-                <div key={partner.id} style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#ecfeff', borderRadius: '10px', border: '1px solid #a5f3fc' }}>
+                <div key={partner.id} style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#0d2137', borderRadius: '10px', border: '1px solid rgba(0,201,255,0.2)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
                       <span style={{ fontWeight: '600', color: '#0891b2', fontSize: '16px' }}>{partner.name}</span>
-                      {partner.phone && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#6b7280' }}>📞 {partner.phone}</p>}
+                      {partner.phone && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>📞 {partner.phone}</p>}
                     </div>
                   </div>
                   
@@ -126,7 +126,7 @@ export default function ToysSection({
                       const basePrice = (item.price_per_hour || 0) > 0 ? item.price_per_hour : item.price_per_day;
                       
                       return (
-                        <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: isAdded ? '#cffafe' : 'white', borderRadius: '8px', border: isAdded ? '2px solid #22d3ee' : '1px solid #e5e7eb' }}>
+                        <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: isAdded ? '#0e3a4a' : '#0f2337', borderRadius: '8px', border: isAdded ? '2px solid #00C9FF' : '1px solid rgba(255,255,255,0.08)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <input 
                               type="checkbox" 
@@ -151,7 +151,7 @@ export default function ToysSection({
                             />
                             <div>
                               <span style={{ fontWeight: '500' }}>{item.name_en}</span>
-                              {item.name_ru && <span style={{ marginLeft: '6px', fontSize: '13px', color: '#6b7280' }}>({item.name_ru})</span>}
+                              {item.name_ru && <span style={{ marginLeft: '6px', fontSize: '13px', color: '#64748b' }}>({item.name_ru})</span>}
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -190,7 +190,7 @@ export default function ToysSection({
                                 onClick={(e) => e.stopPropagation()}
                                 style={{ width: '80px', padding: '6px 8px', border: '1px solid #0891b2', borderRadius: '6px', fontSize: '14px', fontWeight: '600', textAlign: 'right' }}
                               />
-                              <span style={{ fontSize: '12px', color: '#6b7280' }}>THB/{(item.price_per_hour || 0) > 0 ? 'час' : 'день'}</span>
+                              <span style={{ fontSize: '12px', color: '#64748b' }}>THB/{(item.price_per_hour || 0) > 0 ? 'час' : 'день'}</span>
                             </div>
                           </div>
                         </div>

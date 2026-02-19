@@ -189,13 +189,13 @@ export default function MenuImportPage() {
       </div>
 
       {/* Partner/Boat Selection */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px', padding: '16px', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px', padding: '16px', backgroundColor: '#132840', borderRadius: '8px' }}>
         <div>
-          <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Партнёр *</label>
+          <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Партнёр *</label>
           <select
             value={selectedPartnerId || ''}
             onChange={(e) => handlePartnerChange(Number(e.target.value))}
-            style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
           >
             <option value="">Выберите партнёра</option>
             {partners.map(p => (
@@ -204,11 +204,11 @@ export default function MenuImportPage() {
           </select>
         </div>
         <div>
-          <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Лодка (опционально)</label>
+          <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Лодка (опционально)</label>
           <select
             value={selectedBoatId || ''}
             onChange={(e) => setSelectedBoatId(e.target.value ? Number(e.target.value) : null)}
-            style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
             disabled={!selectedPartnerId}
           >
             <option value="">Для всех лодок партнёра</option>
@@ -218,11 +218,11 @@ export default function MenuImportPage() {
           </select>
         </div>
         <div>
-          <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Тип меню</label>
+          <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Тип меню</label>
           <select
             value={menuType}
             onChange={(e) => setMenuType(e.target.value as 'included' | 'paid')}
-            style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+            style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
           >
             <option value="included">✅ Включено в стоимость</option>
             <option value="paid">💰 Платное меню</option>
@@ -230,12 +230,12 @@ export default function MenuImportPage() {
         </div>
         {menuType === 'paid' && (
           <div>
-            <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Цена за персону (THB)</label>
+            <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Цена за персону (THB)</label>
             <input
               type="number"
               value={pricePerPerson || ''}
               onChange={(e) => setPricePerPerson(Number(e.target.value))}
-              style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+              style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
               placeholder="500"
             />
           </div>
@@ -251,11 +251,11 @@ export default function MenuImportPage() {
           <textarea
             value={menuText}
             onChange={(e) => setMenuText(e.target.value)}
-            style={{ width: '100%', height: '300px', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontFamily: 'monospace', fontSize: '13px' }}
+            style={{ width: '100%', height: '300px', padding: '12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', fontFamily: 'monospace', fontSize: '13px' }}
             placeholder="Thai Set 1&#10;Tom Yum Goong&#10;Chicken with Cashew Nuts&#10;Fried Chicken Wings&#10;Steamed Rice&#10;Dessert of the Day&#10;&#10;Thai Set 2&#10;..."
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-            <span style={{ color: '#6b7280', fontSize: '12px' }}>{menuText.length} символов</span>
+            <span style={{ color: '#64748b', fontSize: '12px' }}>{menuText.length} символов</span>
             <button
               onClick={parseMenu}
               disabled={loading || menuText.length < 50}
@@ -285,7 +285,7 @@ export default function MenuImportPage() {
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => { setParsedMenu(null); setMenuText(''); }}
-                style={{ padding: '8px 16px', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                style={{ padding: '8px 16px', backgroundColor: '#132840', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
               >
                 ← Назад
               </button>
@@ -308,18 +308,18 @@ export default function MenuImportPage() {
           </div>
 
           {parsedMenu.notes && (
-            <div style={{ padding: '12px', backgroundColor: '#fef3c7', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
+            <div style={{ padding: '12px', backgroundColor: '#0d2137', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
               ⚠️ {parsedMenu.notes}
             </div>
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
             {parsedMenu.sets.map((set, i) => (
-              <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', backgroundColor: '#fafafa' }}>
+              <div key={i} style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '16px', backgroundColor: '#0f2337' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div>
                     <h3 style={{ fontWeight: '600', fontSize: '15px' }}>{set.name}</h3>
-                    <p style={{ color: '#6b7280', fontSize: '13px' }}>{set.name_ru}</p>
+                    <p style={{ color: '#64748b', fontSize: '13px' }}>{set.name_ru}</p>
                   </div>
                   <span style={{ padding: '4px 8px', backgroundColor: '#e5e7eb', borderRadius: '4px', fontSize: '12px' }}>
                     {categoryLabels[set.category] || set.category}
@@ -330,7 +330,7 @@ export default function MenuImportPage() {
                     <li key={di} style={{ marginBottom: '4px' }}>
                       {dish}
                       {set.dishes_ru[di] && (
-                        <span style={{ color: '#9ca3af' }}> — {set.dishes_ru[di]}</span>
+                        <span style={{ color: '#475569' }}> — {set.dishes_ru[di]}</span>
                       )}
                     </li>
                   ))}

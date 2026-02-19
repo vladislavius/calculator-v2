@@ -589,25 +589,25 @@ export default function PartnersPage() {
   };
 
   const styles = {
-    page: { minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '20px' },
+    page: { minHeight: '100vh', backgroundColor: '#132840', padding: '20px' },
     header: { maxWidth: '1200px', margin: '0 auto 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    title: { fontSize: '24px', fontWeight: 'bold', color: '#1f2937' },
-    backLink: { color: '#2563eb', textDecoration: 'none', fontSize: '14px' },
+    title: { fontSize: '24px', fontWeight: 'bold', color: '#e2e8f0' },
+    backLink: { color: '#60a5fa', textDecoration: 'none', fontSize: '14px' },
     tabs: { display: 'flex', gap: '10px', marginBottom: '20px', maxWidth: '1200px', margin: '0 auto 20px' },
     tab: { padding: '10px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' },
     tabActive: { backgroundColor: '#2563eb', color: 'white' },
-    tabInactive: { backgroundColor: 'white', color: '#6b7280' },
+    tabInactive: { backgroundColor: '#132840', color: '#64748b' },
     content: { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' },
-    card: { backgroundColor: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
-    cardTitle: { fontSize: '16px', fontWeight: '600', marginBottom: '15px', color: '#1f2937' },
-    input: { width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '10px', fontSize: '14px' },
-    textarea: { width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '10px', fontSize: '13px', minHeight: '150px', fontFamily: 'monospace' },
+    card: { backgroundColor: '#132840', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+    cardTitle: { fontSize: '16px', fontWeight: '600', marginBottom: '15px', color: '#e2e8f0' },
+    input: { width: '100%', padding: '10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '10px', fontSize: '14px' },
+    textarea: { width: '100%', padding: '10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '10px', fontSize: '13px', minHeight: '150px', fontFamily: 'monospace' },
     btn: { padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
     btnDanger: { padding: '4px 8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' },
-    select: { width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '10px', fontSize: '14px' },
+    select: { width: '100%', padding: '10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '10px', fontSize: '14px' },
     list: { maxHeight: '300px', overflowY: 'auto' as const },
-    listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' },
-    message: { padding: '10px', backgroundColor: '#d1fae5', borderRadius: '6px', marginBottom: '15px', color: '#065f46' }
+    listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)' },
+    message: { padding: '10px', backgroundColor: '#0e3a2a', borderRadius: '6px', marginBottom: '15px', color: '#065f46' }
   };
 
   // ==================== MENU EDITOR FUNCTIONS ====================
@@ -873,14 +873,14 @@ export default function PartnersPage() {
         }} onClick={() => setSelectedBoat(null)}>
           <div 
             style={{
-              backgroundColor: 'white', borderRadius: '16px', 
+              backgroundColor: '#132840', borderRadius: '16px', 
               maxWidth: '900px', width: '100%', maxHeight: '90vh',
               overflow: 'auto', padding: '24px'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #e5e7eb', paddingBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '16px' }}>
               <div>
                 <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>🚤 {selectedBoat.name}</h2>
                 <p style={{ color: '#666', margin: '4px 0 0' }}>
@@ -892,7 +892,7 @@ export default function PartnersPage() {
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button 
                       onClick={() => setEditMode(true)}
-                      style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                      style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
                     >
                       ✏️ Редактировать
                     </button>
@@ -914,7 +914,7 @@ export default function PartnersPage() {
                     </button>
                     <button 
                       onClick={() => setEditMode(false)}
-                      style={{ padding: '8px 16px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                      style={{ padding: '8px 16px', backgroundColor: '#1a3050', color: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
                     >
                       Отмена
                     </button>
@@ -922,7 +922,7 @@ export default function PartnersPage() {
                 )}
                 <button 
                   onClick={() => setSelectedBoat(null)}
-                  style={{ padding: '8px 12px', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px' }}
+                  style={{ padding: '8px 12px', backgroundColor: '#132840', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px' }}
                 >
                   ✕
                 </button>
@@ -931,88 +931,88 @@ export default function PartnersPage() {
             
             {/* Boat Info Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Тип</div>
+              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Тип</div>
                 {editMode ? (
                   <input 
                     value={selectedBoat.boat_type || ''} 
                     onChange={(e) => setSelectedBoat({...selectedBoat, boat_type: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
                   />
                 ) : (
                   <div style={{ fontWeight: '600' }}>{selectedBoat.boat_type || '-'}</div>
                 )}
               </div>
-              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Длина</div>
+              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Длина</div>
                 {editMode ? (
                   <input 
                     type="number"
                     value={selectedBoat.length_ft || ''} 
                     onChange={(e) => setSelectedBoat({...selectedBoat, length_ft: Number(e.target.value)})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
                   />
                 ) : (
                   <div style={{ fontWeight: '600' }}>{selectedBoat.length_ft ? selectedBoat.length_ft + ' ft' : '-'}</div>
                 )}
               </div>
-              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Макс. гостей</div>
+              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Макс. гостей</div>
                 {editMode ? (
                   <input 
                     type="number"
                     value={selectedBoat.max_pax_day || ''} 
                     onChange={(e) => setSelectedBoat({...selectedBoat, max_pax_day: Number(e.target.value)})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
                   />
                 ) : (
                   <div style={{ fontWeight: '600' }}>{selectedBoat.max_pax_day || '-'}</div>
                 )}
               </div>
-              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Каюты</div>
+              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Каюты</div>
                 {editMode ? (
                   <input 
                     type="number"
                     value={selectedBoat.cabins || ''} 
                     onChange={(e) => setSelectedBoat({...selectedBoat, cabins: Number(e.target.value)})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
                   />
                 ) : (
                   <div style={{ fontWeight: '600' }}>{selectedBoat.cabins || '-'}</div>
                 )}
               </div>
-              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Год постройки</div>
+              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Год постройки</div>
                 {editMode ? (
                   <input 
                     value={selectedBoat.year_built || ''} 
                     onChange={(e) => setSelectedBoat({...selectedBoat, year_built: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
                   />
                 ) : (
                   <div style={{ fontWeight: '600' }}>{selectedBoat.year_built || '-'}</div>
                 )}
               </div>
-              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Пирс</div>
+              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Пирс</div>
                 {editMode ? (
                   <input 
                     value={selectedBoat.default_pier || ''} 
                     onChange={(e) => setSelectedBoat({...selectedBoat, default_pier: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
                   />
                 ) : (
                   <div style={{ fontWeight: '600' }}>{selectedBoat.default_pier || '-'}</div>
                 )}
               </div>
-              <div style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '8px', gridColumn: 'span 2' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Заметки</div>
+              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px', gridColumn: 'span 2' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Заметки</div>
                 {editMode ? (
                   <textarea 
                     value={selectedBoat.notes || ''} 
                     onChange={(e) => setSelectedBoat({...selectedBoat, notes: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', minHeight: '60px' }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', minHeight: '60px' }}
                   />
                 ) : (
                   <div style={{ fontWeight: '500', fontSize: '13px' }}>{selectedBoat.notes || '-'}</div>
@@ -1036,13 +1036,13 @@ export default function PartnersPage() {
               {boatPrices.length > 0 ? (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f3f4f6' }}>
-                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Маршрут</th>
-                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Сезон</th>
-                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Слот</th>
-                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #e5e7eb' }}>Агент (THB)</th>
-                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #e5e7eb' }}>Клиент (THB)</th>
-                      <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '50px' }}></th>
+                    <tr style={{ backgroundColor: '#132840' }}>
+                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Маршрут</th>
+                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Сезон</th>
+                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Слот</th>
+                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Агент (THB)</th>
+                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Клиент (THB)</th>
+                      <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', width: '50px' }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1053,7 +1053,7 @@ export default function PartnersPage() {
                             <select 
                               value={price.route_id}
                               onChange={(e) => updatePrice(price.id, 'route_id', Number(e.target.value))}
-                              style={{ padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px', maxWidth: '150px' }}
+                              style={{ padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', maxWidth: '150px' }}
                             >
                               {allRoutes.map((r: any) => (
                                 <option key={r.id} value={r.id}>{r.name}</option>
@@ -1068,7 +1068,7 @@ export default function PartnersPage() {
                             <select 
                               value={price.season || 'low'}
                               onChange={(e) => updatePrice(price.id, 'season', e.target.value)}
-                              style={{ padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }}
+                              style={{ padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }}
                             >
                               <option value="all">All Seasons</option>
                               <option value="low">Low</option>
@@ -1084,7 +1084,7 @@ export default function PartnersPage() {
                             <select 
                               value={price.time_slot || 'full_day'}
                               onChange={(e) => updatePrice(price.id, 'time_slot', e.target.value)}
-                              style={{ padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }}
+                              style={{ padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }}
                             >
                               <option value="half_day">Полдня</option>
                               <option value="full_day">Полный день</option>
@@ -1101,7 +1101,7 @@ export default function PartnersPage() {
                               type="number"
                               value={price.agent_price || 0}
                               onChange={(e) => updatePrice(price.id, 'agent_price', Number(e.target.value))}
-                              style={{ width: '90px', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right', color: '#059669' }}
+                              style={{ width: '90px', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', textAlign: 'right', color: '#059669' }}
                             />
                           ) : (
                             <span style={{ color: '#059669' }}>{price.agent_price?.toLocaleString()}</span>
@@ -1113,7 +1113,7 @@ export default function PartnersPage() {
                               type="number"
                               value={price.client_price || 0}
                               onChange={(e) => updatePrice(price.id, 'client_price', Number(e.target.value))}
-                              style={{ width: '90px', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right', fontWeight: '600' }}
+                              style={{ width: '90px', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', textAlign: 'right', fontWeight: '600' }}
                             />
                           ) : (
                             <span style={{ fontWeight: '600' }}>{price.client_price?.toLocaleString()}</span>
@@ -1135,7 +1135,7 @@ export default function PartnersPage() {
                   </tbody>
                 </table>
               ) : (
-                <p style={{ color: '#9ca3af', fontSize: '13px' }}>Цены не загружены. Нажмите "+ Добавить цену"</p>
+                <p style={{ color: '#475569', fontSize: '13px' }}>Цены не загружены. Нажмите "+ Добавить цену"</p>
               )}
             </div>
             
@@ -1150,7 +1150,7 @@ export default function PartnersPage() {
               <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>📊 Тарифные тиры (по кол-ву гостей)</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ background: '#f9fafb' }}>
+                  <tr style={{ background: '#0f2337' }}>
                     <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Гостей</th>
                     <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Тип</th>
                     <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Сезон</th>
@@ -1210,7 +1210,7 @@ export default function PartnersPage() {
                             type="number"
                             value={opt.price || 0}
                             onChange={(e) => toggleBoatOption(opt.id, 'price', Number(e.target.value))}
-                            style={{ width: '60px', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '11px' }}
+                            style={{ width: '60px', padding: '2px 4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '11px' }}
                             placeholder="THB"
                           />
                         ) : (
@@ -1229,7 +1229,7 @@ export default function PartnersPage() {
                   ))}
                 </div>
               ) : (
-                <p style={{ color: '#9ca3af', fontSize: '13px' }}>Опции не загружены</p>
+                <p style={{ color: '#475569', fontSize: '13px' }}>Опции не загружены</p>
               )}
             </div>
 
@@ -1244,7 +1244,7 @@ export default function PartnersPage() {
                       style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '6px 12px',
-                        backgroundColor: '#fef3c7',
+                        backgroundColor: '#0d2137',
                         color: '#92400e',
                         borderRadius: '16px',
                         fontSize: '12px'
@@ -1263,7 +1263,7 @@ export default function PartnersPage() {
                   ))}
                 </div>
               ) : (
-                <p style={{ color: '#9ca3af', fontSize: '13px' }}>Нет платных опций</p>
+                <p style={{ color: '#475569', fontSize: '13px' }}>Нет платных опций</p>
               )}
             </div>
           </div>
@@ -1278,7 +1278,7 @@ export default function PartnersPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }} onClick={() => setShowAddPriceModal(false)}>
           <div 
-            style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', width: '450px' }}
+            style={{ backgroundColor: '#132840', borderRadius: '12px', padding: '24px', width: '450px' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ margin: '0 0 20px', fontSize: '18px' }}>➕ Добавить цену</h3>
@@ -1288,7 +1288,7 @@ export default function PartnersPage() {
               <select 
                 value={newPriceRoute}
                 onChange={(e) => setNewPriceRoute(e.target.value === 'new' ? 'new' : Number(e.target.value))}
-                style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+                style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
               >
                 {allRoutes.map((r: any) => (
                   <option key={r.id} value={r.id}>{r.name}</option>
@@ -1304,7 +1304,7 @@ export default function PartnersPage() {
                   value={newRouteName}
                   onChange={(e) => setNewRouteName(e.target.value)}
                   placeholder="Например: Coral Island + Racha"
-                  style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
                 />
               </div>
             )}
@@ -1315,7 +1315,7 @@ export default function PartnersPage() {
                 <select 
                   value={newPriceSeason}
                   onChange={(e) => setNewPriceSeason(e.target.value)}
-                  style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
                 >
                   <option value="all">All Seasons (круглый год)</option>
                   <option value="low">Low Season</option>
@@ -1328,7 +1328,7 @@ export default function PartnersPage() {
                 <select 
                   value={newPriceSlot}
                   onChange={(e) => setNewPriceSlot(e.target.value)}
-                  style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
                 >
                   <option value="half_day">Полдня (4-5 ч)</option>
                   <option value="full_day">Полный день (8 ч)</option>
@@ -1345,7 +1345,7 @@ export default function PartnersPage() {
                   type="number"
                   value={newPriceAgent}
                   onChange={(e) => setNewPriceAgent(Number(e.target.value))}
-                  style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
                 />
               </div>
               <div>
@@ -1354,7 +1354,7 @@ export default function PartnersPage() {
                   type="number"
                   value={newPriceClient}
                   onChange={(e) => setNewPriceClient(Number(e.target.value))}
-                  style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
                 />
               </div>
             </div>
@@ -1362,7 +1362,7 @@ export default function PartnersPage() {
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button 
                 onClick={() => setShowAddPriceModal(false)}
-                style={{ padding: '8px 16px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                style={{ padding: '8px 16px', backgroundColor: '#1a3050', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
               >
                 Отмена
               </button>
@@ -1501,21 +1501,21 @@ export default function PartnersPage() {
             <div style={styles.list}>
               {(activeTab === 'catering' ? cateringPartners : watersportsPartners).map(partner => (
                 <div key={partner.id}>
-                  <div style={{ ...styles.listItem, backgroundColor: '#f9fafb', fontWeight: '600' }}>
+                  <div style={{ ...styles.listItem, backgroundColor: '#0f2337', fontWeight: '600' }}>
                     <div style={{ flex: 1 }}>
                       <span>{partner.name}</span>
-                      {partner.phone && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6b7280' }}>📞 {partner.phone}</span>}
-                      {partner.email && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6b7280' }}>✉️ {partner.email}</span>}
+                      {partner.phone && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#64748b' }}>📞 {partner.phone}</span>}
+                      {partner.email && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#64748b' }}>✉️ {partner.email}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button
-                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
                         onClick={() => startEditOtherPartner(partner)}
                       >
                         ✏️ Редактировать
                       </button>
                       <button 
-                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#2a0e0e', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
                         onClick={() => deletePartner(activeTab === 'catering' ? 'catering_partners' : 'watersports_partners', partner.id)}
                       >
                         Удалить
@@ -1531,20 +1531,20 @@ export default function PartnersPage() {
                       {editingServiceItem === item.id ? (
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flex: 1 }}>
                           <input value={editServiceForm.name_en || ''} onChange={e => setEditServiceForm({...editServiceForm, name_en: e.target.value})}
-                            style={{ flex: 1, padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
+                            style={{ flex: 1, padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
                           {activeTab === 'catering' ? (
                             <input type="number" value={editServiceForm.price_per_person || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_person: Number(e.target.value)})}
-                              style={{ width: '80px', padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
+                              style={{ width: '80px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
                           ) : (
                             <>
                               <input type="number" value={editServiceForm.price_per_hour || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_hour: Number(e.target.value)})}
-                                style={{ width: '70px', padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} placeholder="час" />
+                                style={{ width: '70px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} placeholder="час" />
                               <input type="number" value={editServiceForm.price_per_day || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_day: Number(e.target.value)})}
-                                style={{ width: '70px', padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} placeholder="день" />
+                                style={{ width: '70px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} placeholder="день" />
                             </>
                           )}
                           <button onClick={saveServiceItem} style={{ padding: '4px 10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✓</button>
-                          <button onClick={() => setEditingServiceItem(null)} style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+                          <button onClick={() => setEditingServiceItem(null)} style={{ padding: '4px 10px', backgroundColor: '#132840', color: '#cbd5e1', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
                         </div>
                       ) : (
                         <>
@@ -1557,9 +1557,9 @@ export default function PartnersPage() {
                           </span>
                           <div style={{ display: 'flex', gap: '4px' }}>
                             <button onClick={() => startEditServiceItem(item)}
-                              style={{ padding: '4px 8px', backgroundColor: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️</button>
+                              style={{ padding: '4px 8px', backgroundColor: '#0d2137', color: '#60a5fa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️</button>
                             <button 
-                              style={{ padding: '4px 8px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                              style={{ padding: '4px 8px', backgroundColor: '#2a0e0e', color: '#dc2626', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                               onClick={() => deleteMenuItem(activeTab === 'catering' ? 'catering_menu' : 'watersports_catalog', item.id)}
                             >✕</button>
                           </div>
@@ -1647,7 +1647,7 @@ export default function PartnersPage() {
               <div style={styles.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                   <h3 style={{ ...styles.cardTitle, margin: 0 }}>🚤 Владельцы яхт ({boatPartners.length})</h3>
-                  <span style={{ fontSize: '13px', color: '#6b7280' }}>Лодок: {boats.length}</span>
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>Лодок: {boats.length}</span>
                 </div>
                 
                 {/* Search */}
@@ -1660,7 +1660,7 @@ export default function PartnersPage() {
                 
                 <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
                   {filteredBoatPartners.length === 0 ? (
-                    <p style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                    <p style={{ color: '#64748b', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
                       {searchQuery ? 'Ничего не найдено' : 'Нет партнёров'}
                     </p>
                   ) : (
@@ -1668,7 +1668,7 @@ export default function PartnersPage() {
                       const partnerBoats = boats.filter((b: any) => b.partner_id === partner.id);
                       const isExpanded = expandedPartners.has(partner.id);
                       return (
-                        <div key={partner.id} style={{ marginBottom: '8px', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div key={partner.id} style={{ marginBottom: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', overflow: 'hidden' }}>
                           {/* Partner Header - Clickable */}
                           <div 
                             onClick={() => togglePartnerExpand(partner.id)}
@@ -1677,7 +1677,7 @@ export default function PartnersPage() {
                               justifyContent: 'space-between', 
                               alignItems: 'center',
                               padding: '12px',
-                              backgroundColor: isExpanded ? '#f0f9ff' : '#f9fafb',
+                              backgroundColor: isExpanded ? '#0e2a4a' : '#0f2337',
                               cursor: 'pointer',
                               transition: 'background 0.2s'
                             }}
@@ -1686,7 +1686,7 @@ export default function PartnersPage() {
                               <span style={{ fontSize: '16px' }}>{isExpanded ? '▼' : '▶'}</span>
                               <div>
                                 <strong style={{ fontSize: '14px' }}>{partner.name}</strong>
-                                <span style={{ marginLeft: '10px', fontSize: '12px', color: '#6b7280' }}>
+                                <span style={{ marginLeft: '10px', fontSize: '12px', color: '#64748b' }}>
                                   🚢 {partnerBoats.length} лодок • {partner.commission_percent ? partner.commission_percent + '%' : ''}
                                 </span>
                               </div>
@@ -1708,9 +1708,9 @@ export default function PartnersPage() {
                           </div>
                           {/* Expanded Content */}
                           {isExpanded && (
-                            <div style={{ padding: '12px', backgroundColor: 'white', borderTop: '1px solid #e5e7eb' }}>
+                            <div style={{ padding: '12px', backgroundColor: '#132840', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                               {/* Contact Info */}
-                              <div style={{ marginBottom: '10px', fontSize: '13px', color: '#6b7280' }}>
+                              <div style={{ marginBottom: '10px', fontSize: '13px', color: '#64748b' }}>
                                 {partner.contact_phone && <span style={{ marginRight: '15px' }}>📞 {partner.contact_phone}</span>}
                                 {partner.contact_email && <span>✉️ {partner.contact_email}</span>}
                               </div>
@@ -1735,9 +1735,9 @@ export default function PartnersPage() {
                                       style={{ 
                                         fontSize: '13px', 
                                         padding: '8px 10px', 
-                                        backgroundColor: '#f9fafb',
+                                        backgroundColor: '#0f2337',
                                         borderRadius: '6px',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid rgba(255,255,255,0.08)',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s'
                                       }}
@@ -1745,13 +1745,13 @@ export default function PartnersPage() {
                                       onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#f9fafb'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
                                     >
                                       <strong>{boat.name}</strong>
-                                      {boat.length_ft && <span style={{ color: '#6b7280' }}> ({boat.length_ft}ft)</span>}
-                                      {boat.boat_type && <span style={{ color: '#9ca3af' }}> - {boat.boat_type}</span>}
+                                      {boat.length_ft && <span style={{ color: '#64748b' }}> ({boat.length_ft}ft)</span>}
+                                      {boat.boat_type && <span style={{ color: '#475569' }}> - {boat.boat_type}</span>}
                                     </div>
                                   ))}
                                 </div>
                               ) : (
-                                <p style={{ fontSize: '13px', color: '#9ca3af' }}>Нет лодок</p>
+                                <p style={{ fontSize: '13px', color: '#475569' }}>Нет лодок</p>
                               )}
                             </div>
                           )}
@@ -1769,17 +1769,17 @@ export default function PartnersPage() {
       {/* Menu Editor Modal */}
       {menuEditorOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '90%', maxWidth: '900px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ backgroundColor: '#132840', borderRadius: '12px', width: '90%', maxWidth: '900px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '18px' }}>🍽️ Меню партнёра</h2>
-              <button onClick={closeMenuEditor} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>×</button>
+              <button onClick={closeMenuEditor} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>×</button>
             </div>
             
             {/* Content */}
             <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
               {menuLoading ? (
-                <p style={{ textAlign: 'center', color: '#6b7280' }}>Загрузка...</p>
+                <p style={{ textAlign: 'center', color: '#64748b' }}>Загрузка...</p>
               ) : editingMenu ? (
                 /* Edit Mode */
                 <div>
@@ -1792,43 +1792,43 @@ export default function PartnersPage() {
                   </div>
                   
                   {/* Menu Info */}
-                  <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#0f2337', borderRadius: '8px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Название</label>
-                        <input value={editingMenu.name || ''} onChange={(e) => setEditingMenu({...editingMenu, name: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }} />
+                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Название</label>
+                        <input value={editingMenu.name || ''} onChange={(e) => setEditingMenu({...editingMenu, name: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }} />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Тип</label>
-                        <select value={editingMenu.type || 'included'} onChange={(e) => setEditingMenu({...editingMenu, type: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Тип</label>
+                        <select value={editingMenu.type || 'included'} onChange={(e) => setEditingMenu({...editingMenu, type: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}>
                           <option value="included">Включено в стоимость</option>
                           <option value="paid">Платное</option>
                         </select>
                       </div>
                     </div>
                     <div style={{ marginBottom: '12px' }}>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Условия (EN)</label>
-                      <textarea value={editingMenu.conditions || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', minHeight: '60px' }} />
+                      <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Условия (EN)</label>
+                      <textarea value={editingMenu.conditions || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', minHeight: '60px' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Условия (RU)</label>
-                      <textarea value={editingMenu.conditions_ru || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions_ru: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', minHeight: '60px' }} />
+                      <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Условия (RU)</label>
+                      <textarea value={editingMenu.conditions_ru || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions_ru: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', minHeight: '60px' }} />
                     </div>
                   </div>
                   
                   {/* Sets */}
                   <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h4 style={{ margin: 0 }}>Сеты ({editingSets.length})</h4>
-                    <button onClick={addNewSet} style={{ padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Добавить сет</button>
+                    <button onClick={addNewSet} style={{ padding: '6px 12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Добавить сет</button>
                   </div>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {editingSets.map((set, idx) => (
-                      <div key={set.id || idx} style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                      <div key={set.id || idx} style={{ padding: '12px', backgroundColor: '#0f2337', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr auto', gap: '8px', marginBottom: '8px' }}>
-                          <input placeholder="Name" value={set.name || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
-                          <input placeholder="Название (RU)" value={set.name_ru || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name_ru = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }} />
-                          <select value={set.category || 'other'} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].category = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }}>
+                          <input placeholder="Name" value={set.name || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
+                          <input placeholder="Название (RU)" value={set.name_ru || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name_ru = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
+                          <select value={set.category || 'other'} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].category = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }}>
                             <option value="thai">🇹🇭 Thai</option>
                             <option value="western">🍝 Western</option>
                             <option value="vegetarian">🥗 Vegetarian</option>
@@ -1840,17 +1840,17 @@ export default function PartnersPage() {
                           {!set._isNew && <button onClick={() => deleteSet(set.id)} style={{ padding: '6px 10px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>🗑️</button>}
                         </div>
                         <div style={{ marginBottom: '8px' }}>
-                          <label style={{ fontSize: '11px', color: '#6b7280' }}>Блюда (через запятую)</label>
-                          <input value={(set.dishes || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }} />
+                          <label style={{ fontSize: '11px', color: '#64748b' }}>Блюда (через запятую)</label>
+                          <input value={(set.dishes || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }} />
                         </div>
                         <div>
-                          <label style={{ fontSize: '11px', color: '#6b7280' }}>Блюда RU (через запятую)</label>
-                          <input value={(set.dishes_ru || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes_ru = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }} />
+                          <label style={{ fontSize: '11px', color: '#64748b' }}>Блюда RU (через запятую)</label>
+                          <input value={(set.dishes_ru || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes_ru = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }} />
                         </div>
                         {editingMenu.type === 'paid' && (
                           <div style={{ marginTop: '8px' }}>
-                            <label style={{ fontSize: '11px', color: '#6b7280' }}>Цена (THB)</label>
-                            <input type="number" value={set.price || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].price = e.target.value ? Number(e.target.value) : null; setEditingSets(newSets); }} style={{ width: '100px', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }} />
+                            <label style={{ fontSize: '11px', color: '#64748b' }}>Цена (THB)</label>
+                            <input type="number" value={set.price || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].price = e.target.value ? Number(e.target.value) : null; setEditingSets(newSets); }} style={{ width: '100px', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }} />
                           </div>
                         )}
                       </div>
@@ -1862,28 +1862,28 @@ export default function PartnersPage() {
                 <div>
                   <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0 }}>Меню ({partnerMenus.length})</h3>
-                    <button onClick={createNewMenu} style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>+ Создать меню</button>
+                    <button onClick={createNewMenu} style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>+ Создать меню</button>
                   </div>
                   
                   {partnerMenus.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>У этого партнёра пока нет меню. Создайте новое или импортируйте через /menu-import</p>
+                    <p style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>У этого партнёра пока нет меню. Создайте новое или импортируйте через /menu-import</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {partnerMenus.map(menu => (
-                        <div key={menu.id} style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                        <div key={menu.id} style={{ padding: '16px', backgroundColor: '#0f2337', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                             <div>
                               <h4 style={{ margin: 0 }}>{menu.name}</h4>
                               <span style={{ fontSize: '12px', color: menu.type === 'included' ? '#22c55e' : '#f59e0b' }}>{menu.type === 'included' ? '✅ Включено' : '💰 Платное'}</span>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                              <button onClick={() => startEditMenu(menu)} style={{ padding: '6px 12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>✏️ Редактировать</button>
+                              <button onClick={() => startEditMenu(menu)} style={{ padding: '6px 12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>✏️ Редактировать</button>
                               <button onClick={() => deleteMenu(menu.id)} style={{ padding: '6px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>🗑️</button>
                             </div>
                           </div>
                           
                           {menu.conditions_ru && (
-                            <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '13px', color: '#92400e' }}>
+                            <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#0d2137', borderRadius: '6px', fontSize: '13px', color: '#92400e' }}>
                               <strong>⚠️ Условия:</strong> {menu.conditions_ru}
                             </div>
                           )}
@@ -1910,7 +1910,7 @@ export default function PartnersPage() {
         {/* Partner Edit Modal */}
         {editingPartner && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '600px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', width: '600px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0, fontSize: '18px' }}>✏️ Редактировать партнёра</h2>
                 <button onClick={() => setEditingPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
@@ -1918,82 +1918,82 @@ export default function PartnersPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Название компании *</label>
-                  <input value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Название компании *</label>
+                  <input value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Контактное лицо</label>
-                  <input value={editForm.contact_name || ''} onChange={e => setEditForm({...editForm, contact_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Контактное лицо</label>
+                  <input value={editForm.contact_name || ''} onChange={e => setEditForm({...editForm, contact_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Телефон</label>
-                  <input value={editForm.contact_phone || ''} onChange={e => setEditForm({...editForm, contact_phone: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Телефон</label>
+                  <input value={editForm.contact_phone || ''} onChange={e => setEditForm({...editForm, contact_phone: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Email</label>
-                  <input value={editForm.contact_email || ''} onChange={e => setEditForm({...editForm, contact_email: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Email</label>
+                  <input value={editForm.contact_email || ''} onChange={e => setEditForm({...editForm, contact_email: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Вебсайт</label>
-                  <input value={editForm.website || ''} onChange={e => setEditForm({...editForm, website: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Вебсайт</label>
+                  <input value={editForm.website || ''} onChange={e => setEditForm({...editForm, website: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Комиссия %</label>
-                  <input type="number" value={editForm.commission_percent || ""} onChange={e => setEditForm({...editForm, commission_percent: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Комиссия %</label>
+                  <input type="number" value={editForm.commission_percent || ""} onChange={e => setEditForm({...editForm, commission_percent: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Адрес</label>
-                  <input value={editForm.address || ''} onChange={e => setEditForm({...editForm, address: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Адрес</label>
+                  <input value={editForm.address || ''} onChange={e => setEditForm({...editForm, address: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Tax ID</label>
-                  <input value={editForm.tax_id || ''} onChange={e => setEditForm({...editForm, tax_id: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Tax ID</label>
+                  <input value={editForm.tax_id || ''} onChange={e => setEditForm({...editForm, tax_id: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
 
-                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '4px' }}>
-                  <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#1e40af' }}>🏦 Банковские реквизиты</h3>
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px', marginTop: '4px' }}>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#60a5fa' }}>🏦 Банковские реквизиты</h3>
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Банк</label>
-                  <input value={editForm.bank_name || ''} onChange={e => setEditForm({...editForm, bank_name: e.target.value})} placeholder="Bangkok Bank, Kasikorn, SCB..." style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Банк</label>
+                  <input value={editForm.bank_name || ''} onChange={e => setEditForm({...editForm, bank_name: e.target.value})} placeholder="Bangkok Bank, Kasikorn, SCB..." style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Имя на счёте</label>
-                  <input value={editForm.bank_account_name || ''} onChange={e => setEditForm({...editForm, bank_account_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Имя на счёте</label>
+                  <input value={editForm.bank_account_name || ''} onChange={e => setEditForm({...editForm, bank_account_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Номер счёта</label>
-                  <input value={editForm.bank_account_number || ''} onChange={e => setEditForm({...editForm, bank_account_number: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Номер счёта</label>
+                  <input value={editForm.bank_account_number || ''} onChange={e => setEditForm({...editForm, bank_account_number: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Отделение</label>
-                  <input value={editForm.bank_branch || ''} onChange={e => setEditForm({...editForm, bank_branch: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Отделение</label>
+                  <input value={editForm.bank_branch || ''} onChange={e => setEditForm({...editForm, bank_branch: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>SWIFT код</label>
-                  <input value={editForm.swift_code || ''} onChange={e => setEditForm({...editForm, swift_code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>SWIFT код</label>
+                  <input value={editForm.swift_code || ''} onChange={e => setEditForm({...editForm, swift_code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
 
-                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '4px' }}>
-                  <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#1e40af' }}>📋 Контракт</h3>
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px', marginTop: '4px' }}>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#60a5fa' }}>📋 Контракт</h3>
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Контракт с</label>
-                  <input type="date" value={editForm.contract_valid_from || ''} onChange={e => setEditForm({...editForm, contract_valid_from: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Контракт с</label>
+                  <input type="date" value={editForm.contract_valid_from || ''} onChange={e => setEditForm({...editForm, contract_valid_from: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Контракт до</label>
-                  <input type="date" value={editForm.contract_valid_until || ''} onChange={e => setEditForm({...editForm, contract_valid_until: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Контракт до</label>
+                  <input type="date" value={editForm.contract_valid_until || ''} onChange={e => setEditForm({...editForm, contract_valid_until: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
 
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Заметки</label>
-                  <textarea value={editForm.notes || ''} onChange={e => setEditForm({...editForm, notes: e.target.value})} rows={3} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', resize: 'vertical' }} />
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Заметки</label>
+                  <textarea value={editForm.notes || ''} onChange={e => setEditForm({...editForm, notes: e.target.value})} rows={3} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px', resize: 'vertical' }} />
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                <button onClick={() => setEditingPartner(null)} style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px' }}>Отмена</button>
+                <button onClick={() => setEditingPartner(null)} style={{ padding: '10px 20px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', backgroundColor: '#132840', cursor: 'pointer', fontSize: '14px' }}>Отмена</button>
                 <button onClick={savePartner} style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>💾 Сохранить</button>
               </div>
             </div>
@@ -2004,41 +2004,41 @@ export default function PartnersPage() {
       {/* Edit Other Partner Modal */}
       {editingOtherPartner && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', maxWidth: '500px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
+          <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', maxWidth: '500px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0, fontSize: '18px' }}>✏️ Редактировать партнёра</h2>
               <button onClick={() => setEditingOtherPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Название</label>
-              <input value={editOtherForm.name || ''} onChange={e => setEditOtherForm({...editOtherForm, name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Контактное лицо</label>
-              <input value={editOtherForm.contact_person || ''} onChange={e => setEditOtherForm({...editOtherForm, contact_person: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Телефон</label>
-              <input value={editOtherForm.phone || ''} onChange={e => setEditOtherForm({...editOtherForm, phone: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Email</label>
-              <input value={editOtherForm.email || ''} onChange={e => setEditOtherForm({...editOtherForm, email: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Вебсайт</label>
-              <input value={editOtherForm.website || ''} onChange={e => setEditOtherForm({...editOtherForm, website: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Адрес</label>
-              <input value={editOtherForm.address || ''} onChange={e => setEditOtherForm({...editOtherForm, address: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Tax ID</label>
-              <input value={editOtherForm.tax_id || ''} onChange={e => setEditOtherForm({...editOtherForm, tax_id: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} /></div>
-              <div style={{ padding: '12px', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Название</label>
+              <input value={editOtherForm.name || ''} onChange={e => setEditOtherForm({...editOtherForm, name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Контактное лицо</label>
+              <input value={editOtherForm.contact_person || ''} onChange={e => setEditOtherForm({...editOtherForm, contact_person: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Телефон</label>
+              <input value={editOtherForm.phone || ''} onChange={e => setEditOtherForm({...editOtherForm, phone: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Email</label>
+              <input value={editOtherForm.email || ''} onChange={e => setEditOtherForm({...editOtherForm, email: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Вебсайт</label>
+              <input value={editOtherForm.website || ''} onChange={e => setEditOtherForm({...editOtherForm, website: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Адрес</label>
+              <input value={editOtherForm.address || ''} onChange={e => setEditOtherForm({...editOtherForm, address: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Tax ID</label>
+              <input value={editOtherForm.tax_id || ''} onChange={e => setEditOtherForm({...editOtherForm, tax_id: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div style={{ padding: '12px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid #bae6fd' }}>
                 <p style={{ margin: '0 0 8px', fontWeight: '600', fontSize: '13px', color: '#0369a1' }}>🏦 Банковские реквизиты</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <input placeholder="Название банка" value={editOtherForm.bank_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
-                  <input placeholder="Имя владельца счёта" value={editOtherForm.bank_account_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
-                  <input placeholder="Номер счёта" value={editOtherForm.bank_account_number || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_number: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
-                  <input placeholder="Отделение (Branch)" value={editOtherForm.bank_branch || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_branch: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
-                  <input placeholder="SWIFT код" value={editOtherForm.swift_code || ''} onChange={e => setEditOtherForm({...editOtherForm, swift_code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Название банка" value={editOtherForm.bank_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Имя владельца счёта" value={editOtherForm.bank_account_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Номер счёта" value={editOtherForm.bank_account_number || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_number: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Отделение (Branch)" value={editOtherForm.bank_branch || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_branch: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="SWIFT код" value={editOtherForm.swift_code || ''} onChange={e => setEditOtherForm({...editOtherForm, swift_code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
                 </div>
               </div>
-              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Заметки</label>
-              <textarea value={editOtherForm.notes || ''} onChange={e => setEditOtherForm({...editOtherForm, notes: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', minHeight: '60px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Заметки</label>
+              <textarea value={editOtherForm.notes || ''} onChange={e => setEditOtherForm({...editOtherForm, notes: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px', minHeight: '60px' }} /></div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-              <button onClick={() => setEditingOtherPartner(null)} style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: 'white', cursor: 'pointer' }}>Отмена</button>
+              <button onClick={() => setEditingOtherPartner(null)} style={{ padding: '10px 20px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', backgroundColor: '#132840', cursor: 'pointer' }}>Отмена</button>
               <button onClick={saveOtherPartner} style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>💾 Сохранить</button>
             </div>
           </div>

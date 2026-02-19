@@ -812,12 +812,12 @@ export default function Home() {
 
   // ==================== RENDER ====================
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0C1825' }}>
       <Header />
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '8px' : '24px' }}>
         {/* Search Panel - Modern UI */}
-        <div style={{ marginBottom: isMobile ? '12px' : '24px', padding: isMobile ? '12px' : '24px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+        <div style={{ marginBottom: isMobile ? '12px' : '24px', padding: isMobile ? '12px' : '24px', backgroundColor: '#132840', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }}>
             {/* Date */}
             <div style={{ flex: '0.9', minWidth: '140px' }}>
@@ -826,7 +826,7 @@ export default function Home() {
                 type="date"
                 value={searchDate}
                 onChange={(e) => setSearchDate(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s', color: '#e2e8f0' }}
               />
             </div>
 
@@ -839,7 +839,7 @@ export default function Home() {
                 onChange={(e) => { setDestination(e.target.value); setShowDestinationSuggestions(true); }}
                 onFocus={() => setShowDestinationSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s', color: '#e2e8f0' }}
               />
               {showDestinationSuggestions && destination && allRoutes.filter(r => {
                 const search = destination.toLowerCase().replace(/\s+/g, '');
@@ -852,7 +852,7 @@ export default function Home() {
                   nameEnNoSpace.includes(search) ||
                   destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
               }).length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                     {allRoutes.filter(r => {
                       const search = destination.toLowerCase().replace(/\s+/g, '');
                       const nameEn = (r.name_en || '').toLowerCase();
@@ -868,8 +868,8 @@ export default function Home() {
                         key={route.id}
                         onClick={() => { setDestination(route.name_en || route.name_ru || ""); setShowDestinationSuggestions(false); }}
                         style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1a3050'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0f2337'}
                       >
                         <span style={{ fontWeight: '500' }}>{route.name_en}</span>
                         {route.name_ru && <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{route.name_ru}</span>}
@@ -888,7 +888,7 @@ export default function Home() {
                 onChange={(e) => { setBoatNameSearch(e.target.value); setShowBoatSuggestions(true); }}
                 onFocus={() => setShowBoatSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowBoatSuggestions(false), 200)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s', color: '#e2e8f0' }}
               />
               {showBoatSuggestions && boatNameSearch && allBoats.filter(b => {
                 const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
@@ -896,7 +896,7 @@ export default function Home() {
                 const nameNoSpace = name.replace(/\s+/g, '');
                 return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
               }).length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                     {allBoats.filter(b => {
                       const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
                       const name = b.name.toLowerCase();
@@ -907,8 +907,8 @@ export default function Home() {
                         key={boat.id}
                         onClick={() => { setBoatNameSearch(boat.name); setShowBoatSuggestions(false); }}
                         style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1a3050'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0f2337'}
                       >
                         <span style={{ fontWeight: '500' }}>{boat.name}</span>
                         <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{boatPartners.find(p => p.id === boat.partner_id)?.name || ''}</span>
@@ -924,7 +924,7 @@ export default function Home() {
               <select
                 value={selectedPartnerFilter}
                 onChange={(e) => setSelectedPartnerFilter(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
               >
                 <option value="">Все партнёры</option>
                 {boatPartners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -937,7 +937,7 @@ export default function Home() {
               <select
                 value={boatType}
                 onChange={(e) => setBoatType(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
               >
                 {boatTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
@@ -949,7 +949,7 @@ export default function Home() {
               <select
                 value={timeSlot}
                 onChange={(e) => setTimeSlot(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
               >
                 {timeSlots.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
@@ -961,7 +961,7 @@ export default function Home() {
               <select
                 value={season}
                 onChange={(e) => setSeason(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
               >
                 {seasons.map(s => (
                   <option key={s.value} value={s.value}>{s.label}</option>
@@ -975,7 +975,7 @@ export default function Home() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid #e5e7eb' : '2px solid #e5e7eb', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
               >
                 <option value="price_asc">Цена ↑</option>
                 <option value="price_desc">Цена ↓</option>
@@ -1031,24 +1031,13 @@ export default function Home() {
 
       {/* ==================== MODAL ==================== */}
       {selectedBoat && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '0' : '20px' }}>
-          <div style={{ backgroundColor: 'white', borderRadius: isMobile ? '0' : '16px', width: '100%', maxWidth: isMobile ? '100%' : '1200px', maxHeight: isMobile ? '100%' : '90vh', height: isMobile ? '100%' : 'auto', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div className="os-modal-overlay">
+          <div className="os-modal">
 
             <ModalHeader closeModal={closeModal} />
 
-            <div style={{ flex: 1, overflow: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobile ? '10px' : '24px' }}>
-              {/* Boat info header */}
-              <div style={{ marginBottom: '20px', padding: '20px', background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)', borderRadius: '16px', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <p style={{ margin: '0 0 8px', fontSize: '14px', opacity: 0.9 }}>📏 {selectedBoat.length_ft} ft • 👥 до {selectedBoat.max_guests} чел • 🗺️ {selectedBoat.route_name}</p>
-                  </div>
-                </div>
-
-                <GuestSelector />
-              </div>
-
-              {/* ==================== INCLUDED SECTION ==================== */}
+            <div className="os-modal-body">
+              <div className="os-modal-content">
               <IncludedSection />
 
               <FoodSection
@@ -1146,8 +1135,8 @@ export default function Home() {
 
               <SummarySection generatePDF={generatePDF} generateWhatsApp={generateWhatsApp} />
 
+              </div>
             </div>
-
           </div>
         </div>
       )}

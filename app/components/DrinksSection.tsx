@@ -28,7 +28,7 @@ export default function DrinksSection({ addDrink, removeDrink }: DrinksSectionPr
       <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#7c3aed' }}>🍺 НАПИТКИ И АЛКОГОЛЬ</h3>
       
       {boatDrinks.filter(d => d.included).length > 0 && (
-        <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #86efac' }}>
+        <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid rgba(46,204,113,0.2)' }}>
           <span style={{ fontWeight: '600', color: '#166534' }}>Включено: </span>
           {boatDrinks.filter(d => d.included).map((d, i) => (
             <span key={d.id}>{i > 0 ? ', ' : ''}{d.name_en}</span>
@@ -39,7 +39,7 @@ export default function DrinksSection({ addDrink, removeDrink }: DrinksSectionPr
       <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#7c3aed', fontWeight: '500' }}>➕ Добавить алкоголь?</p>
 
       {boatDrinks.filter(d => !d.included && d.price > 0).length > 0 && (
-        <div style={{ padding: '16px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #e9d5ff' }}>
+        <div style={{ padding: '16px', backgroundColor: '#132840', borderRadius: '12px', border: '1px solid #e9d5ff' }}>
           <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#7c3aed' }}>С яхты:</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
             {boatDrinks.filter(d => !d.included && d.price > 0).map(drink => {
@@ -64,9 +64,9 @@ export default function DrinksSection({ addDrink, removeDrink }: DrinksSectionPr
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {order && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: Math.max(1, d.quantity - 1)} : d) })} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: 'white', cursor: 'pointer' }}>−</button>
+                        <button onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: Math.max(1, d.quantity - 1)} : d) })} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: '#132840', cursor: 'pointer' }}>−</button>
                         <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '600' }}>{order.quantity}</span>
-                        <button onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: d.quantity + 1} : d) })} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: 'white', cursor: 'pointer' }}>+</button>
+                        <button onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: d.quantity + 1} : d) })} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: '#132840', cursor: 'pointer' }}>+</button>
                       </div>
                     )}
                     <span style={{ fontWeight: '600', color: '#7c3aed', fontSize: '14px', minWidth: '80px', textAlign: 'right' }}>
@@ -101,7 +101,7 @@ export default function DrinksSection({ addDrink, removeDrink }: DrinksSectionPr
       )}
 
       {boatDrinks.length === 0 && (
-        <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Информация о напитках не указана в контракте</p>
+        <p style={{ color: '#64748b', fontStyle: 'italic' }}>Информация о напитках не указана в контракте</p>
       )}
     </div>
   );

@@ -24,12 +24,12 @@ export default function ServicesSection({ toggleService }: { toggleService: (ser
           {staffServices.map(service => {
             const selected = selectedServices.find((s: any) => s.id === service.id);
             return (
-              <div key={service.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: selected ? '#f3e8ff' : 'white', borderRadius: '10px', border: selected ? '2px solid #a855f7' : '1px solid #e5e7eb' }}>
+              <div key={service.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: selected ? '#1a0a2a' : '#0f2337', borderRadius: '10px', border: selected ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <input type="checkbox" checked={!!selected} onChange={() => toggleService(service)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                   <div>
                     <span style={{ fontWeight: '500' }}>{service.name_en}</span>
-                    {service.name_ru && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6b7280' }}>{service.name_ru}</p>}
+                    {service.name_ru && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>{service.name_ru}</p>}
                   </div>
                 </div>
                 <span style={{ fontWeight: '600', color: '#7c3aed' }}>+<span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -38,7 +38,7 @@ export default function ServicesSection({ toggleService }: { toggleService: (ser
                       value={getPrice(`service_${service.id}`, service.price || 0)}
                       onChange={(e) => setPrice(`service_${service.id}`, Number(e.target.value))}
                       onClick={(e) => e.stopPropagation()}
-                      style={{ width: '70px', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right', fontSize: '12px' }}
+                      style={{ width: '70px', padding: '2px 4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', textAlign: 'right', fontSize: '12px' }}
                     /> THB
                   </span></span>
               </div>
@@ -46,7 +46,7 @@ export default function ServicesSection({ toggleService }: { toggleService: (ser
           })}
         </div>
       ) : (
-        <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Список персонала не загружен</p>
+        <p style={{ color: '#64748b', fontStyle: 'italic' }}>Список персонала не загружен</p>
       )}
     </div>
   );

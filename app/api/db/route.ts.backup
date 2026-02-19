@@ -16,37 +16,6 @@ const ALLOWED_TABLES = [
   'availability', 'availability_imports', 'boat_availability'
 ];
 
-
-// Auto-sync photo from Google Sheets when boat is inserted
-async function autoSyncBoatPhoto(boatName: string, boatId: number, supabaseAdmin: any) {
-  try {
-    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/184iVugfmLU0sy3e9B9IEf5P4zHkJdFPiDEKC00xeR5g/export?format=csv&gid=1788852346";
-    const res = await fetch(SHEETS_URL);
-    const csv = await res.text();
-    const lines = csv.split('\n');
-    const headers = lines[0].split(',').map((h: string) => h.replace(/"/g, '').trim());
-    const nameIdx = headers.indexOf('Real name');
-    const photoIdx = headers.indexOf('Photo URL');
-    if (nameIdx === -1 || photoIdx === -1) return;
-
-    const boatNameUpper = boatName.toUpperCase().trim();
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(',');
-      if (cols.length <= Math.max(nameIdx, photoIdx)) continue;
-      const sheetName = cols[nameIdx]?.replace(/"/g, '').trim().toUpperCase();
-      const photoUrl = cols[photoIdx]?.replace(/"/g, '').trim();
-      if (!sheetName || !photoUrl || !photoUrl.startsWith('http')) continue;
-      if (sheetName === boatNameUpper || boatNameUpper.includes(sheetName) || sheetName.includes(boatNameUpper)) {
-        await supabaseAdmin.from('boats').update({ main_photo_url: photoUrl }).eq('id', boatId);
-        console.log(`Auto-synced photo for boat: ${boatName} (id=${boatId})`);
-        return;
-      }
-    }
-  } catch (e) {
-    console.error('Photo auto-sync error:', e);
-  }
-}
-
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -100,16 +69,6 @@ export async function POST(req: NextRequest) {
 
     if (result.error) {
       return NextResponse.json({ error: result.error.message }, { status: 400 });
-    }
-
-    // Auto-sync photo when new boat is inserted
-    if (action === 'insert' && table === 'boats' && result.data) {
-      const inserted = Array.isArray(result.data) ? result.data : [result.data];
-      for (const boat of inserted) {
-        if (boat?.id && boat?.name) {
-          autoSyncBoatPhoto(boat.name, boat.id, supabaseAdmin);
-        }
-      }
     }
 
     return NextResponse.json({ data: result.data, count: result.count });

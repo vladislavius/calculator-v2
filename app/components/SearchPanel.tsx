@@ -79,29 +79,29 @@ export default function SearchPanel({
 
   return (
     <>
-        <div style={{ marginBottom: '24px', padding: '24px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+        <div style={{ marginBottom: '24px', padding: '24px', backgroundColor: '#132840', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }}>
             {/* Date */}
             <div style={{ flex: '0.9', minWidth: '140px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>📅 Дата чартера</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>📅 Дата чартера</label>
               <input 
                 type="date" 
                 value={searchDate} 
                 onChange={(e) => setSearchDate(e.target.value)} 
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s' }}
               />
             </div>
 
             {/* Destination with Autocomplete */}
             <div style={{ flex: '2', minWidth: '200px', position: 'relative' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🗺️ Направление</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>🗺️ Направление</label>
               <input 
                 placeholder="Phi Phi, Phang Nga, James Bond..." 
                 value={destination} 
                 onChange={(e) => { setDestination(e.target.value); setShowDestinationSuggestions(true); }}
                 onFocus={() => setShowDestinationSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s' }}
               />
               {showDestinationSuggestions && destination && allRoutes.filter(r => {
                     const search = destination.toLowerCase().replace(/\s+/g, '');
@@ -114,7 +114,7 @@ export default function SearchPanel({
                            nameEnNoSpace.includes(search) ||
                            destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
                   }).length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#132840', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   {allRoutes.filter(r => {
                     const search = destination.toLowerCase().replace(/\s+/g, '');
                     const nameEn = (r.name_en || '').toLowerCase();
@@ -129,12 +129,12 @@ export default function SearchPanel({
                     <div 
                       key={route.id}
                       onClick={() => { setDestination(route.name_en || route.name_ru); setShowDestinationSuggestions(false); }}
-                      style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                      style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '14px', color: '#e2e8f0', backgroundColor: '#132840' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1A3554'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#132840'}
                     >
                       <span style={{ fontWeight: '500' }}>{route.name_en}</span>
-                      {route.name_ru && <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{route.name_ru}</span>}
+                      {route.name_ru && <span style={{ color: '#8BAFC9', marginLeft: '8px', fontSize: '12px' }}>{route.name_ru}</span>}
                     </div>
                   ))}
                 </div>
@@ -143,14 +143,14 @@ export default function SearchPanel({
 
             {/* Boat Name Search with Autocomplete */}
             <div style={{ flex: '1.5', minWidth: '180px', position: 'relative' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚢 Название лодки</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>🚢 Название лодки</label>
               <input 
                 placeholder="Real, Princess, Chowa..." 
                 value={boatNameSearch} 
                 onChange={(e) => { setBoatNameSearch(e.target.value); setShowBoatSuggestions(true); }}
                 onFocus={() => setShowBoatSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowBoatSuggestions(false), 200)}
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', outline: 'none', transition: 'all 0.2s' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s' }}
               />
               {showBoatSuggestions && boatNameSearch && allBoats.filter(b => {
                     const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
@@ -158,7 +158,7 @@ export default function SearchPanel({
                     const nameNoSpace = name.replace(/\s+/g, '');
                     return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
                   }).length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid #e5e7eb', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#132840', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   {allBoats.filter(b => {
                     const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
                     const name = b.name.toLowerCase();
@@ -168,12 +168,12 @@ export default function SearchPanel({
                     <div 
                       key={boat.id}
                       onClick={() => { setBoatNameSearch(boat.name); setShowBoatSuggestions(false); }}
-                      style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                      style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '14px', color: '#e2e8f0', backgroundColor: '#132840' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1A3554'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#132840'}
                     >
                       <span style={{ fontWeight: '500' }}>{boat.name}</span>
-                      <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{boatPartners.find(p => p.id === boat.partner_id)?.name || ''}</span>
+                      <span style={{ color: '#8BAFC9', marginLeft: '8px', fontSize: '12px' }}>{boatPartners.find(p => p.id === boat.partner_id)?.name || ''}</span>
                     </div>
                   ))}
                 </div>
@@ -182,11 +182,11 @@ export default function SearchPanel({
 
             {/* Partner Filter */}
             <div style={{ flex: '1.5', minWidth: '180px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🏢 Партнёр</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>🏢 Партнёр</label>
               <select 
                 value={selectedPartnerFilter} 
                 onChange={(e) => setSelectedPartnerFilter(e.target.value)} 
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none' }}
               >
                 <option value="">Все партнёры</option>
                 {boatPartners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -195,11 +195,11 @@ export default function SearchPanel({
 
             {/* Boat Type */}
             <div style={{ flex: '0.9', minWidth: '140px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚤 Тип лодки</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>🚤 Тип лодки</label>
               <select 
                 value={boatType} 
                 onChange={(e) => setBoatType(e.target.value)} 
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none' }}
               >
                 {boatTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
@@ -207,11 +207,11 @@ export default function SearchPanel({
 
             {/* Duration */}
             <div style={{ flex: '1.2', minWidth: '200px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>⏱️ Длительность</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>⏱️ Длительность</label>
               <select 
                 value={timeSlot} 
                 onChange={(e) => setTimeSlot(e.target.value)} 
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none' }}
               >
                 {timeSlots.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
@@ -219,11 +219,11 @@ export default function SearchPanel({
 
             {/* Season */}
             <div style={{ flex: '0.9', minWidth: '130px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>📅 Сезон</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>📅 Сезон</label>
               <select
                 value={season}
                 onChange={(e) => setSeason(e.target.value)}
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none' }}
               >
                 {seasons.map(s => (
                   <option key={s.value} value={s.value}>{s.label}</option>
@@ -233,11 +233,11 @@ export default function SearchPanel({
 
             {/* Sort */}
             <div style={{ flex: '0.9', minWidth: '130px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>📊 Сортировка</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#8BAFC9' }}>📊 Сортировка</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '15px', backgroundColor: '#fafafa', cursor: 'pointer', outline: 'none' }}
+                style={{ width: '100%', padding: '14px 16px', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none' }}
               > 
                 <option value="price_asc">Цена ↑</option>
                 <option value="price_desc">Цена ↓</option>

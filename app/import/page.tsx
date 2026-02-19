@@ -1342,9 +1342,9 @@ export default function ImportPage() {
   };
   const inputStyle = {
     padding: '8px 12px',
-    border: '1px solid #d1d5db',
+    border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '6px',
-    color: '#1f2937',
+    color: '#e2e8f0',
     width: '100%',
     fontSize: '14px'
   };
@@ -1352,16 +1352,16 @@ export default function ImportPage() {
   const labelStyle = {
     display: 'block',
     fontSize: '12px',
-    color: '#6b7280',
+    color: '#64748b',
     marginBottom: '4px'
   };
 
   const tabStyle = (active: boolean) => ({
     padding: '12px 24px',
     border: 'none',
-    borderBottom: active ? '3px solid #2563eb' : '3px solid transparent',
-    background: active ? '#eff6ff' : 'transparent',
-    color: active ? '#2563eb' : '#6b7280',
+    borderBottom: active ? '3px solid #00C9FF' : '3px solid transparent',
+    background: active ? '#0e2a4a' : 'transparent',
+    color: active ? '#00C9FF' : '#64748b',
     fontWeight: active ? '600' : '400',
     cursor: 'pointer',
     fontSize: '14px'
@@ -1369,7 +1369,7 @@ export default function ImportPage() {
 
   return (
     <AdminGuard>
-    <div style={{minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '24px'}}>
+    <div style={{minHeight: '100vh', backgroundColor: '#132840', padding: '24px'}}>
       <div style={{maxWidth: '1400px', margin: '0 auto'}}>
         {/* Header */}
         <div style={{marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -1380,12 +1380,12 @@ export default function ImportPage() {
           <div style={{display: 'flex', gap: '12px'}}>
             <button 
               onClick={() => { fetchImportHistory(); setShowHistory(!showHistory); }}
-              style={{padding: '8px 16px', backgroundColor: '#f3e8ff', borderRadius: '6px', color: '#7c3aed', border: 'none', cursor: 'pointer', fontWeight: '500'}}
+              style={{padding: '8px 16px', backgroundColor: '#1a0a2a', borderRadius: '6px', color: '#a78bfa', border: 'none', cursor: 'pointer', fontWeight: '500'}}
             >
               📜 История ({importHistory.length || '...'})
             </button>
             <div style={{display:'flex',gap:'8px'}}>
-              <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#eff6ff',borderRadius:'8px',color:'#2563eb',textDecoration:'none',fontWeight:'500',border:'1px solid #bfdbfe'}}>📦 Центр импорта</a>
+              <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#0d2137',borderRadius:'8px',color:'#60a5fa',textDecoration:'none',fontWeight:'500',border:'1px solid rgba(0,201,255,0.2)'}}>📦 Центр импорта</a>
               <a href="/partners" style={{padding:'8px 16px',backgroundColor:'#f0fdf4',borderRadius:'8px',color:'#059669',textDecoration:'none',fontWeight:'500',border:'1px solid #bbf7d0'}}>👥 Партнёры</a>
               <a href="/" style={{padding:'8px 16px',backgroundColor:'#2563eb',borderRadius:'8px',color:'white',textDecoration:'none',fontWeight:'500'}}>← Калькулятор</a>
             </div>
@@ -1394,7 +1394,7 @@ export default function ImportPage() {
 
         {/* Import History Panel */}
         {showHistory && (
-          <div style={{backgroundColor: 'white', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}>
+          <div style={{backgroundColor: '#132840', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
               <h3 style={{fontSize: '18px', fontWeight: '600'}}>📜 Последние импорты</h3>
               <button onClick={() => setShowHistory(false)} style={{background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer'}}>✕</button>
@@ -1409,7 +1409,7 @@ export default function ImportPage() {
                     key={item.id}
                     style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '12px 16px', backgroundColor: idx === 0 ? '#ecfdf5' : '#f9fafb',
+                      padding: '12px 16px', backgroundColor: idx === 0 ? '#0e3a2a' : '#0f2337',
                       borderRadius: '8px', border: idx === 0 ? '2px solid #10b981' : '1px solid #e5e7eb'
                     }}
                   >
@@ -1444,7 +1444,7 @@ export default function ImportPage() {
         )}
 
         {!extractedData ? (
-          <div style={{backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}>
+          <div style={{backgroundColor: '#132840', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}>
             
             {/* Mode Selection */}
             {!importMode ? (
@@ -1458,10 +1458,10 @@ export default function ImportPage() {
                     style={{
                       border: '2px solid #e5e7eb', borderRadius: '16px', padding: '32px',
                       cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
-                      backgroundColor: '#fafafa'
+                      backgroundColor: '#0f2337'
                     }}
-                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.backgroundColor = '#eff6ff'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.backgroundColor = '#fafafa'; }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#00C9FF'; e.currentTarget.style.backgroundColor = '#0e2a4a'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.backgroundColor = '#0f2337'; }}
                   >
                     <div style={{fontSize: '48px', marginBottom: '16px'}}>📄</div>
                     <h3 style={{fontSize: '18px', fontWeight: '600', marginBottom: '8px'}}>Полный контракт</h3>
@@ -1474,10 +1474,10 @@ export default function ImportPage() {
                     style={{
                       border: '2px solid #e5e7eb', borderRadius: '16px', padding: '32px',
                       cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
-                      backgroundColor: '#fafafa'
+                      backgroundColor: '#0f2337'
                     }}
                     onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.backgroundColor = '#ecfdf5'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.backgroundColor = '#fafafa'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.backgroundColor = '#0f2337'; }}
                   >
                     <div style={{fontSize: '48px', marginBottom: '16px'}}>🚤</div>
                     <h3 style={{fontSize: '18px', fontWeight: '600', marginBottom: '8px'}}>Одна лодка</h3>
@@ -1488,7 +1488,7 @@ export default function ImportPage() {
             ) : (importMode === 'full' || importMode === 'single_boat') && !selectedPartnerId ? (
               <div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px'}}>
-                  <button onClick={() => setImportMode(null)} style={{padding: '8px 16px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
+                  <button onClick={() => setImportMode(null)} style={{padding: '8px 16px', backgroundColor: '#1a3050', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
                   <h2 style={{fontSize: '20px', fontWeight: '600'}}>Выберите партнёра</h2>
                 </div>
                 
@@ -1503,7 +1503,7 @@ export default function ImportPage() {
                         cursor: 'pointer', transition: 'all 0.2s'
                       }}
                       onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.backgroundColor = '#ecfdf5'; }}
-                      onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.backgroundColor = 'white'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.backgroundColor = '#0f2337'; }}
                     >
                       <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
                       <div style={{fontSize: '12px', color: '#666'}}>{p.contact_phone || 'Нет телефона'}</div>
@@ -1515,7 +1515,7 @@ export default function ImportPage() {
                 {/* Or create new partner */}
                 <div style={{borderTop: '1px solid #e5e7eb', paddingTop: '16px', textAlign: 'center'}}>
                   <span style={{color: '#666'}}>Партнёра нет в списке? </span>
-                  <a href="/partners" style={{color: '#2563eb', textDecoration: 'underline'}}>Создать нового партнёра</a>
+                  <a href="/partners" style={{color: '#60a5fa', textDecoration: 'underline'}}>Создать нового партнёра</a>
                 </div>
                 {importMode === 'full' && (
                   <div style={{textAlign: 'center', marginTop: '16px'}}>
@@ -1532,9 +1532,9 @@ export default function ImportPage() {
               <div>
                 {/* Back button and mode indicator */}
                 <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px'}}>
-                  <button onClick={() => { setImportMode(null); setSelectedPartnerId(null); setSelectedPartnerName(''); }} style={{padding: '8px 16px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
+                  <button onClick={() => { setImportMode(null); setSelectedPartnerId(null); setSelectedPartnerName(''); }} style={{padding: '8px 16px', backgroundColor: '#1a3050', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
                   {importMode === 'single_boat' && selectedPartnerName && (
-                    <div style={{padding: '8px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', color: '#059669', fontWeight: '500'}}>
+                    <div style={{padding: '8px 16px', backgroundColor: '#0d2137', borderRadius: '8px', color: '#059669', fontWeight: '500'}}>
                       🏢 Партнёр: {selectedPartnerName}
                     </div>
                   )}
@@ -1549,7 +1549,7 @@ export default function ImportPage() {
                   }} style={{padding: '12px 24px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600'}}>
                     📝 Создать вручную
                   </button>
-                  <span style={{color: '#9ca3af', alignSelf: 'center'}}>или</span>
+                  <span style={{color: '#475569', alignSelf: 'center'}}>или</span>
                 </div>
                 
                 <h2 style={{fontSize: '18px', fontWeight: '600', marginBottom: '16px'}}>
@@ -1563,8 +1563,8 @@ export default function ImportPage() {
               style={{
                 width: '100%', height: '250px', padding: '16px',
                 border: '2px solid #e5e7eb', borderRadius: '8px',
-                fontSize: '14px', fontFamily: 'monospace', color: '#1f2937',
-                backgroundColor: '#fafafa', resize: 'vertical'
+                fontSize: '14px', fontFamily: 'monospace', color: '#e2e8f0',
+                backgroundColor: '#0f2337', resize: 'vertical'
               }}
             />
             
@@ -1589,7 +1589,7 @@ export default function ImportPage() {
         ) : (
           <div>
             {/* Tabs */}
-            <div style={{backgroundColor: 'white', borderRadius: '12px 12px 0 0', display: 'flex', borderBottom: '1px solid #e5e7eb'}}>
+            <div style={{backgroundColor: '#132840', borderRadius: '12px 12px 0 0', display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.08)'}}>
               <button onClick={() => setActiveTab('partner')} style={tabStyle(activeTab === 'partner')}>🏢 Партнёр</button>
               <button onClick={() => setActiveTab('boats')} style={tabStyle(activeTab === 'boats')}>🚤 Лодки ({extractedData.boats.length})</button>
               {/* Routes tab hidden - routes are now per-boat */}
@@ -1597,7 +1597,7 @@ export default function ImportPage() {
               <button onClick={() => setActiveTab('terms')} style={tabStyle(activeTab === 'terms')}>📜 Условия</button>
             </div>
 
-            <div style={{backgroundColor: 'white', borderRadius: '0 0 12px 12px', padding: '24px', minHeight: '500px'}}>
+            <div style={{backgroundColor: '#132840', borderRadius: '0 0 12px 12px', padding: '24px', minHeight: '500px'}}>
               
               {/* PARTNER TAB */}
               
@@ -1655,7 +1655,7 @@ export default function ImportPage() {
                   </div>
                   
                   {extractedData.boats.map((boat, bi) => (
-                    <div key={bi} style={{border: '2px solid #e5e7eb', borderRadius: '12px', padding: '20px', marginBottom: '20px', backgroundColor: '#fafafa'}}>
+                    <div key={bi} style={{border: '2px solid #e5e7eb', borderRadius: '12px', padding: '20px', marginBottom: '20px', backgroundColor: '#0f2337'}}>
                       <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '16px'}}>
                         <h4 style={{fontSize: '16px', fontWeight: '600'}}>🚤 Лодка #{bi + 1}: {boat.name || 'Новая'}</h4>
                         <button onClick={() => removeBoat(bi)} style={{color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer'}}>🗑️ Удалить</button>
@@ -1663,7 +1663,7 @@ export default function ImportPage() {
                       
                       {/* Basic Info */}
                       <div style={{marginBottom: '20px'}}>
-                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px'}}>Основная информация</h5>
+                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '12px'}}>Основная информация</h5>
                         <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px'}}>
                           <div><label style={labelStyle}>Название *</label><input value={boat.name} onChange={(e) => updateBoat(bi, 'name', e.target.value)} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Тип *</label>
@@ -1683,7 +1683,7 @@ export default function ImportPage() {
 
                       {/* Capacity */}
                       <div style={{marginBottom: '20px'}}>
-                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px'}}>Вместимость и цены за доп. гостей</h5>
+                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '12px'}}>Вместимость и цены за доп. гостей</h5>
                         <div style={{display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '12px'}}>
                           <div><label style={labelStyle}>Max Day</label><input type="number" value={boat.max_pax_day || ''} onChange={(e) => updateBoat(bi, 'max_pax_day', Number(e.target.value))} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Max Overnight</label><input type="number" value={boat.max_pax_overnight || ''} onChange={(e) => updateBoat(bi, 'max_pax_overnight', Number(e.target.value))} style={inputStyle} /></div>
@@ -1698,7 +1698,7 @@ export default function ImportPage() {
 
                       {/* Technical */}
                       <div style={{marginBottom: '20px'}}>
-                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px'}}>Технические характеристики</h5>
+                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '12px'}}>Технические характеристики</h5>
                         <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px'}}>
                           <div><label style={labelStyle}>Скорость (узлы)</label><input type="number" value={boat.speed_cruise || ''} onChange={(e) => updateBoat(bi, 'speed_cruise', Number(e.target.value))} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Max скорость</label><input type="number" value={boat.speed_max || ''} onChange={(e) => updateBoat(bi, 'speed_max', Number(e.target.value))} style={inputStyle} /></div>
@@ -1718,9 +1718,9 @@ export default function ImportPage() {
                         <h5 style={{fontSize: '14px', fontWeight: '600', color: '#16a34a', marginBottom: '12px'}}>✅ Включено в стоимость</h5>
                         <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px'}}>
                           {boat.features.included.map((f, fi) => (
-                            <div key={fi} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: f.included ? '#dcfce7' : 'white', borderRadius: '6px', border: '1px solid #e5e7eb'}}>
+                            <div key={fi} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: f.included ? '#dcfce7' : 'white', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)'}}>
                               <input type="checkbox" checked={f.included} onChange={(e) => toggleFeature(bi, 'included', fi, 'included', e.target.checked)} />
-                              <span style={{fontSize: '13px', color: '#374151'}}>{f.name}</span>
+                              <span style={{fontSize: '13px', color: '#cbd5e1'}}>{f.name}</span>
                             </div>
                           ))}
                         </div>
@@ -1728,16 +1728,16 @@ export default function ImportPage() {
 
                       {/* Paid Features */}
                       <div>
-                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#7c3aed', marginBottom: '12px'}}>💰 Платные опции</h5>
+                        <h5 style={{fontSize: '14px', fontWeight: '600', color: '#a78bfa', marginBottom: '12px'}}>💰 Платные опции</h5>
                         <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px'}}>
                           {boat.features.paid.map((f, fi) => (
-                            <div key={fi} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: f.paid ? '#f3e8ff' : 'white', borderRadius: '6px', border: '1px solid #e5e7eb'}}>
+                            <div key={fi} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: f.paid ? '#f3e8ff' : 'white', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)'}}>
                               <input type="checkbox" checked={f.paid} onChange={(e) => toggleFeature(bi, 'paid', fi, 'paid', e.target.checked)} />
                               <span style={{fontSize: '13px', flex: 1}}>{f.name}</span>
                               {f.paid && (
                                 <>
-                                  <input type="number" value={f.price || ''} onChange={(e) => toggleFeature(bi, 'paid', fi, 'price', Number(e.target.value))} placeholder="Цена" style={{width: '70px', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px', color: '#1f2937'}} />
-                                  <select value={f.pricePer} onChange={(e) => toggleFeature(bi, 'paid', fi, 'pricePer', e.target.value)} style={{padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px', color: '#1f2937'}}>
+                                  <input type="number" value={f.price || ''} onChange={(e) => toggleFeature(bi, 'paid', fi, 'price', Number(e.target.value))} placeholder="Цена" style={{width: '70px', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#e2e8f0'}} />
+                                  <select value={f.pricePer} onChange={(e) => toggleFeature(bi, 'paid', fi, 'pricePer', e.target.value)} style={{padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#e2e8f0'}}>
                                     {PRICE_PER_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
                                   </select>
                                 </>
@@ -1785,11 +1785,11 @@ export default function ImportPage() {
                         </div>
                         
                         {(boat.routes || []).length === 0 ? (
-                          <p style={{color: '#9ca3af', fontSize: '13px'}}>Нет маршрутов. Добавьте маршрут для этой лодки.</p>
+                          <p style={{color: '#475569', fontSize: '13px'}}>Нет маршрутов. Добавьте маршрут для этой лодки.</p>
                         ) : (
                           <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
                             {boat.routes.map((route: any, ri: number) => (
-                              <div key={ri} style={{border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px', backgroundColor: '#eff6ff'}}>
+                              <div key={ri} style={{border: '1px solid rgba(0,201,255,0.2)', borderRadius: '8px', padding: '12px', backgroundColor: '#0d2137'}}>
                                 <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
                                   <span style={{fontWeight: '500', color: '#1d4ed8'}}>Маршрут #{ri + 1}</span>
                                   <button 
@@ -1803,7 +1803,7 @@ export default function ImportPage() {
                                 </div>
                                 <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px'}}>
                                   <div>
-                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Направление *</label>
+                                    <label style={{fontSize: '11px', color: '#64748b'}}>Направление *</label>
                                     <input 
                                       value={route.destination || ''} 
                                       onChange={(e) => {
@@ -1811,12 +1811,12 @@ export default function ImportPage() {
                                         boats[bi].routes[ri].destination = e.target.value;
                                         setExtractedData({...extractedData, boats});
                                       }}
-                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      style={{width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px'}}
                                       placeholder="KHAI / NAKA NOI"
                                     />
                                   </div>
                                   <div>
-                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Часов</label>
+                                    <label style={{fontSize: '11px', color: '#64748b'}}>Часов</label>
                                     <input 
                                       type="number"
                                       value={route.duration_hours || 8}
@@ -1825,12 +1825,12 @@ export default function ImportPage() {
                                         boats[bi].routes[ri].duration_hours = Number(e.target.value);
                                         setExtractedData({...extractedData, boats});
                                       }}
-                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      style={{width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px'}}
                                       placeholder="8"
                                     />
                                   </div>
                                   <div>
-                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Ночей</label>
+                                    <label style={{fontSize: '11px', color: '#64748b'}}>Ночей</label>
                                     <input 
                                       type="number"
                                       value={route.duration_nights || 0}
@@ -1839,12 +1839,12 @@ export default function ImportPage() {
                                         boats[bi].routes[ri].duration_nights = Number(e.target.value);
                                         setExtractedData({...extractedData, boats});
                                       }}
-                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      style={{width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px'}}
                                       placeholder="0"
                                     />
                                   </div>
                                   <div>
-                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Сезон</label>
+                                    <label style={{fontSize: '11px', color: '#64748b'}}>Сезон</label>
                                     <select 
                                       value={route.season || 'all'}
                                       onChange={(e) => {
@@ -1852,7 +1852,7 @@ export default function ImportPage() {
                                         boats[bi].routes[ri].season = e.target.value;
                                         setExtractedData({...extractedData, boats});
                                       }}
-                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      style={{width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px'}}
                                     >
                                       <option value="all">Все сезоны</option>
                                       <option value="low">Low</option>
@@ -1861,7 +1861,7 @@ export default function ImportPage() {
                                     </select>
                                   </div>
                                   <div>
-                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Цена агента (THB) *</label>
+                                    <label style={{fontSize: '11px', color: '#64748b'}}>Цена агента (THB) *</label>
                                     <input 
                                       type="number"
                                       value={route.agent_price || route.base_price || ''} 
@@ -1871,12 +1871,12 @@ export default function ImportPage() {
                                         boats[bi].routes[ri].base_price = Number(e.target.value);
                                         setExtractedData({...extractedData, boats});
                                       }}
-                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      style={{width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px'}}
                                       placeholder="180000"
                                     />
                                   </div>
                                   <div>
-                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Топливо (+THB)</label>
+                                    <label style={{fontSize: '11px', color: '#64748b'}}>Топливо (+THB)</label>
                                     <input 
                                       type="number"
                                       value={route.fuel_surcharge || ''} 
@@ -1885,12 +1885,12 @@ export default function ImportPage() {
                                         boats[bi].routes[ri].fuel_surcharge = Number(e.target.value);
                                         setExtractedData({...extractedData, boats});
                                       }}
-                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      style={{width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px'}}
                                       placeholder="0"
                                     />
                                   </div>
                                   <div>
-                                    <label style={{fontSize: '11px', color: '#6b7280'}}>Макс. гостей</label>
+                                    <label style={{fontSize: '11px', color: '#64748b'}}>Макс. гостей</label>
                                     <input 
                                       type="number"
                                       value={route.max_guests || ''} 
@@ -1899,7 +1899,7 @@ export default function ImportPage() {
                                         boats[bi].routes[ri].max_guests = Number(e.target.value);
                                         setExtractedData({...extractedData, boats});
                                       }}
-                                      style={{width: '100%', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px'}}
+                                      style={{width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px'}}
                                       placeholder="12"
                                     />
                                   </div>
@@ -1950,7 +1950,7 @@ export default function ImportPage() {
                   </div>
                   
                   {extractedData.routes.map((route, ri) => (
-                    <div key={ri} style={{border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginBottom: '12px', backgroundColor: '#fafafa'}}>
+                    <div key={ri} style={{border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '16px', marginBottom: '12px', backgroundColor: '#0f2337'}}>
                       <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
                         <span style={{fontWeight: '600'}}>Маршрут #{ri + 1}</span>
                         <button onClick={() => removeRoute(ri)} style={{color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer'}}>🗑️</button>
@@ -1997,7 +1997,7 @@ export default function ImportPage() {
                   </div>
                   
                   {extractedData.extras.map((extra, ei) => (
-                    <div key={ei} style={{display: 'grid', gridTemplateColumns: '1fr 2fr 2fr 1fr 1fr 1fr auto', gap: '12px', padding: '12px', border: '1px solid #e5e7eb', borderRadius: '6px', marginBottom: '8px', backgroundColor: '#fafafa', alignItems: 'end'}}>
+                    <div key={ei} style={{display: 'grid', gridTemplateColumns: '1fr 2fr 2fr 1fr 1fr 1fr auto', gap: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '8px', backgroundColor: '#0f2337', alignItems: 'end'}}>
                       <div>
                         <label style={labelStyle}>Категория</label>
                         <select value={extra.category} onChange={(e) => updateExtra(ei, 'category', e.target.value)} style={inputStyle}>
@@ -2071,7 +2071,7 @@ export default function ImportPage() {
 
             {/* Actions */}
             <div style={{display: 'flex', gap: '16px', marginTop: '24px'}}>
-              <button onClick={() => setExtractedData(null)} style={{padding: '14px 28px', border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: 'white', cursor: 'pointer', fontSize: '16px'}}>← Назад</button>
+              <button onClick={() => setExtractedData(null)} style={{padding: '14px 28px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', backgroundColor: '#132840', cursor: 'pointer', fontSize: '16px'}}>← Назад</button>
               <button onClick={saveToDatabase} style={{flex: 1, padding: '14px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '16px', cursor: 'pointer'}}>💾 Сохранить всё в базу данных</button>
             </div>
             
