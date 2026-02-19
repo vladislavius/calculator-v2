@@ -63,6 +63,21 @@ export default function Home() {
   // Store
   const store = useCharterStore();
   const { set: storeSet } = store;
+
+  // Sync store → local state (for fields updated by child components via store)
+  useEffect(() => {
+    const unsub = useCharterStore.subscribe((state) => {
+      if (state.extraAdults !== extraAdults) setExtraAdults(state.extraAdults);
+      if (state.children3to11 !== children3to11) setChildren3to11(state.children3to11);
+      if (state.childrenUnder3 !== childrenUnder3) setChildrenUnder3(state.childrenUnder3);
+      if (state.customAdultPrice !== customAdultPrice) setCustomAdultPrice(state.customAdultPrice);
+      if (state.customChildPrice !== customChildPrice) setCustomChildPrice(state.customChildPrice);
+      if (state.boatMarkup !== boatMarkup) setBoatMarkup(state.boatMarkup);
+      if (state.fixedMarkup !== fixedMarkup) setFixedMarkup(state.fixedMarkup);
+      if (state.markupMode !== markupMode) setMarkupMode(state.markupMode);
+    });
+    return () => unsub();
+  });
   const isMobile = useIsMobile();
 
   // Search state
@@ -358,10 +373,10 @@ export default function Home() {
         p_date: searchDate,
         p_guests: totalGuests,
         p_time_slot: timeSlot,
-        p_boat_type: boatType || null,
-        p_destination: destination || null,
-        p_max_budget: maxBudget ? Number(maxBudget) : null,
-        p_season: season === 'auto' ? null : season,
+        p_boat_type: boatType || '',
+        p_destination: destination || '',
+        p_max_budget: maxBudget ? Number(maxBudget) : 999999,
+        p_season: season === 'auto' ? '' : season,
       });
 
       if (error) throw error;
@@ -531,14 +546,48 @@ export default function Home() {
   // ==================== PDF GENERATION ====================
   const generatePDF = () => {
     if (!selectedBoat) return;
-    const tots = calcTotals();
+    // Use store values for guest counts and markup (GuestSelector updates store directly)
+    const storeState = useCharterStore.getState();
+    const pdfTotals = calculateTotals({
+      selectedBoat: storeState.selectedBoat || selectedBoat,
+      selectedExtras: storeState.selectedExtras || selectedExtras,
+      cateringOrders: storeState.cateringOrders || cateringOrders,
+      drinkOrders: storeState.drinkOrders || drinkOrders,
+      selectedToys: storeState.selectedToys || selectedToys,
+      selectedServices: storeState.selectedServices || selectedServices,
+      selectedFees: storeState.selectedFees || selectedFees,
+      selectedPartnerWatersports: storeState.selectedPartnerWatersports || selectedPartnerWatersports,
+      transferPickup: storeState.transferPickup || transferPickup,
+      transferDropoff: storeState.transferDropoff || transferDropoff,
+      transferPrice: storeState.transferPrice ?? transferPrice,
+      transferMarkup: storeState.transferMarkup ?? transferMarkup,
+      landingEnabled: storeState.landingEnabled ?? landingEnabled,
+      landingFee: storeState.landingFee ?? landingFee,
+      defaultParkFeeEnabled: storeState.defaultParkFeeEnabled ?? defaultParkFeeEnabled,
+      defaultParkFee: storeState.defaultParkFee ?? defaultParkFee,
+      defaultParkFeeAdults: storeState.defaultParkFeeAdults ?? defaultParkFeeAdults,
+      defaultParkFeeChildren: storeState.defaultParkFeeChildren ?? defaultParkFeeChildren,
+      corkageFee: storeState.corkageFee ?? corkageFee,
+      extraAdults: storeState.extraAdults ?? extraAdults,
+      children3to11: storeState.children3to11 ?? children3to11,
+      childrenUnder3: storeState.childrenUnder3 ?? childrenUnder3,
+      adults: storeState.adults ?? adults,
+      customAdultPrice: storeState.customAdultPrice ?? customAdultPrice,
+      customChildPrice: storeState.customChildPrice ?? customChildPrice,
+      boatMarkup: storeState.boatMarkup ?? boatMarkup,
+      fixedMarkup: storeState.fixedMarkup ?? fixedMarkup,
+      markupMode: storeState.markupMode || markupMode,
+      markupPercent: storeState.markupPercent ?? markupPercent,
+      customPrices: storeState.customPrices || customPrices,
+    });
+    const pdfGuests = (storeState.adults ?? adults) + (storeState.extraAdults ?? extraAdults) + (storeState.children3to11 ?? children3to11) + (storeState.childrenUnder3 ?? childrenUnder3);
     const html = generatePDFContent({
-      selectedBoat, totals: tots, boatOptions, selectedExtras, cateringOrders,
-      drinkOrders, boatDrinks, selectedToys, selectedServices, selectedFees,
-      selectedPartnerWatersports, transferPickup, transferDirection, partnerMenus,
-      boatMenu, selectedDishes, customPrices, lang, markupMode, fixedMarkup,
-      boatMarkup, extraAdults, children3to11, childrenUnder3, adults, totalGuests,
-      customAdultPrice, customChildPrice, customNotes,
+      selectedBoat, totals: pdfTotals, boatOptions, selectedExtras: storeState.selectedExtras || selectedExtras, cateringOrders: storeState.cateringOrders || cateringOrders,
+      drinkOrders: storeState.drinkOrders || drinkOrders, boatDrinks, selectedToys: storeState.selectedToys || selectedToys, selectedServices: storeState.selectedServices || selectedServices, selectedFees: storeState.selectedFees || selectedFees,
+      selectedPartnerWatersports: storeState.selectedPartnerWatersports || selectedPartnerWatersports, transferPickup: storeState.transferPickup || transferPickup, transferDirection, partnerMenus,
+      boatMenu, selectedDishes, customPrices: storeState.customPrices || customPrices, lang, markupMode: storeState.markupMode || markupMode, fixedMarkup: storeState.fixedMarkup ?? fixedMarkup,
+      boatMarkup: storeState.boatMarkup ?? boatMarkup, extraAdults: storeState.extraAdults ?? extraAdults, children3to11: storeState.children3to11 ?? children3to11, childrenUnder3: storeState.childrenUnder3 ?? childrenUnder3, adults: storeState.adults ?? adults, totalGuests: pdfGuests,
+      customAdultPrice: storeState.customAdultPrice ?? customAdultPrice, customChildPrice: storeState.customChildPrice ?? customChildPrice, customNotes: storeState.customNotes || customNotes,
     });
     const w = window.open('', '_blank');
     if (w) { w.document.write(html); w.document.close(); w.onload = () => w.print(); }
@@ -549,13 +598,46 @@ export default function Home() {
   // WhatsApp message generation
   const generateWhatsApp = () => {
     if (!selectedBoat) return;
-    const tots = calcTotals();
+    const ss = useCharterStore.getState();
+    const waTotals = calculateTotals({
+      selectedBoat: ss.selectedBoat || selectedBoat,
+      selectedExtras: ss.selectedExtras || selectedExtras,
+      cateringOrders: ss.cateringOrders || cateringOrders,
+      drinkOrders: ss.drinkOrders || drinkOrders,
+      selectedToys: ss.selectedToys || selectedToys,
+      selectedServices: ss.selectedServices || selectedServices,
+      selectedFees: ss.selectedFees || selectedFees,
+      selectedPartnerWatersports: ss.selectedPartnerWatersports || selectedPartnerWatersports,
+      transferPickup: ss.transferPickup || transferPickup,
+      transferDropoff: ss.transferDropoff || transferDropoff,
+      transferPrice: ss.transferPrice ?? transferPrice,
+      transferMarkup: ss.transferMarkup ?? transferMarkup,
+      landingEnabled: ss.landingEnabled ?? landingEnabled,
+      landingFee: ss.landingFee ?? landingFee,
+      defaultParkFeeEnabled: ss.defaultParkFeeEnabled ?? defaultParkFeeEnabled,
+      defaultParkFee: ss.defaultParkFee ?? defaultParkFee,
+      defaultParkFeeAdults: ss.defaultParkFeeAdults ?? defaultParkFeeAdults,
+      defaultParkFeeChildren: ss.defaultParkFeeChildren ?? defaultParkFeeChildren,
+      corkageFee: ss.corkageFee ?? corkageFee,
+      extraAdults: ss.extraAdults ?? extraAdults,
+      children3to11: ss.children3to11 ?? children3to11,
+      childrenUnder3: ss.childrenUnder3 ?? childrenUnder3,
+      adults: ss.adults ?? adults,
+      customAdultPrice: ss.customAdultPrice ?? customAdultPrice,
+      customChildPrice: ss.customChildPrice ?? customChildPrice,
+      boatMarkup: ss.boatMarkup ?? boatMarkup,
+      fixedMarkup: ss.fixedMarkup ?? fixedMarkup,
+      markupMode: ss.markupMode || markupMode,
+      markupPercent: ss.markupPercent ?? markupPercent,
+      customPrices: ss.customPrices || customPrices,
+    });
+    const waGuests = (ss.adults ?? adults) + (ss.extraAdults ?? extraAdults) + (ss.children3to11 ?? children3to11) + (ss.childrenUnder3 ?? childrenUnder3);
     const message = generateWhatsAppMessage({
-      selectedBoat, totals: tots, selectedExtras, cateringOrders, drinkOrders,
-      selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-      transferPickup, transferDirection, boatMenu, selectedDishes, customPrices,
-      lang, markupMode, fixedMarkup, boatMarkup, extraAdults, children3to11,
-      childrenUnder3, adults, totalGuests, customAdultPrice, customChildPrice, customNotes,
+      selectedBoat, totals: waTotals, selectedExtras: ss.selectedExtras || selectedExtras, cateringOrders: ss.cateringOrders || cateringOrders, drinkOrders: ss.drinkOrders || drinkOrders,
+      selectedToys: ss.selectedToys || selectedToys, selectedServices: ss.selectedServices || selectedServices, selectedFees: ss.selectedFees || selectedFees, selectedPartnerWatersports: ss.selectedPartnerWatersports || selectedPartnerWatersports,
+      transferPickup: ss.transferPickup || transferPickup, transferDirection, boatMenu, selectedDishes, customPrices: ss.customPrices || customPrices,
+      lang, markupMode: ss.markupMode || markupMode, fixedMarkup: ss.fixedMarkup ?? fixedMarkup, boatMarkup: ss.boatMarkup ?? boatMarkup, extraAdults: ss.extraAdults ?? extraAdults, children3to11: ss.children3to11 ?? children3to11,
+      childrenUnder3: ss.childrenUnder3 ?? childrenUnder3, adults: ss.adults ?? adults, totalGuests: waGuests, customAdultPrice: ss.customAdultPrice ?? customAdultPrice, customChildPrice: ss.customChildPrice ?? customChildPrice, customNotes: ss.customNotes || customNotes,
     });
     window.open('https://wa.me/?text=' + encodeURIComponent(message), '_blank');
   };
