@@ -5,9 +5,175 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 
+
+const CATEGORY_META: Record<string, { label: string; icon: string; color: string; nameEn: string }> = {
+  transfer:   { label: 'Трансфер',        icon: '🚐', color: '#22c55e', nameEn: 'Transfer' },
+  diving:     { label: 'Дайвинг',         icon: '🤿', color: '#0ea5e9', nameEn: 'Diving' },
+  photo:      { label: 'Фото / Видео',    icon: '📸', color: '#3b82f6', nameEn: 'Photo/Video' },
+  guide:      { label: 'Гиды',            icon: '🗺️', color: '#06b6d4', nameEn: 'Guide' },
+  other:      { label: 'Другое',          icon: '📦', color: '#94a3b8', nameEn: 'Other' },
+};
+
+function UniversalServiceTab({ category, supabase }: { category: string; supabase: any }) {
+  const meta = CATEGORY_META[category] || CATEGORY_META.other;
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name_en: '', name_ru: '', price: '', price_per: 'day', description: '' });
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase.from('staff_services').select('*').eq('category', category).order('name_en');
+    if (data) setServices(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [category]);
+
+  const addService = async () => {
+    if (!form.name_en) return;
+    setSaving(true);
+    await supabase.from('staff_services').insert({
+      name_en: form.name_en,
+      name_ru: form.name_ru || null,
+      price: Number(form.price) || 0,
+      price_per: form.price_per,
+      category,
+      description: form.description || null,
+    });
+    setForm({ name_en: '', name_ru: '', price: '', price_per: 'day', description: '' });
+    setShowForm(false);
+    setSaving(false);
+    load();
+  };
+
+  const saveEdit = async (id: number) => {
+    await supabase.from('staff_services').update({
+      name_en: editForm.name_en,
+      name_ru: editForm.name_ru || null,
+      price: Number(editForm.price) || 0,
+      price_per: editForm.price_per,
+      description: editForm.description || null,
+    }).eq('id', id);
+    setEditingId(null);
+    load();
+  };
+
+  const deleteService = async (id: number) => {
+    if (!confirm('Удалить услугу?')) return;
+    await supabase.from('staff_services').delete().eq('id', id);
+    load();
+  };
+
+  const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '14px', backgroundColor: '#0f2337', color: '#e2e8f0', marginBottom: '10px' };
+
+  return (
+    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', border: '1px solid rgba(255,255,255,0.08)' }}>
+        {/* Заголовок */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: meta.color }}>
+            {meta.icon} {meta.label}
+          </h2>
+          <button onClick={() => setShowForm(!showForm)}
+            style={{ padding: '10px 18px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+            {showForm ? '✕ Закрыть' : '➕ Добавить услугу'}
+          </button>
+        </div>
+
+        {/* Форма добавления */}
+        {showForm && (
+          <div style={{ backgroundColor: '#0d2137', borderRadius: '12px', padding: '20px', marginBottom: '20px', border: `1px solid ${meta.color}40` }}>
+            <h4 style={{ margin: '0 0 16px', color: meta.color }}>➕ Новая услуга — {meta.label}</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <input placeholder="Название (EN) *" value={form.name_en} onChange={e => setForm({...form, name_en: e.target.value})} style={inputStyle} />
+              <input placeholder="Название (RU)" value={form.name_ru} onChange={e => setForm({...form, name_ru: e.target.value})} style={inputStyle} />
+              <input placeholder="Цена (THB)" type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} style={inputStyle} />
+              <select value={form.price_per} onChange={e => setForm({...form, price_per: e.target.value})}
+                style={{ ...inputStyle, marginBottom: '10px' }}>
+                <option value="day">За день</option>
+                <option value="hour">За час</option>
+                <option value="person">За человека</option>
+                <option value="trip">За поездку</option>
+                <option value="session">За сессию</option>
+              </select>
+            </div>
+            <input placeholder="Описание (необязательно)" value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={inputStyle} />
+            <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+              <button onClick={addService} disabled={saving || !form.name_en}
+                style={{ padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: saving || !form.name_en ? 0.6 : 1 }}>
+                {saving ? 'Сохранение...' : '✅ Добавить → появится в калькуляторе'}
+              </button>
+              <button onClick={() => setShowForm(false)}
+                style={{ padding: '10px 16px', backgroundColor: '#0f2337', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}>
+                Отмена
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Список услуг */}
+        {loading ? (
+          <p style={{ color: '#64748b' }}>Загрузка...</p>
+        ) : services.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>{meta.icon}</div>
+            <p>Нет услуг в категории "{meta.label}"</p>
+            <p style={{ fontSize: '13px' }}>Добавьте услугу — она сразу появится в калькуляторе</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {services.map(s => (
+              <div key={s.id} style={{ backgroundColor: '#0f2337', borderRadius: '10px', padding: '14px 16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {editingId === s.id ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <input value={editForm.name_en || ''} onChange={e => setEditForm({...editForm, name_en: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }} placeholder="EN" />
+                    <input value={editForm.name_ru || ''} onChange={e => setEditForm({...editForm, name_ru: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }} placeholder="RU" />
+                    <input type="number" value={editForm.price || ''} onChange={e => setEditForm({...editForm, price: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }} placeholder="Цена" />
+                    <select value={editForm.price_per || 'day'} onChange={e => setEditForm({...editForm, price_per: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }}>
+                      <option value="day">За день</option>
+                      <option value="hour">За час</option>
+                      <option value="person">За человека</option>
+                      <option value="trip">За поездку</option>
+                      <option value="session">За сессию</option>
+                    </select>
+                    <div style={{ gridColumn: '1/-1', display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      <button onClick={() => saveEdit(s.id)} style={{ padding: '6px 14px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>💾 Сохранить</button>
+                      <button onClick={() => setEditingId(null)} style={{ padding: '6px 14px', backgroundColor: '#132840', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer' }}>Отмена</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span style={{ fontWeight: '600', color: '#e2e8f0' }}>{s.name_ru || s.name_en}</span>
+                      {s.name_ru && <span style={{ marginLeft: '8px', fontSize: '12px', color: '#64748b' }}>{s.name_en}</span>}
+                      <span style={{ marginLeft: '12px', color: meta.color, fontWeight: '600' }}>{Number(s.price || 0).toLocaleString()} ฿</span>
+                      <span style={{ marginLeft: '6px', fontSize: '12px', color: '#64748b' }}>/ {s.price_per === 'day' ? 'день' : s.price_per === 'hour' ? 'час' : s.price_per === 'person' ? 'чел' : s.price_per}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={() => { setEditingId(s.id); setEditForm({...s}); }}
+                        style={{ padding: '6px 12px', backgroundColor: '#1e3a5f', color: '#93c5fd', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>✏️ Изменить</button>
+                      <button onClick={() => deleteService(s.id)}
+                        style={{ padding: '6px 12px', backgroundColor: '#3d0f0f', color: '#f87171', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>🗑️ Удалить</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function PartnersPage() {
   const [activeTab, setActiveTab] = useState<'catering' | 'watersports' | 'boats' | 'transfer' | 'diving' | 'photo' | 'guide' | 'other'>('boats');
   const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
+  const [showOtherDropdown, setShowOtherDropdown] = useState(false);
   const [cateringPartners, setCateringPartners] = useState<any[]>([]);
   const [cateringMenu, setCateringMenu] = useState<any[]>([]);
   const [watersportsPartners, setWatersportsPartners] = useState<any[]>([]);
@@ -1387,7 +1553,7 @@ export default function PartnersPage() {
         </div>
       </div>
 
-      <div style={{ ...styles.tabs, flexWrap: 'wrap', gap: '6px' }}>
+      <div style={{ display: 'flex', gap: '8px', padding: '0 0 16px', flexWrap: 'wrap', alignItems: 'center' }}>
         <button style={{ ...styles.tab, ...(activeTab === 'boats' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('boats')}>
           🚤 Яхты ({boatPartners.length})
         </button>
@@ -1397,26 +1563,40 @@ export default function PartnersPage() {
         <button style={{ ...styles.tab, ...(activeTab === 'watersports' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('watersports')}>
           🏄 Водные игрушки ({watersportsPartners.length})
         </button>
-        <button style={{ ...styles.tab, ...(activeTab === 'transfer' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('transfer')}>
-          🚐 Трансфер
-        </button>
-        <button style={{ ...styles.tab, ...(activeTab === 'diving' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('diving')}>
-          🤿 Дайвинг
-        </button>
-        <button style={{ ...styles.tab, ...(activeTab === 'photo' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('photo')}>
-          📸 Фото/Видео
-        </button>
-        <button style={{ ...styles.tab, ...(activeTab === 'guide' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('guide')}>
-          🗺️ Гиды
-        </button>
-        <button style={{ ...styles.tab, ...(activeTab === 'other' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('other')}>
-          📦 Другое
-        </button>
+        {/* Выпадающее меню "Другие партнёры" */}
+        <div style={{ position: 'relative' }}>
+          <button
+            style={{ ...styles.tab, ...(['transfer','diving','photo','guide','other'].includes(activeTab) ? styles.tabActive : styles.tabInactive) }}
+            onClick={() => setShowOtherDropdown(!showOtherDropdown)}
+          >
+            📦 Другие партнёры {showOtherDropdown ? '▲' : '▾'}
+          </button>
+          {showOtherDropdown && (
+            <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, backgroundColor: '#132840', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '6px', zIndex: 200, minWidth: '190px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+              {[
+                { key: 'transfer', icon: '🚐', label: 'Трансфер' },
+                { key: 'diving',   icon: '🤿', label: 'Дайвинг' },
+                { key: 'photo',    icon: '📸', label: 'Фото / Видео' },
+                { key: 'guide',    icon: '🗺️', label: 'Гиды' },
+                { key: 'other',    icon: '📦', label: 'Другое' },
+              ].map(t => (
+                <button key={t.key}
+                  onClick={() => { setActiveTab(t.key as any); setShowOtherDropdown(false); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', backgroundColor: activeTab === t.key ? '#2563eb' : 'transparent', color: activeTab === t.key ? 'white' : '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: activeTab === t.key ? '600' : '400' }}
+                  onMouseOver={e => { if (activeTab !== t.key) e.currentTarget.style.backgroundColor = '#1e3a5f'; }}
+                  onMouseOut={e => { if (activeTab !== t.key) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <span>{t.icon}</span><span>{t.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {message && <div style={{ ...styles.message, maxWidth: '1200px', margin: '0 auto 20px' }}>{message}</div>}
 
-      <div style={styles.content}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px' }}>
         {/* Left: Add Partner & Import */}
         {(activeTab === 'catering' || activeTab === 'watersports') && (
         <div>
@@ -2020,6 +2200,14 @@ export default function PartnersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Универсальные вкладки: Трансфер, Дайвинг, Фото, Гиды, Другое */}
+      {['transfer', 'diving', 'photo', 'guide', 'other'].includes(activeTab) && (
+        <UniversalServiceTab
+          category={activeTab}
+          supabase={supabase}
+        />
       )}
     </div>
     </AdminGuard>
