@@ -74,7 +74,7 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
           total_agent: totals.totalAgent || 0,
           lang: s.lang,
           notes: s.customNotes,
-          snapshot: { boat, lines },
+          snapshot: { boat, items: totals.items, lines },
         }),
       });
       const data = await res.json();
