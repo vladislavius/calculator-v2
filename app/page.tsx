@@ -408,11 +408,17 @@ export default function Home() {
 
       // Sort
       // Если выбрана дата — сначала сортируем по доступности (свободные вверху)
-      if (searchDate && cachedUnavailableIds) {
+      if (searchDate) {
         filtered.sort((a: SearchResult, b: SearchResult) => {
-          const aFree = !cachedUnavailableIds.has(a.boat_id) ? 0 : 1; // нет в занятых = свободна
-          const bFree = !cachedUnavailableIds.has(b.boat_id) ? 0 : 1;
-          return aFree - bFree;
+          const dateStr = searchDate;
+          const aUnavail = (boatUnavailMap[a.boat_id] || []).some((u: any) => dateStr >= u.date_from && dateStr <= u.date_to);
+          const bUnavail = (boatUnavailMap[b.boat_id] || []).some((u: any) => dateStr >= u.date_from && dateStr <= u.date_to);
+          const aHasCal = boatCalSet.has(a.boat_id);
+          const bHasCal = boatCalSet.has(b.boat_id);
+          // 0=свободна с календарём, 1=нет данных, 2=занята
+          const aScore = aUnavail ? 2 : aHasCal ? 0 : 1;
+          const bScore = bUnavail ? 2 : bHasCal ? 0 : 1;
+          return aScore - bScore;
         });
       }
 
