@@ -1,8 +1,10 @@
 'use client';
 import { useCharterStore } from '../store/useCharterStore';
+import { useUserRole } from '../hooks/useUserRole';
 import { calculateTotals } from '../lib/calculateTotals';
 
 export default function SummarySection({ generatePDF, generateWhatsApp }: { generatePDF:()=>void; generateWhatsApp:()=>void }) {
+  const { isAdmin } = useUserRole();
   const s    = useCharterStore();
   const boat = s.selectedBoat;
   if (!boat) return null;
@@ -48,7 +50,7 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
         <span className="os-tag os-tag--aqua">{s.adults+s.extraAdults+s.children3to11+s.childrenUnder3} гостей</span>
       </div>
 
-      <div className="os-markup-bar">
+      {isAdmin && <div className="os-markup-bar">
         <div className="os-markup-label">Наценка менеджера</div>
         <div className="os-markup-mode">
           <button className={`os-markup-mode-btn${s.markupMode==='percent'?' active':''}`} onClick={()=>s.set({markupMode:'percent'})}>% авто</button>
@@ -70,7 +72,7 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
             <div className="os-markup-hint" style={{ marginTop:0 }}>≈ <span>{markupPct}%</span></div>
           </div>
         )}
-      </div>
+      </div>}
 
       <div className="os-summary-lines">
         {lines.filter(l=>l.show).map(l=>(
@@ -79,14 +81,14 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
             <span className="os-summary-line__val">{l.val.toLocaleString()} ฿</span>
           </div>
         ))}
-        <div className="os-summary-line markup">
+        {isAdmin && <div className="os-summary-line markup">
           <span>📈 Наценка</span>
           <span className="os-summary-line__val">+{markupAmt.toLocaleString()} ฿</span>
-        </div>
-        <div className="os-summary-line profit">
+        </div>}
+        {isAdmin && <div className="os-summary-line profit">
           <span style={{ fontSize:11, color:'var(--os-text-3)' }}>Агент (себестоимость)</span>
           <span className="os-summary-line__val" style={{ fontSize:12 }}>{(boat.calculated_agent_total||boat.base_price||0).toLocaleString()} ฿</span>
-        </div>
+        </div>}
       </div>
 
       <div className="os-summary-total">
