@@ -8,28 +8,45 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
   const { isAdmin } = useUserRole();
   const s    = useCharterStore();
   const boat = s.selectedBoat;
-  if (!boat) return null;
   const [offerLoading, setOfferLoading] = useState(false);
   const [offerUrl, setOfferUrl] = useState('');
   const [offerCopied, setOfferCopied] = useState(false);
+  if (!boat) return null;
 
   const generateOffer = async () => {
     setOfferLoading(true);
     try {
       const totals = calculateTotals({
-        boat, selectedExtras: s.selectedExtras, cateringOrders: s.cateringOrders,
-        drinkOrders: s.drinkOrders, transferPickup: s.transferPickup,
-        transferDropoff: s.transferDropoff, transferDirection: s.transferDirection,
-        selectedServices: s.selectedServices, selectedToys: s.selectedToys,
-        selectedFees: s.selectedFees, selectedPartnerWatersports: s.selectedPartnerWatersports,
-        boatMarkup: s.boatMarkup, markupMode: s.markupMode, fixedMarkup: s.fixedMarkup,
-        partnerMarkups: s.partnerMarkups, customPrices: s.customPrices,
-        landingFee: s.landingFee, landingEnabled: s.landingEnabled,
-        defaultParkFee: s.defaultParkFee, defaultParkFeeEnabled: s.defaultParkFeeEnabled,
-        defaultParkFeeAdults: s.defaultParkFeeAdults, defaultParkFeeChildren: s.defaultParkFeeChildren,
-        useOwnTransfer: s.useOwnTransfer, ownTransferPriceOneWay: s.ownTransferPriceOneWay,
-        ownTransferPriceRoundTrip: s.ownTransferPriceRoundTrip,
-        transferPrice: s.transferPrice, transferMarkup: s.transferMarkup,
+        selectedBoat: boat,
+        selectedExtras: s.selectedExtras,
+        cateringOrders: s.cateringOrders,
+        drinkOrders: s.drinkOrders,
+        transferPickup: s.transferPickup,
+        transferDropoff: s.transferDropoff,
+        selectedServices: s.selectedServices,
+        selectedToys: s.selectedToys,
+        selectedFees: s.selectedFees,
+        selectedPartnerWatersports: s.selectedPartnerWatersports,
+        boatMarkup: s.boatMarkup,
+        markupMode: s.markupMode,
+        fixedMarkup: s.fixedMarkup,
+        partnerMarkups: s.partnerMarkups,
+        customPrices: s.customPrices,
+        landingFee: s.landingFee,
+        landingEnabled: s.landingEnabled,
+        defaultParkFee: s.defaultParkFee,
+        defaultParkFeeEnabled: s.defaultParkFeeEnabled,
+        defaultParkFeeAdults: s.defaultParkFeeAdults,
+        defaultParkFeeChildren: s.defaultParkFeeChildren,
+        transferPrice: s.transferPrice,
+        transferMarkup: s.transferMarkup,
+        corkageFee: s.corkageFee,
+        extraAdults: s.extraAdults,
+        children3to11: s.children3to11,
+        childrenUnder3: s.childrenUnder3,
+        adults: s.adults,
+        customAdultPrice: s.customAdultPrice,
+        customChildPrice: s.customChildPrice,
       });
 
       // Строим lines для отображения
