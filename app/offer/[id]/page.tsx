@@ -108,9 +108,7 @@ export default function OfferPage() {
           <button onClick={copyLink} style={{ padding:'7px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background: copied?'rgba(0,212,180,0.15)':'rgba(255,255,255,0.05)', color:copied?'#00d4b4':'#e2e8f0', cursor:'pointer', fontSize:12, fontWeight:600 }}>
             {copied ? '✅ Скопировано!' : '🔗 Скопировать ссылку'}
           </button>
-          <a href="/" style={{ padding:'7px 14px', borderRadius:8, backgroundColor:'#0891b2', color:'#fff', textDecoration:'none', fontSize:12, fontWeight:600 }}>
-            Калькулятор →
-          </a>
+
         </div>
       </div>
 
