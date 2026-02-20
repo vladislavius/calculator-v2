@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { useCharterStore } from '../store/useCharterStore';
 import { useUserRole } from '../hooks/useUserRole';
 import { calculateTotals } from '../lib/calculateTotals';
@@ -8,6 +9,70 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
   const s    = useCharterStore();
   const boat = s.selectedBoat;
   if (!boat) return null;
+  const [offerLoading, setOfferLoading] = useState(false);
+  const [offerUrl, setOfferUrl] = useState('');
+  const [offerCopied, setOfferCopied] = useState(false);
+
+  const generateOffer = async () => {
+    setOfferLoading(true);
+    try {
+      const totals = calculateTotals({
+        boat, selectedExtras: s.selectedExtras, cateringOrders: s.cateringOrders,
+        drinkOrders: s.drinkOrders, transferPickup: s.transferPickup,
+        transferDropoff: s.transferDropoff, transferDirection: s.transferDirection,
+        selectedServices: s.selectedServices, selectedToys: s.selectedToys,
+        selectedFees: s.selectedFees, selectedPartnerWatersports: s.selectedPartnerWatersports,
+        boatMarkup: s.boatMarkup, markupMode: s.markupMode, fixedMarkup: s.fixedMarkup,
+        partnerMarkups: s.partnerMarkups, customPrices: s.customPrices,
+        landingFee: s.landingFee, landingEnabled: s.landingEnabled,
+        defaultParkFee: s.defaultParkFee, defaultParkFeeEnabled: s.defaultParkFeeEnabled,
+        defaultParkFeeAdults: s.defaultParkFeeAdults, defaultParkFeeChildren: s.defaultParkFeeChildren,
+        useOwnTransfer: s.useOwnTransfer, ownTransferPriceOneWay: s.ownTransferPriceOneWay,
+        ownTransferPriceRoundTrip: s.ownTransferPriceRoundTrip,
+        transferPrice: s.transferPrice, transferMarkup: s.transferMarkup,
+      });
+
+      // Строим lines для отображения
+      const lines = [
+        { label: '⛵ Аренда лодки', val: totals.boatBase || 0 },
+        { label: '🎫 Сборы', val: totals.fees || 0 },
+        { label: '🍽️ Питание', val: totals.catering || 0 },
+        { label: '🍹 Напитки', val: totals.drinks || 0 },
+        { label: '🏄 Водные развлечения', val: (totals.toys || 0) + (totals.partnerWatersports || 0) },
+        { label: '🎉 Персонал', val: totals.services || 0 },
+        { label: '🚐 Трансфер', val: totals.transfer || 0 },
+        { label: '📈 Наценка', val: totals.markup || 0 },
+      ].filter(l => l.val > 0);
+
+      const res = await fetch('/api/offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          boat_id: boat.boat_id,
+          boat_name: boat.boat_name,
+          search_date: s.searchDate,
+          guests: s.adults + s.extraAdults + s.children3to11 + s.childrenUnder3,
+          time_slot: s.timeSlot,
+          total_client: totals.totalClient || 0,
+          total_agent: totals.totalAgent || 0,
+          lang: s.lang,
+          notes: s.customNotes,
+          snapshot: { boat, lines },
+        }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        const url = `${window.location.origin}/offer/${data.id}`;
+        setOfferUrl(url);
+        await navigator.clipboard.writeText(url);
+        setOfferCopied(true);
+        setTimeout(() => setOfferCopied(false), 3000);
+      }
+    } catch(e) {
+      console.error('Ошибка создания предложения:', e);
+    }
+    setOfferLoading(false);
+  };
 
   const totals = calculateTotals({
     selectedBoat:s.selectedBoat, selectedExtras:s.selectedExtras, cateringOrders:s.cateringOrders,
@@ -109,6 +174,19 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
       <div className="os-summary-actions">
         <button onClick={generatePDF}       className="os-action-btn os-action-btn--pdf">📄 PDF</button>
         <button onClick={generateWhatsApp}  className="os-action-btn os-action-btn--wa">💬 WhatsApp</button>
+        <button onClick={generateOffer} disabled={offerLoading}
+          className="os-action-btn"
+          style={{ backgroundColor: offerCopied ? 'var(--os-green)' : '#7c3aed', opacity: offerLoading ? 0.7 : 1 }}>
+          {offerLoading ? '⏳...' : offerCopied ? '✅ Скопировано!' : '🔗 Ссылка'}
+        </button>
+        {offerUrl && (
+          <div style={{ width: '100%', marginTop: 8, padding: '8px 12px', borderRadius: 6,
+            backgroundColor: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)',
+            fontSize: 11, color: '#a78bfa', wordBreak: 'break-all', cursor: 'pointer' }}
+            onClick={() => { navigator.clipboard.writeText(offerUrl); setOfferCopied(true); setTimeout(()=>setOfferCopied(false),2000); }}>
+            🔗 {offerUrl}
+          </div>
+        )}
       </div>
     </div>
   );
