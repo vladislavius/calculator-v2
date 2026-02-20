@@ -152,8 +152,8 @@ export default function CalendarPage() {
               <div key={day} title={unavail ? getUnavailableTitle(new Date(dateStr), boat.unavailable) : 'Свободно'}
                 style={{
                   textAlign: 'center', padding: '6px 2px', borderRadius: 4, fontSize: 12,
-                  backgroundColor: isPast ? 'transparent' : unavail ? 'rgba(239,68,68,0.25)' : 'rgba(34,197,94,0.15)',
-                  color: isPast ? 'var(--os-text-3)' : unavail ? '#f87171' : '#4ade80',
+                  backgroundColor: isPast ? 'transparent' : unavail ? 'rgba(239,68,68,0.25)' : boat.has_calendar ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.03)',
+                  color: isPast ? 'var(--os-text-3)' : unavail ? '#f87171' : boat.has_calendar ? '#4ade80' : 'rgba(255,255,255,0.2)',
                   border: isToday ? '1px solid var(--os-aqua)' : '1px solid transparent',
                   fontWeight: isToday ? 700 : 400,
                   cursor: 'default'
@@ -283,10 +283,10 @@ export default function CalendarPage() {
                                 style={{ padding: '6px', textAlign: 'center' }}>
                                 <div style={{
                                   width: 36, height: 28, borderRadius: 4, margin: '0 auto',
-                                  backgroundColor: noData ? 'transparent' : unavail ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.25)',
-                                  border: noData ? '1px dashed var(--os-border)' : unavail ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(34,197,94,0.4)',
+                                  backgroundColor: noData ? 'rgba(255,255,255,0.03)' : unavail ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.25)',
+                                  border: noData ? '1px dashed rgba(255,255,255,0.1)' : unavail ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(34,197,94,0.4)',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11,
-                                  color: noData ? 'var(--os-text-3)' : unavail ? '#f87171' : '#4ade80'
+                                  color: noData ? 'rgba(255,255,255,0.2)' : unavail ? '#f87171' : '#4ade80'
                                 }}>
                                   {noData ? '?' : unavail ? '✗' : '✓'}
                                 </div>
