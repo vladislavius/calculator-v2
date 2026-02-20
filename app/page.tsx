@@ -816,215 +816,38 @@ export default function Home() {
       <Header />
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '8px' : '24px' }}>
-        {/* Search Panel - Modern UI */}
-        <div style={{ marginBottom: isMobile ? '12px' : '24px', padding: isMobile ? '12px' : '24px', backgroundColor: '#132840', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }}>
-            {/* Date */}
-            <div style={{ flex: '0.9', minWidth: '140px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>📅 Дата чартера</label>
-              <input
-                type="date"
-                value={searchDate}
-                onChange={(e) => setSearchDate(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s', color: '#e2e8f0' }}
-              />
-            </div>
-
-            {/* Destination with Autocomplete */}
-            <div style={{ flex: '2', minWidth: '200px', position: 'relative' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🗺️ Направление</label>
-              <input
-                placeholder="Phi Phi, Phang Nga, James Bond..."
-                value={destination}
-                onChange={(e) => { setDestination(e.target.value); setShowDestinationSuggestions(true); }}
-                onFocus={() => setShowDestinationSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s', color: '#e2e8f0' }}
-              />
-              {showDestinationSuggestions && destination && allRoutes.filter(r => {
-                const search = destination.toLowerCase().replace(/\s+/g, '');
-                const nameEn = (r.name_en || '').toLowerCase();
-                const nameRu = (r.name_ru || '').toLowerCase();
-                const nameEnNoSpace = nameEn.replace(/\s+/g, '');
-                // Search by exact match, no-space match, or partial words
-                return nameEn.includes(destination.toLowerCase()) ||
-                  nameRu.includes(destination.toLowerCase()) ||
-                  nameEnNoSpace.includes(search) ||
-                  destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
-              }).length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                    {allRoutes.filter(r => {
-                      const search = destination.toLowerCase().replace(/\s+/g, '');
-                      const nameEn = (r.name_en || '').toLowerCase();
-                      const nameRu = (r.name_ru || '').toLowerCase();
-                      const nameEnNoSpace = nameEn.replace(/\s+/g, '');
-                      // Search by exact match, no-space match, or partial words
-                      return nameEn.includes(destination.toLowerCase()) ||
-                        nameRu.includes(destination.toLowerCase()) ||
-                        nameEnNoSpace.includes(search) ||
-                        destination.toLowerCase().split(' ').every(word => nameEn.includes(word) || nameRu.includes(word));
-                    }).slice(0, 8).map(route => (
-                      <div
-                        key={route.id}
-                        onClick={() => { setDestination(route.name_en || route.name_ru || ""); setShowDestinationSuggestions(false); }}
-                        style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1a3050'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0f2337'}
-                      >
-                        <span style={{ fontWeight: '500' }}>{route.name_en}</span>
-                        {route.name_ru && <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{route.name_ru}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-            </div>
-
-            {/* Boat Name Search with Autocomplete */}
-            <div style={{ flex: '1.5', minWidth: '180px', position: 'relative' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚢 Название лодки</label>
-              <input
-                placeholder="Real, Princess, Chowa..."
-                value={boatNameSearch}
-                onChange={(e) => { setBoatNameSearch(e.target.value); setShowBoatSuggestions(true); }}
-                onFocus={() => setShowBoatSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowBoatSuggestions(false), 200)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', outline: 'none', transition: 'all 0.2s', color: '#e2e8f0' }}
-              />
-              {showBoatSuggestions && boatNameSearch && allBoats.filter(b => {
-                const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
-                const name = b.name.toLowerCase();
-                const nameNoSpace = name.replace(/\s+/g, '');
-                return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
-              }).length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                    {allBoats.filter(b => {
-                      const search = boatNameSearch.toLowerCase().replace(/\s+/g, '');
-                      const name = b.name.toLowerCase();
-                      const nameNoSpace = name.replace(/\s+/g, '');
-                      return name.includes(boatNameSearch.toLowerCase()) || nameNoSpace.includes(search);
-                    }).slice(0, 8).map(boat => (
-                      <div
-                        key={boat.id}
-                        onClick={() => { setBoatNameSearch(boat.name); setShowBoatSuggestions(false); }}
-                        style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: '14px' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1a3050'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0f2337'}
-                      >
-                        <span style={{ fontWeight: '500' }}>{boat.name}</span>
-                        <span style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '12px' }}>{boatPartners.find(p => p.id === boat.partner_id)?.name || ''}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-            </div>
-
-            {/* Partner Filter */}
-            <div style={{ flex: '1.5', minWidth: '180px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🏢 Партнёр</label>
-              <select
-                value={selectedPartnerFilter}
-                onChange={(e) => setSelectedPartnerFilter(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
-              >
-                <option value="">Все партнёры</option>
-                {boatPartners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-
-            {/* Boat Type */}
-            <div style={{ flex: '0.9', minWidth: '140px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>🚤 Тип лодки</label>
-              <select
-                value={boatType}
-                onChange={(e) => setBoatType(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
-              >
-                {boatTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
-
-            {/* Duration */}
-            <div style={{ flex: '1.2', minWidth: '200px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>⏱️ Длительность</label>
-              <select
-                value={timeSlot}
-                onChange={(e) => setTimeSlot(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
-              >
-                {timeSlots.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
-
-            {/* Season */}
-            <div style={{ flex: '0.9', minWidth: '130px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>📅 Сезон</label>
-              <select
-                value={season}
-                onChange={(e) => setSeason(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
-              >
-                {seasons.map(s => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div style={{ flex: '0.9', minWidth: '130px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>📊 Сортировка</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                style={{ width: '100%', padding: isMobile ? '10px 12px' : '14px 16px', border: isMobile ? '1px solid rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.1)', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '13px' : '15px', backgroundColor: '#0f2337', cursor: 'pointer', outline: 'none', color: '#e2e8f0' }}
-              >
-                <option value="price_asc">Цена ↑</option>
-                <option value="price_desc">Цена ↓</option>
-                <option value="size">Размер</option>
-                <option value="capacity">Вместимость</option>
-              </select>
-            </div>
-
-
-            {/* Guests */}
-            <div style={{ flex: "0.7", minWidth: "100px" }}>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "13px", fontWeight: "600", color: "#6b7280" }}>👥 Гостей</label>
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={adults}
-                onChange={(e) => setAdults(Math.max(1, Number(e.target.value)))}
-                style={{ width: "100%", padding: "14px 16px", border: "2px solid #e5e7eb", borderRadius: "12px", fontSize: "15px", backgroundColor: "#fafafa", outline: "none" }}
-              />
-            </div>
-            {/* Search Button */}
-            <div style={{ flex: '0 0 auto', marginLeft: 'auto' }}>
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                style={{
-                  padding: '14px 36px',
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.7 : 1,
-                  boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {loading ? '⏳ Поиск...' : '🔍 Найти лодки'}
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* Search Panel */}
+        <SearchPanel
+          searchDate={searchDate}
+          setSearchDate={setSearchDate}
+          destination={destination}
+          setDestination={setDestination}
+          showDestinationSuggestions={showDestinationSuggestions}
+          setShowDestinationSuggestions={setShowDestinationSuggestions}
+          allRoutes={allRoutes}
+          allBoats={allBoats}
+          boatPartners={boatPartners}
+          selectedPartnerFilter={selectedPartnerFilter}
+          setSelectedPartnerFilter={setSelectedPartnerFilter}
+          boatNameSearch={boatNameSearch}
+          setBoatNameSearch={setBoatNameSearch}
+          showBoatSuggestions={showBoatSuggestions}
+          setShowBoatSuggestions={setShowBoatSuggestions}
+          timeSlot={timeSlot}
+          setTimeSlot={setTimeSlot}
+          boatType={boatType}
+          setBoatType={setBoatType}
+          season={season}
+          setSeason={setSeason}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          adults={adults}
+          setAdults={setAdults}
+          showAgentPrice={showAgentPrice}
+          markupPercent={markupPercent}
+          handleSearch={handleSearch}
+          loading={loading}
+        />
 
         <SearchResults onSelectBoat={openBoatDetails} />
       </div>

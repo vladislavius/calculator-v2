@@ -16,92 +16,101 @@ interface DrinksSectionProps {
   removeDrink: (drinkId: string) => void;
 }
 
+const drinkRow = (active: boolean): React.CSSProperties => ({
+  display: 'flex', alignItems: 'center', gap: 10,
+  padding: '8px 12px', borderRadius: 'var(--r-sm)',
+  backgroundColor: active ? 'rgba(168,85,247,0.08)' : 'var(--os-surface)',
+  border: `1.5px solid ${active ? 'var(--os-purple)' : 'var(--os-border)'}`,
+  transition: 'all 0.15s', cursor: 'pointer',
+});
+
+const numInput: React.CSSProperties = {
+  width: 70, padding: '3px 6px', textAlign: 'right',
+  border: '1.5px solid var(--os-purple)', borderRadius: 4,
+  backgroundColor: 'var(--os-card)', color: 'var(--os-purple)',
+  fontSize: 12, fontWeight: 700, outline: 'none', flexShrink: 0,
+};
+
+const ctrBtn: React.CSSProperties = {
+  width: 24, height: 24, border: '1.5px solid var(--os-border)',
+  borderRadius: 4, backgroundColor: 'var(--os-card)', color: 'var(--os-text-1)',
+  cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+};
+
 export default function DrinksSection({ addDrink, removeDrink }: DrinksSectionProps) {
-  const boatDrinks = useCharterStore(s => s.boatDrinks);
-  const drinkOrders = useCharterStore(s => s.drinkOrders);
-  const set = useCharterStore(s => s.set);
-  const getPrice = useCharterStore(s => s.getPrice);
-  const setPrice = useCharterStore(s => s.setPrice);
+  const boatDrinks    = useCharterStore(s => s.boatDrinks);
+  const drinkOrders   = useCharterStore(s => s.drinkOrders);
+  const set           = useCharterStore(s => s.set);
+  const getPrice      = useCharterStore(s => s.getPrice);
+  const setPrice      = useCharterStore(s => s.setPrice);
+
+  const included = boatDrinks.filter(d => d.included);
+  const paid     = boatDrinks.filter(d => !d.included && d.price >= 0);
 
   return (
-    <div id="drinks" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#fdf4ff', borderRadius: '16px', border: '1px solid #e9d5ff' }}>
-      <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#7c3aed' }}>🍺 НАПИТКИ И АЛКОГОЛЬ</h3>
-      
-      {boatDrinks.filter(d => d.included).length > 0 && (
-        <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid rgba(46,204,113,0.2)' }}>
-          <span style={{ fontWeight: '600', color: '#166534' }}>Включено: </span>
-          {boatDrinks.filter(d => d.included).map((d, i) => (
-            <span key={d.id}>{i > 0 ? ', ' : ''}{d.name_en}</span>
+    <div id="drinks" className="os-section">
+      <div className="os-section__title" style={{ color: 'var(--os-purple)' }}>🍺 НАПИТКИ И АЛКОГОЛЬ</div>
+
+      {/* Включённые напитки */}
+      {included.length > 0 && (
+        <div style={{ marginBottom: 10, padding: '8px 12px', backgroundColor: 'rgba(34,197,94,0.07)', borderRadius: 'var(--r-sm)', border: '1px solid rgba(34,197,94,0.2)', fontSize: 13 }}>
+          <span style={{ fontWeight: 700, color: 'var(--os-green)' }}>✅ Включено: </span>
+          {included.map((d, i) => (
+            <span key={d.id} style={{ color: 'var(--os-text-1)' }}>{i > 0 ? ', ' : ''}{d.name_en}{d.name_ru && <span style={{ color: 'var(--os-text-3)', fontSize: 11 }}> ({d.name_ru})</span>}</span>
           ))}
         </div>
       )}
 
-      <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#7c3aed', fontWeight: '500' }}>➕ Добавить алкоголь?</p>
-
-      {boatDrinks.filter(d => !d.included && d.price > 0).length > 0 && (
-        <div style={{ padding: '16px', backgroundColor: '#132840', borderRadius: '12px', border: '1px solid #e9d5ff' }}>
-          <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#7c3aed' }}>С яхты:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-            {boatDrinks.filter(d => !d.included && d.price > 0).map(drink => {
+      {/* Платные напитки */}
+      {paid.length > 0 && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--os-purple)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>➕ Добавить напитки:</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+            {paid.map(drink => {
               const order = drinkOrders.find(o => String(o.drinkId) === String(drink.id));
               return (
-                <div key={drink.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: order ? '#f3e8ff' : '#fafafa', borderRadius: '8px', border: order ? '2px solid #a855f7' : '1px solid #e5e7eb' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={!!order} 
-                      onChange={() => {
-                        if (order) {
-                          removeDrink(String(drink.id));
-                        } else {
-                          addDrink(drink);
-                        }
-                      }}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                    />
-                    <span style={{ fontWeight: '500', fontSize: '14px' }}>{drink.name_en}</span>
+                <div key={drink.id} style={drinkRow(!!order)}
+                  onClick={() => { if (order) { removeDrink(String(drink.id)); } else { addDrink(drink); } }}>
+                  {/* Кастомный чекбокс */}
+                  <div style={{
+                    width: 15, height: 15, borderRadius: 3, flexShrink: 0,
+                    border: `2px solid ${order ? 'var(--os-purple)' : 'var(--os-border)'}`,
+                    backgroundColor: order ? 'var(--os-purple)' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {order && <span style={{ color: '#0C1825', fontSize: 9, fontWeight: 900 }}>✓</span>}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {/* Название */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--os-text-1)' }}>{drink.name_en}</div>
+                    {drink.name_ru && <div style={{ fontSize: 11, color: 'var(--os-text-3)' }}>{drink.name_ru}</div>}
+                  </div>
+                  {/* Счётчик + цена */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>
                     {order && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: Math.max(1, d.quantity - 1)} : d) })} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: '#132840', cursor: 'pointer' }}>−</button>
-                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '600' }}>{order.quantity}</span>
-                        <button onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: d.quantity + 1} : d) })} style={{ width: '24px', height: '24px', border: '1px solid #7c3aed', borderRadius: '4px', backgroundColor: '#132840', cursor: 'pointer' }}>+</button>
-                      </div>
+                      <>
+                        <button style={ctrBtn} onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: Math.max(1, d.quantity - 1)} : d) })}>−</button>
+                        <span style={{ minWidth: 24, textAlign: 'center', fontSize: 13, fontWeight: 700, color: 'var(--os-text-1)' }}>{order.quantity}</span>
+                        <button style={ctrBtn} onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: d.quantity + 1} : d) })}>+</button>
+                      </>
                     )}
-                    <span style={{ fontWeight: '600', color: '#7c3aed', fontSize: '14px', minWidth: '80px', textAlign: 'right' }}>
-                      {order ? (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <input
-                            type="number"
-                            value={getPrice(`drink_${drink.id}`, drink.price) * order.quantity}
-                            onChange={(e) => setPrice(`drink_${drink.id}`, Math.round(Number(e.target.value) / order.quantity))}
-                            onClick={(e) => e.stopPropagation()}
-                            style={{ width: '70px', padding: '2px 4px', border: '1px solid #a855f7', borderRadius: '4px', textAlign: 'right', fontSize: '13px' }}
-                          /> THB
-                        </span>
-                      ) : (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          +<input
-                            type="number"
-                            value={getPrice(`drink_${drink.id}`, drink.price)}
-                            onChange={(e) => setPrice(`drink_${drink.id}`, Number(e.target.value))}
-                            onClick={(e) => e.stopPropagation()}
-                            style={{ width: '60px', padding: '2px 4px', border: '1px solid #a855f7', borderRadius: '4px', textAlign: 'right', fontSize: '13px' }}
-                          /> THB
-                        </span>
-                      )}
-                    </span>
+                    <input
+                      type="number"
+                      value={getPrice(`drink_${drink.id}`, drink.price)}
+                      onChange={e => setPrice(`drink_${drink.id}`, Number(e.target.value))}
+                      style={numInput}
+                    />
+                    <span style={{ fontSize: 11, color: 'var(--os-purple)', fontWeight: 600, flexShrink: 0 }}>฿</span>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
+        </>
       )}
 
       {boatDrinks.length === 0 && (
-        <p style={{ color: '#64748b', fontStyle: 'italic' }}>Информация о напитках не указана в контракте</p>
+        <p style={{ color: 'var(--os-text-3)', fontStyle: 'italic', fontSize: 13 }}>Информация о напитках не указана в контракте</p>
       )}
     </div>
   );

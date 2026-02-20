@@ -1,65 +1,49 @@
 'use client';
-
 import { SearchResult, BoatOption, SelectedExtra, CateringOrder } from '../lib/types';
 import { t, Lang } from '../lib/i18n';
 
-interface BoatMenuItem {
-  id: number;
-  name_en: string;
-  name_ru?: string;
-  category?: string;
-  price: number;
-  included: boolean;
-  from_partner_menu?: boolean;
-  dishes?: string[];
-  dishes_ru?: string[];
-}
-
-interface CateringPartner {
-  id: number;
-  name: string;
-  description?: string;
-}
-
-interface CateringMenuItem {
-  id: number;
-  partner_id: number;
-  name_en: string;
-  name_ru?: string;
-  price_per_person: number;
-  min_persons: number;
-}
-
-interface PartnerMenu {
-  partner_id: number;
-  conditions?: string;
-  conditions_ru?: string;
-}
-
+interface BoatMenuItem { id:number; name_en:string; name_ru?:string; category?:string; price:number; included:boolean; from_partner_menu?:boolean; dishes?:string[]; dishes_ru?:string[]; }
+interface CateringPartner { id:number; name:string; description?:string; }
+interface CateringMenuItem { id:number; partner_id:number; name_en:string; name_ru?:string; price_per_person:number; min_persons:number; }
+interface PartnerMenu { partner_id:number; conditions?:string; conditions_ru?:string; }
 interface FoodSectionProps {
-  selectedBoat: SearchResult | null;
-  boatMenu: BoatMenuItem[];
-  boatOptions: BoatOption[];
-  cateringOrders: CateringOrder[];
-  setCateringOrders: (orders: CateringOrder[]) => void;
-  cateringPartners: CateringPartner[];
-  cateringMenu: CateringMenuItem[];
-  partnerMenus: PartnerMenu[];
-  selectedExtras: SelectedExtra[];
-  toggleExtra: (opt: BoatOption) => void;
-  expandedSections: Record<string, boolean>;
-  toggleSection: (section: string) => void;
-  customPrices: Record<string, number>;
-  getPrice: (key: string, defaultPrice: number) => number;
-  setPrice: (key: string, value: number) => void;
-  addMenuItem: (item: any) => void;
-  updateCateringPersons: (index: number, persons: number) => void;
-  adults: number;
-  children3to11: number;
-  selectedDishes: Record<string, number>;
-  setSelectedDishes: (fn: (prev: Record<string, number>) => Record<string, number>) => void;
-  lang: Lang;
+  selectedBoat:SearchResult|null; boatMenu:BoatMenuItem[]; boatOptions:BoatOption[];
+  cateringOrders:CateringOrder[]; setCateringOrders:(o:CateringOrder[])=>void;
+  cateringPartners:CateringPartner[]; cateringMenu:CateringMenuItem[]; partnerMenus:PartnerMenu[];
+  selectedExtras:SelectedExtra[]; toggleExtra:(o:BoatOption)=>void;
+  expandedSections:Record<string,boolean>; toggleSection:(s:string)=>void;
+  customPrices:Record<string,number>; getPrice:(k:string,d:number)=>number; setPrice:(k:string,v:number)=>void;
+  addMenuItem:(item:any)=>void; updateCateringPersons:(i:number,p:number)=>void;
+  adults:number; children3to11:number;
+  selectedDishes:Record<string,number>; setSelectedDishes:(fn:(prev:Record<string,number>)=>Record<string,number>)=>void;
+  lang:Lang;
 }
+
+// ── общие стили строк ──────────────────────────────────────────
+const rowGrid: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, 1fr)',
+  gap: '6px',
+  marginBottom: 14,
+};
+
+const row = (active:boolean, activeColor='var(--os-green)'): React.CSSProperties => ({
+  display:'flex', alignItems:'center', gap:10,
+  padding:'8px 12px', borderRadius:'var(--r-sm)',
+  backgroundColor: active ? `${activeColor}12` : 'var(--os-surface)',
+  border:`1.5px solid ${active ? activeColor : 'var(--os-border)'}`,
+  transition:'all 0.15s', cursor:'pointer',
+});
+const ctrBtn: React.CSSProperties = {
+  width:24, height:24, border:'1.5px solid var(--os-border)', borderRadius:4,
+  backgroundColor:'var(--os-card)', color:'var(--os-text-1)',
+  cursor:'pointer', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
+};
+const priceInput = (color='var(--os-gold)'): React.CSSProperties => ({
+  width:68, padding:'3px 6px', textAlign:'right',
+  border:`1.5px solid ${color}`, borderRadius:4,
+  backgroundColor:'var(--os-card)', color, fontSize:12, fontWeight:700, outline:'none', flexShrink:0,
+});
 
 export default function FoodSection({
   selectedBoat, boatMenu, boatOptions, cateringOrders, setCateringOrders,
@@ -68,327 +52,172 @@ export default function FoodSection({
   addMenuItem, updateCateringPersons, adults, children3to11,
   selectedDishes, setSelectedDishes, lang
 }: FoodSectionProps) {
+
+  const catLabels: Record<string,string> = { thai:'🇹🇭 Тайская', western:'🍝 Западная', vegetarian:'🥗 Вег.', kids:'👶 Детская', seafood:'🦐 Морепродукты', bbq:'🍖 BBQ', other:'🍽️ Другое' };
+
   return (
-              <div id="food" style={{ marginBottom: '24px', padding: '20px', backgroundColor: '#0d2137', borderRadius: '16px', border: '1px solid rgba(251,191,36,0.2)' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: '600', color: '#92400e' }}>🍽️ ПИТАНИЕ</h3>
-                
-                {/* Included menu sets from partner */}
-                {boatMenu.filter(m => m.included && m.from_partner_menu).length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#166534' }}>✅ Включено в стоимость — выберите сеты:</p>
-                    {(() => {
-                      const menu = partnerMenus.find(pm => pm.partner_id === selectedBoat?.partner_id);
-                      return (menu?.conditions_ru || menu?.conditions) ? (
-                        <div style={{ marginBottom: '12px', padding: '10px 14px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid rgba(251,191,36,0.2)', fontSize: '13px', color: '#92400e' }}>
-                          <strong>⚠️ ' + t('pdf.conditions', lang) + '</strong> {menu.conditions_ru || menu.conditions}
-                        </div>
-                      ) : null;
-                    })()}
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      {boatMenu.filter(m => m.included && m.from_partner_menu).map(set => {
-                        const isSelected = cateringOrders.some(c => String(c.packageId) === String(set.id));
-                        const orderIndex = cateringOrders.findIndex(c => String(c.packageId) === String(set.id));
-                        const order = orderIndex >= 0 ? cateringOrders[orderIndex] : null;
-                        const categoryLabels: Record<string, string> = { thai: '🇹🇭 Тайская', western: '🍝 Западная', vegetarian: '🥗 Вегетарианская', kids: '👶 Детская', seafood: '🦐 Морепродукты', bbq: '🍖 BBQ', other: '🍽️ Другое' };
-                        return (
-                          <div key={set.id} style={{ padding: '12px 16px', backgroundColor: isSelected ? '#0e3a2a' : '#0d2137', borderRadius: '10px', border: isSelected ? '2px solid #2ECC71' : '1px solid rgba(255,255,255,0.08)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: set.dishes ? '8px' : '0' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <input 
-                                  type="checkbox" 
-                                  checked={isSelected}
-                                  onChange={() => {
-                                    if (isSelected) {
-                                      setCateringOrders(cateringOrders.filter(c => String(c.packageId) !== String(set.id)));
-                                    } else {
-                                      setCateringOrders([...cateringOrders, { packageId: String(set.id), packageName: set.name_en + (set.name_ru ? ' (' + set.name_ru + ')' : ''), pricePerPerson: 0, persons: adults + children3to11, notes: '' }]);
-                                    }
-                                  }}
-                                  style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#22c55e' }}
-                                />
-                                <div>
-                                  <span style={{ fontWeight: '600', color: '#166534' }}>{set.name_en}</span>
-                                  {set.name_ru && <span style={{ marginLeft: '8px', fontSize: '13px', color: '#15803d' }}>({set.name_ru})</span>}
-                                  <span style={{ marginLeft: '10px', padding: '2px 8px', backgroundColor: '#0e3a2a', borderRadius: '4px', fontSize: '11px', color: '#166534' }}>{categoryLabels[set.category || 'other'] || set.category || 'other'}</span>
-                                </div>
-                              </div>
-                              {isSelected && order && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons - 1)} style={{ width: '28px', height: '28px', border: '1px solid #22c55e', borderRadius: '6px', backgroundColor: '#132840', cursor: 'pointer', fontWeight: 'bold', color: '#166534' }}>−</button>
-                                  <span style={{ minWidth: '50px', textAlign: 'center', fontWeight: '600', color: '#166534' }}>{order.persons} чел</span>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons + 1)} style={{ width: '28px', height: '28px', border: '1px solid #22c55e', borderRadius: '6px', backgroundColor: '#132840', cursor: 'pointer', fontWeight: 'bold', color: '#166534' }}>+</button>
-                                </div>
-                              )}
-                            </div>
-                            {set.dishes && set.dishes.length > 0 && (
-                              <div style={{ marginLeft: "30px", fontSize: "13px", color: "#15803d", display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
-                                {set.dishes.map((dish: string, i: number) => {
-                                  const isChoice = dish.match(/^Choice of|^Select|^Pick/i);
-                                  const dishRu = set.dishes_ru && set.dishes_ru[i] ? set.dishes_ru[i] : "";
-                                  const isChoiceRu = dishRu.match(/^На выбор/i);
-                                  if (isChoice || isChoiceRu) {
-                                    const label = dish.split(":")[0];
-                                    const labelRu = dishRu ? dishRu.split(":")[0] : "";
-                                    const options = dish.split(":").slice(1).join(":").split(",").map(o => o.trim()).filter(Boolean);
-                                    const optionsRu = dishRu ? dishRu.split(":").slice(1).join(":").split(",").map((o: string) => o.trim()).filter(Boolean) : [];
-                                    return (
-                                      <div key={i} style={{ padding: "10px 14px", backgroundColor: "#1a2a0a", borderRadius: "8px", border: "1px solid rgba(253,230,138,0.2)" }}>
-                                        <div style={{ fontWeight: "600", marginBottom: "8px", color: "#92400e" }}>{label}{labelRu ? ` (${labelRu})` : ""}:</div>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                          {options.map((opt, j) => {
-                                            const key = set.id + "_" + i + "_" + j;
-                                            const count = selectedDishes[key] || 0;
-                                            return (
-                                              <div key={j} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", borderRadius: "6px", backgroundColor: count > 0 ? '#0e3a2a' : '#0f2337' }}>
-                                                <span style={{ flex: 1 }}>{opt}{optionsRu[j] ? ` (${optionsRu[j]})` : ""}</span>
-                                                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "12px" }}>
-                                                  <button onClick={() => setSelectedDishes(prev => ({...prev, [key]: Math.max(0, (prev[key] || 0) - 1)}))} style={{ width: "26px", height: "26px", border: "1px solid #d1d5db", borderRadius: "6px", backgroundColor: "#132840", cursor: "pointer", fontSize: "14px" }}>−</button>
-                                                  <span style={{ minWidth: "24px", textAlign: "center", fontWeight: "600" }}>{count}</span>
-                                                  <button onClick={() => setSelectedDishes(prev => ({...prev, [key]: (prev[key] || 0) + 1}))} style={{ width: "26px", height: "26px", border: "1px solid #22c55e", borderRadius: "6px", backgroundColor: "#132840", cursor: "pointer", fontSize: "14px", color: "#166534" }}>+</button>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-                                  return (
-                                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                                      <span style={{ color: "#22c55e", marginTop: "2px" }}>•</span>
-                                      <span>{dish}{dishRu ? ` (${dishRu})` : ""}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Other included food (non-partner menu) */}
-                {(boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').length > 0 || boatMenu.filter(m => m.included && !m.from_partner_menu).length > 0) && (
-                  <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid rgba(46,204,113,0.2)' }}>
-                    <span style={{ fontWeight: '600', color: '#166534' }}>Также включено: </span>
-                    {boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').map((o, i) => (
-                      <span key={o.id}>{i > 0 ? ', ' : ''}{o.option_name}</span>
-                    ))}
-                    {boatMenu.filter(m => m.included && !m.from_partner_menu).map((m, i) => (
-                      <span key={m.id}>{(i > 0 || boatOptions.filter(o => o.category_code === 'food' && o.status === 'included').length > 0) ? ', ' : ''}{m.name_en}</span>
-                    ))}
-                  </div>
-                )}
+    <div id="food" className="os-section">
+      <div className="os-section__title" style={{color:'var(--os-gold)'}}>🍽️ ПИТАНИЕ</div>
 
-                <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#92400e', fontWeight: '500' }}>➕ Хотите улучшить?</p>
-
-                {/* Boat menu options */}
-                {boatMenu.filter(m => !m.included).length > 0 && (
-                  <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#132840', borderRadius: '12px', border: '1px solid rgba(251,191,36,0.2)' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#92400e' }}>● Меню с яхты:</p>
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                      {boatMenu.filter(m => !m.included).map(item => {
-                        const isAdded = cateringOrders.some(c => c.packageId === 'menu_' + String(item.id));
-                        const orderIndex = cateringOrders.findIndex(c => c.packageId === 'menu_' + String(item.id));
-                        const order = orderIndex >= 0 ? cateringOrders[orderIndex] : null;
-                        return (
-                          <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#1a2a0a' : '#0f2337', borderRadius: '8px', border: isAdded ? '2px solid #F4C430' : '1px solid rgba(255,255,255,0.08)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={isAdded} 
-                                onChange={() => {
-                                  if (isAdded) {
-                                    setCateringOrders(cateringOrders.filter(c => c.packageId !== 'menu_' + String(item.id)));
-                                  } else {
-                                    addMenuItem(item);
-                                  }
-                                }}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                              />
-                              <span style={{ fontWeight: '500' }}>{item.name_en}</span>
-                              {item.name_ru && <span style={{ fontSize: '13px', color: '#64748b' }}>({item.name_ru})</span>}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              {isAdded && order && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons - 1)} style={{ width: '28px', height: '28px', border: '1px solid #d97706', borderRadius: '6px', backgroundColor: '#132840', cursor: 'pointer', fontWeight: 'bold' }}>−</button>
-                                  <span style={{ minWidth: '60px', textAlign: 'center', fontWeight: '600' }}>{order.persons} чел</span>
-                                  <button onClick={() => updateCateringPersons(orderIndex, order.persons + 1)} style={{ width: '28px', height: '28px', border: '1px solid #d97706', borderRadius: '6px', backgroundColor: '#132840', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
-                                </div>
-                              )}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <input
-                                  type="number"
-                                  value={getPrice(`menu_${item.id}`, item.price)}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    setPrice(`menu_${item.id}`, val);
-                                    if (isAdded && orderIndex >= 0) {
-                                      const newOrders = [...cateringOrders];
-                                      newOrders[orderIndex] = {...newOrders[orderIndex], pricePerPerson: val};
-                                      setCateringOrders(newOrders);
-                                    }
-                                  }}
-                                  style={{ width: '70px', padding: '4px 6px', border: '1px solid #d97706', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px', color: '#d97706' }}
-                                />
-                                <span style={{ fontWeight: '600', color: '#d97706' }}>THB</span>
-                                {isAdded && order && (
-                                  <span style={{ marginLeft: '8px', fontWeight: '700', color: '#059669', fontSize: '14px' }}>
-                                    = {(order.pricePerPerson * order.persons).toLocaleString()} THB
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+      {/* ── Включённые сеты от партнёра ── */}
+      {boatMenu.filter(m=>m.included && m.from_partner_menu).length > 0 && (
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:'var(--os-green)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8}}>
+            ✅ Включено — выберите сеты:
+          </div>
+          {(() => {
+            const menu = partnerMenus.find(pm=>pm.partner_id===selectedBoat?.partner_id);
+            return (menu?.conditions_ru||menu?.conditions) ? (
+              <div style={{padding:'8px 12px',backgroundColor:'var(--os-surface)',borderRadius:'var(--r-sm)',border:'1px solid rgba(245,158,11,0.2)',fontSize:12,color:'var(--os-gold)',marginBottom:8}}>
+                ⚠️ {menu.conditions_ru||menu.conditions}
+              </div>
+            ) : null;
+          })()}
+          <div style={rowGrid}>
+          {boatMenu.filter(m=>m.included&&m.from_partner_menu).map(set=>{
+            const isSelected = cateringOrders.some(c=>String(c.packageId)===String(set.id));
+            const orderIndex = cateringOrders.findIndex(c=>String(c.packageId)===String(set.id));
+            const order = orderIndex>=0 ? cateringOrders[orderIndex] : null;
+            return (
+              <div key={set.id} style={row(isSelected,'var(--os-green)')}
+                onClick={()=>{ if(isSelected){setCateringOrders(cateringOrders.filter(c=>String(c.packageId)!==String(set.id)));}
+                  else{setCateringOrders([...cateringOrders,{packageId:String(set.id),packageName:set.name_en+(set.name_ru?` (${set.name_ru})`:''),pricePerPerson:0,persons:adults+children3to11,notes:''}]);} }}>
+                <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isSelected?'var(--os-green)':'var(--os-border)'}`,backgroundColor:isSelected?'var(--os-green)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {isSelected&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
+                </div>
+                <span style={{flex:1,fontSize:13,fontWeight:600,color:isSelected?'var(--os-text-1)':'var(--os-text-2)'}}>{set.name_en}{set.name_ru&&<span style={{fontWeight:400,color:'var(--os-text-3)',fontSize:12}}> ({set.name_ru})</span>}</span>
+                <span style={{fontSize:10,padding:'1px 6px',borderRadius:3,backgroundColor:'rgba(34,197,94,0.15)',color:'var(--os-green)',fontWeight:600,flexShrink:0}}>{catLabels[set.category||'other']||set.category}</span>
+                {isSelected&&order&&(
+                  <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
+                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons-1)}>−</button>
+                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700,color:'var(--os-green)'}}>{order.persons}чел</span>
+                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons+1)}>+</button>
                   </div>
-                )}
-
-                {/* Boat paid food options */}
-                {boatOptions.filter(o => o.category_code === 'food' && o.status === 'paid_optional').length > 0 && (
-                  <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#132840', borderRadius: '12px', border: '1px solid rgba(251,191,36,0.2)' }}>
-                    <p style={{ margin: '0 0 12px', fontWeight: '600', color: '#92400e' }}>● Дополнительное питание с яхты:</p>
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                      {boatOptions.filter(o => o.category_code === 'food' && o.status === 'paid_optional').map(opt => {
-                        const isAdded = selectedExtras.some(e => e.optionId === opt.id);
-                        const extra = selectedExtras.find(e => e.optionId === opt.id);
-                        return (
-                          <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#1a2a0a' : '#0f2337', borderRadius: '8px', border: isAdded ? '2px solid #F4C430' : '1px solid rgba(255,255,255,0.08)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={isAdded} 
-                                onChange={() => toggleExtra(opt)}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                              />
-                              <span style={{ fontWeight: '500' }}>{opt.option_name}</span>
-                            </div>
-                            <span style={{ fontWeight: '600', color: '#d97706' }}>+{opt.price} THB{opt.price_per === 'person' ? '/чел' : ''}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Catering partners - Collapsible */}
-                {cateringPartners.length > 0 && (
-                  <div style={{ borderRadius: '12px', border: '1px solid rgba(167,139,250,0.2)', overflow: 'hidden' }}>
-                    {/* Header - clickable to expand */}
-                    <div 
-                      onClick={() => toggleSection('partnerCatering')}
-                      style={{ padding: '14px 16px', backgroundColor: '#0d1f35', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>{expandedSections.partnerCatering ? '▼' : '▶'}</span>
-                        <span style={{ fontWeight: '600', color: '#7c3aed' }}>🍽️ Кейтеринг от партнёров</span>
-                        <span style={{ fontSize: '13px', color: '#64748b' }}>({cateringPartners.length} партнёров)</span>
-                      </div>
-                    </div>
-                    
-                    {/* Content - collapsible */}
-                    {expandedSections.partnerCatering && (
-                      <div style={{ padding: '16px', backgroundColor: '#132840' }}>
-                        {cateringPartners.map(partner => (
-                          <div key={partner.id} style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#0d1f35', borderRadius: '10px', border: '1px solid rgba(167,139,250,0.2)' }}>
-                            {/* Partner header with markup slider */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <div>
-                                <span style={{ fontWeight: '600', color: '#7c3aed', fontSize: '16px' }}>{partner.name}</span>
-                                {partner.description && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>{partner.description}</p>}
-                              </div>
-                            </div>
-                            
-                            {/* Menu items */}
-                            <div style={{ display: 'grid', gap: '8px' }}>
-                              {cateringMenu.filter(m => m.partner_id === partner.id).map(item => {
-                                const isAdded = cateringOrders.some(c => c.packageId === 'db_' + String(item.id));
-                                const orderIndex = cateringOrders.findIndex(c => c.packageId === 'db_' + String(item.id));
-                                const order = orderIndex >= 0 ? cateringOrders[orderIndex] : null;
-                                
-                                return (
-                                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? '#1a0a2a' : '#0f2337', borderRadius: '8px', border: isAdded ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,0.08)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      <input 
-                                        type="checkbox" 
-                                        checked={isAdded} 
-                                        onChange={() => {
-                                          if (isAdded) {
-                                            setCateringOrders(cateringOrders.filter(c => c.packageId !== 'db_' + String(item.id)));
-                                          } else {
-                                            // Add with markup applied
-                                            const customPrice = customPrices['catering_' + item.id] !== undefined ? customPrices['catering_' + item.id] : item.price_per_person;
-                                            setCateringOrders([...cateringOrders, {
-                                              packageId: 'db_' + String(item.id),
-                                              packageName: item.name_en + ' (' + partner.name + ')',
-                                              pricePerPerson: customPrice,
-                                              persons: Math.max(adults, item.min_persons),
-                                              minPersons: item.min_persons,
-                                              notes: ''
-                                            }]);
-                                          }
-                                        }}
-                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                                      />
-                                      <div>
-                                        <span style={{ fontWeight: '500' }}>{item.name_en}</span>
-                                        {item.name_ru && <span style={{ marginLeft: '6px', fontSize: '13px', color: '#64748b' }}>({item.name_ru})</span>}
-                                        <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#475569' }}>мин. {item.min_persons} чел</p>
-                                      </div>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      {isAdded && order && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <button onClick={() => updateCateringPersons(orderIndex, order.persons - 1)} style={{ width: '28px', height: '28px', border: '1px solid #7c3aed', borderRadius: '6px', backgroundColor: '#132840', cursor: 'pointer', fontWeight: 'bold' }}>−</button>
-                                          <span style={{ minWidth: '50px', textAlign: 'center', fontWeight: '600' }}>{order.persons} чел</span>
-                                          <button onClick={() => updateCateringPersons(orderIndex, order.persons + 1)} style={{ width: '28px', height: '28px', border: '1px solid #7c3aed', borderRadius: '6px', backgroundColor: '#132840', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
-                                        </div>
-                                      )}
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <input
-                                          type="number"
-                                          value={getPrice(`catering_${item.id}`, item.price_per_person)}
-                                          onClick={(e) => e.stopPropagation()}
-                                          onChange={(e) => {
-                                            const val = Number(e.target.value);
-                                            setPrice(`catering_${item.id}`, val);
-                                            if (isAdded && orderIndex >= 0) {
-                                              const newOrders = [...cateringOrders];
-                                              newOrders[orderIndex] = {...newOrders[orderIndex], pricePerPerson: val};
-                                              setCateringOrders(newOrders);
-                                            }
-                                          }}
-                                          style={{ width: '70px', padding: '4px 6px', border: '1px solid #7c3aed', borderRadius: '6px', textAlign: 'right', fontWeight: '600', fontSize: '14px', color: '#7c3aed' }}
-                                        />
-                                        <span style={{ fontWeight: '600', color: '#7c3aed' }}>THB</span>
-                                        {isAdded && order && (
-                                          <span style={{ marginLeft: '8px', fontWeight: '700', color: '#059669', fontSize: '14px' }}>
-                                            = {(order.pricePerPerson * order.persons).toLocaleString()} THB
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {boatMenu.length === 0 && boatOptions.filter(o => o.category_code === 'food').length === 0 && cateringPartners.length === 0 && (
-                  <p style={{ color: '#64748b', fontStyle: 'italic' }}>Информация о питании не загружена</p>
                 )}
               </div>
+            );
+          })}
+        </div>
+        </div>
+      )}
 
+      {/* ── Меню с яхты (платное) ── */}
+      {boatMenu.filter(m=>!m.included).length > 0 && (
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:'var(--os-gold)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8}}>🍽️ Меню с яхты:</div>
+          <div style={rowGrid}>
+          {boatMenu.filter(m=>!m.included).map(item=>{
+            const isAdded = cateringOrders.some(c=>c.packageId==='menu_'+String(item.id));
+            const orderIndex = cateringOrders.findIndex(c=>c.packageId==='menu_'+String(item.id));
+            const order = orderIndex>=0 ? cateringOrders[orderIndex] : null;
+            return (
+              <div key={item.id} style={row(isAdded,'var(--os-gold)')}
+                onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!=='menu_'+String(item.id)));} else{addMenuItem(item);} }}>
+                <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
+                </div>
+                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)'}}>{item.name_en}{item.name_ru&&<span style={{color:'var(--os-text-3)',fontSize:12}}> ({item.name_ru})</span>}</span>
+                {isAdded&&order&&(
+                  <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
+                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons-1)}>−</button>
+                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700}}>{order.persons}чел</span>
+                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons+1)}>+</button>
+                  </div>
+                )}
+                <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
+                  <input type="number" value={getPrice(`menu_${item.id}`,item.price)}
+                    onChange={e=>{const v=Number(e.target.value);setPrice(`menu_${item.id}`,v);if(isAdded&&orderIndex>=0){const o=[...cateringOrders];o[orderIndex]={...o[orderIndex],pricePerPerson:v};setCateringOrders(o);}}}
+                    style={priceInput('var(--os-gold)')} />
+                  <span style={{fontSize:11,color:'var(--os-gold)',fontWeight:600}}>THB</span>
+                  {isAdded&&order&&<span style={{fontSize:11,fontWeight:700,color:'var(--os-green)',minWidth:60,textAlign:'right'}}>={( order.pricePerPerson*order.persons).toLocaleString()}</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        </div>
+      )}
+
+      {/* ── Платные опции с яхты ── */}
+      {boatOptions.filter(o=>o.category_code==='food'&&o.status==='paid_optional').length > 0 && (
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:'var(--os-gold)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8}}>➕ Доп. питание с яхты:</div>
+          <div style={rowGrid}>
+          {boatOptions.filter(o=>o.category_code==='food'&&o.status==='paid_optional').map(opt=>{
+            const isAdded = selectedExtras.some(e=>e.optionId===opt.id);
+            return (
+              <div key={opt.id} style={row(isAdded,'var(--os-gold)')} onClick={()=>toggleExtra(opt)}>
+                <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
+                </div>
+                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)'}}>{opt.option_name}</span>
+                <span style={{fontSize:12,fontWeight:700,color:'var(--os-gold)',flexShrink:0}}>+{opt.price} THB{opt.price_per==='person'?'/чел':''}</span>
+              </div>
+            );
+          })}
+        </div>
+        </div>
+      )}
+
+      {/* ── Кейтеринг от партнёров ── */}
+      {cateringPartners.length > 0 && (
+        <div style={{border:'1px solid var(--os-border)',borderRadius:'var(--r-md)',overflow:'hidden'}}>
+          <div onClick={()=>toggleSection('partnerCatering')}
+            style={{padding:'10px 14px',backgroundColor:'var(--os-surface)',cursor:'pointer',display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:12,color:'var(--os-text-3)'}}>{expandedSections.partnerCatering?'▼':'▶'}</span>
+            <span style={{fontWeight:700,color:'var(--os-purple)',fontSize:13}}>🍽️ Кейтеринг от партнёров</span>
+            <span style={{fontSize:11,color:'var(--os-text-3)'}}>({cateringPartners.length} партнёров)</span>
+          </div>
+          {expandedSections.partnerCatering && (
+            <div style={{padding:'12px 14px',backgroundColor:'var(--os-card)'}}>
+              {cateringPartners.map(partner=>(
+                <div key={partner.id} style={{marginBottom:16}}>
+                  <div style={{fontSize:13,fontWeight:700,color:'var(--os-purple)',marginBottom:4}}>{partner.name}</div>
+                  {partner.description&&<div style={{fontSize:11,color:'var(--os-text-3)',marginBottom:8}}>{partner.description}</div>}
+                  <div style={rowGrid}>
+                  {cateringMenu.filter(m=>m.partner_id===partner.id).map(item=>{
+                    const isAdded = cateringOrders.some(c=>c.packageId==='db_'+String(item.id));
+                    const orderIndex = cateringOrders.findIndex(c=>c.packageId==='db_'+String(item.id));
+                    const order = orderIndex>=0 ? cateringOrders[orderIndex] : null;
+                    return (
+                      <div key={item.id} style={row(isAdded,'var(--os-purple)')}
+                        onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!=='db_'+String(item.id)));}
+                          else{const cp=customPrices['catering_'+item.id]!==undefined?customPrices['catering_'+item.id]:item.price_per_person;setCateringOrders([...cateringOrders,{packageId:'db_'+String(item.id),packageName:item.name_en+' ('+partner.name+')',pricePerPerson:cp,persons:Math.max(adults,item.min_persons),minPersons:item.min_persons,notes:''}]);} }}>
+                        <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-purple)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-purple)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                          {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
+                        </div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:13,fontWeight:500,color:'var(--os-text-1)'}}>{item.name_en}{item.name_ru&&<span style={{color:'var(--os-text-3)',fontSize:11}}> ({item.name_ru})</span>}</div>
+                          <div style={{fontSize:10,color:'var(--os-text-3)'}}>мин. {item.min_persons} чел</div>
+                        </div>
+                        {isAdded&&order&&(
+                          <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
+                            <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons-1)}>−</button>
+                            <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700}}>{order.persons}чел</span>
+                            <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons+1)}>+</button>
+                          </div>
+                        )}
+                        <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
+                          <input type="number" value={getPrice(`catering_${item.id}`,item.price_per_person)}
+                            onChange={e=>{const v=Number(e.target.value);setPrice(`catering_${item.id}`,v);if(isAdded&&orderIndex>=0){const o=[...cateringOrders];o[orderIndex]={...o[orderIndex],pricePerPerson:v};setCateringOrders(o);}}}
+                            style={priceInput('var(--os-purple)')} />
+                          <span style={{fontSize:11,color:'var(--os-purple)',fontWeight:600}}>THB</span>
+                          {isAdded&&order&&<span style={{fontSize:11,fontWeight:700,color:'var(--os-green)',minWidth:60,textAlign:'right'}}>={(order.pricePerPerson*order.persons).toLocaleString()}</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {boatMenu.length===0&&boatOptions.filter(o=>o.category_code==='food').length===0&&cateringPartners.length===0&&(
+        <p style={{color:'var(--os-text-3)',fontStyle:'italic',fontSize:13}}>Информация о питании не загружена</p>
+      )}
+    </div>
   );
 }
