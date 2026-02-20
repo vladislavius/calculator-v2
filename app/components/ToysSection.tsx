@@ -159,16 +159,16 @@ export default function ToysSection({
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {(item.price_per_hour || 0) > 0 && (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'hours', Math.max(1, (pw.hours || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>−</button>
+                                    <button onClick={() => updatePartnerWatersport(item.id, 'hours', Math.max(1, (pw.hours || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                                     <span style={{ minWidth: '40px', textAlign: 'center', fontSize: '13px' }}>{pw.hours} ч</span>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'hours', (pw.hours || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>+</button>
+                                    <button onClick={() => updatePartnerWatersport(item.id, 'hours', (pw.hours || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                                   </div>
                                 )}
                                 {(item.price_per_day || 0) > 0 && (item.price_per_hour || 0) === 0 && (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'days', Math.max(1, (pw.days || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>−</button>
+                                    <button onClick={() => updatePartnerWatersport(item.id, 'days', Math.max(1, (pw.days || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                                     <span style={{ minWidth: '40px', textAlign: 'center', fontSize: '13px' }}>{pw.days} дн</span>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'days', (pw.days || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid #0891b2', borderRadius: '4px', cursor: 'pointer' }}>+</button>
+                                    <button onClick={() => updatePartnerWatersport(item.id, 'days', (pw.days || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                                   </div>
                                 )}
                               </div>
