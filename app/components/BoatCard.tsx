@@ -2,6 +2,7 @@
 import { SearchResult } from '../lib/types';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useBoatAvailability } from '../hooks/useBoatAvailability';
+import { useUserRole } from '../hooks/useUserRole';
 
 interface Props { boat: SearchResult; showAgentPrice: boolean; markupPercent: number; onSelect: (b: SearchResult) => void; searchDate?: string; }
 
@@ -15,6 +16,7 @@ export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect
   const clientPrice = Math.round((boat.calculated_total || 0) * (1 + markupPercent / 100));
   const agentPrice  = boat.calculated_agent_total || boat.base_price || 0;
   const availDays   = useBoatAvailability(boat.boat_id, searchDate);
+  const { isAdmin }  = useUserRole();
 
   return (
     <div className="os-boat-card" onClick={() => onSelect(boat)}>
@@ -32,7 +34,7 @@ export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect
         <div className="os-boat-card__header">
           <div style={{ minWidth: 0 }}>
             <div className="os-boat-card__name">{boat.boat_name}</div>
-            <div className="os-boat-card__partner">{boat.partner_name}</div>
+            {isAdmin && <div className="os-boat-card__partner">{boat.partner_name}</div>}
           </div>
           <div className="os-boat-card__price-wrap">
             {showAgentPrice && <div className="os-boat-card__agent">Агент: {agentPrice.toLocaleString()} ฿</div>}

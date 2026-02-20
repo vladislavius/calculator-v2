@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase as sb } from '../../../lib/supabase';
+import PartnerDetail from './PartnerDetail';
 
 type Partner = {
   id: number; name: string; contact_name: string; contact_phone: string;
