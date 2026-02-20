@@ -1,16 +1,20 @@
 'use client';
 import { SearchResult } from '../lib/types';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useBoatAvailability } from '../hooks/useBoatAvailability';
 
-interface Props { boat: SearchResult; showAgentPrice: boolean; markupPercent: number; onSelect: (b: SearchResult) => void; }
+interface Props { boat: SearchResult; showAgentPrice: boolean; markupPercent: number; onSelect: (b: SearchResult) => void; searchDate?: string; }
 
 const seasonLabel = (s: string) => ({ peak:'🔥 Пик', high:'☀️ Высокий', low:'🌧️ Низкий', all:'📅 Все' }[s] || s);
 const typeIcon    = (t: string) => ({ catamaran:'⛵', sailing_catamaran:'⛵', speedboat:'🚤', yacht:'🛥️' }[t] || '🚢');
 
-export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect }: Props) {
+const DAY_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect, searchDate }: Props) {
   const isMobile    = useIsMobile();
   const clientPrice = Math.round((boat.calculated_total || 0) * (1 + markupPercent / 100));
   const agentPrice  = boat.calculated_agent_total || boat.base_price || 0;
+  const availDays   = useBoatAvailability(boat.boat_id, searchDate);
 
   return (
     <div className="os-boat-card" onClick={() => onSelect(boat)}>
@@ -45,6 +49,48 @@ export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect
           <span>🗺️</span><span>{boat.route_name}</span>
           {boat.fuel_surcharge > 0 && <span className="os-fuel-badge">⛽ +{boat.fuel_surcharge.toLocaleString()}</span>}
         </div>
+
+        {/* 7 квадратиков доступности */}
+        {availDays.length > 0 && (
+          <div style={{ display: 'flex', gap: 3, marginTop: 8, marginBottom: 4 }} onClick={e => e.stopPropagation()}>
+            {availDays.map((d, i) => (
+              <div key={i} title={`${DAY_SHORT[d.date.getDay()]} ${d.date.getDate()}.${String(d.date.getMonth()+1).padStart(2,'0')} — ${d.status === 'free' ? 'Свободна' : d.status === 'busy' ? 'Занята' : 'Нет данных'}`}
+                style={{
+                  flex: 1,
+                  height: 20,
+                  borderRadius: 3,
+                  backgroundColor:
+                    d.status === 'free'    ? 'rgba(34,197,94,0.35)'  :
+                    d.status === 'busy'    ? 'rgba(239,68,68,0.45)'  :
+                    'rgba(255,255,255,0.07)',
+                  border: d.isSearchDate
+                    ? '1.5px solid var(--os-aqua)'
+                    : d.status === 'free'  ? '1px solid rgba(34,197,94,0.5)'
+                    : d.status === 'busy'  ? '1px solid rgba(239,68,68,0.5)'
+                    : '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 9, fontWeight: 600,
+                  color:
+                    d.status === 'free' ? '#4ade80' :
+                    d.status === 'busy' ? '#f87171' :
+                    'rgba(255,255,255,0.2)',
+                  cursor: 'default',
+                  position: 'relative'
+                }}>
+                {d.date.getDate()}
+              </div>
+            ))}
+          </div>
+        )}
+        {availDays.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+            <a href="/calendar" onClick={e => e.stopPropagation()}
+              style={{ fontSize: 10, color: 'var(--os-aqua)', textDecoration: 'none', opacity: 0.7 }}>
+              📅 полный календарь
+            </a>
+          </div>
+        )}
+
         <button className="os-btn-select">Выбрать и рассчитать →</button>
       </div>
     </div>

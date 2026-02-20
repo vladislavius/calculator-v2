@@ -33,7 +33,7 @@ export default function SearchResults({ onSelectBoat }: { onSelectBoat: (b: Sear
       </div>
       <div className="os-boat-grid">
         {results.map((boat, i) => (
-          <BoatCard key={i} boat={boat} showAgentPrice={showAgentPrice} markupPercent={markupPercent} onSelect={onSelectBoat} />
+          <BoatCard key={i} boat={boat} showAgentPrice={showAgentPrice} markupPercent={markupPercent} onSelect={onSelectBoat} searchDate={searchDate} />
         ))}
       </div>
     </div>
