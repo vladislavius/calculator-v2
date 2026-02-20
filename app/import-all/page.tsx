@@ -172,6 +172,7 @@ export default function UnifiedImportPage() {
 
   return (
     <AdminGuard>
+      <>
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
         backgroundColor: 'var(--os-card, #112233)',
@@ -188,7 +189,7 @@ export default function UnifiedImportPage() {
           fontWeight: 600,
         }}>⚙️ ← Назад в админку</a>
       </div>
-      <div style={{minHeight:'100vh',backgroundColor:'#0C1825'}}>
+    <div style={{minHeight:'100vh',backgroundColor:'var(--os-bg)'}}>
       <div style={{maxWidth:'1200px',margin:'0 auto',padding:'24px'}}>
 
         {/* Header */}
@@ -198,7 +199,7 @@ export default function UnifiedImportPage() {
             <p style={{color:'#6b7280',margin:'4px 0 0',fontSize:'14px'}}>Импорт прайсов и каталогов партнёров</p>
           </div>
           <div style={{display:'flex',gap:'10px'}}>
-            <a href="/partners" style={{padding:'10px 18px',backgroundColor:'#132840',borderRadius:'10px',color:'#cbd5e1',textDecoration:'none',fontWeight:'500',border:'1px solid rgba(255,255,255,0.08)',fontSize:'14px'}}>👥 Партнёры</a>
+            <a href="/partners" style={{padding:'10px 18px',backgroundColor:'var(--os-card)',borderRadius:'10px',color:'#cbd5e1',textDecoration:'none',fontWeight:'500',border:'1px solid rgba(255,255,255,0.08)',fontSize:'14px'}}>👥 Партнёры</a>
             <a href="/" style={{padding:'10px 18px',backgroundColor:'#2563eb',borderRadius:'10px',color:'white',textDecoration:'none',fontWeight:'500',fontSize:'14px',boxShadow:'0 2px 8px rgba(37,99,235,0.3)'}}>← Калькулятор</a>
           </div>
         </div>
@@ -210,7 +211,7 @@ export default function UnifiedImportPage() {
               onClick={() => { setActiveType(tab.type); setSelectedPartnerId(null); setParsedItems([]); setContractText(''); }}
               style={{
                 display:'flex',alignItems:'center',gap:'12px',padding:'16px 20px',
-                backgroundColor: activeType===tab.type ? tab.bg : '#132840',
+                backgroundColor: activeType===tab.type ? tab.bg : 'var(--os-card)',
                 border: activeType===tab.type ? '2px solid '+tab.border : '1px solid #e5e7eb',
                 borderRadius:'14px',cursor:'pointer',transition:'all 0.2s',
                 boxShadow: activeType===tab.type ? '0 4px 12px rgba(0,0,0,0.08)' : '0 1px 3px rgba(0,0,0,0.04)',
@@ -226,7 +227,7 @@ export default function UnifiedImportPage() {
         </div>
 
         {/* Main Content */}
-        <div style={{backgroundColor:'#132840',borderRadius:'16px',boxShadow:'0 1px 3px rgba(0,0,0,0.08)',overflow:'hidden'}}>
+        <div style={{backgroundColor:'var(--os-card)',borderRadius:'16px',boxShadow:'0 1px 3px rgba(0,0,0,0.08)',overflow:'hidden'}}>
 
           {/* Content Header */}
           <div style={{padding:'20px 24px',borderBottom:'1px solid rgba(255,255,255,0.08)',display:'flex',alignItems:'center',gap:'10px'}}>
@@ -272,7 +273,7 @@ export default function UnifiedImportPage() {
                   <label style={{display:'block',fontSize:'14px',fontWeight:'600',marginBottom:'8px',color:'#cbd5e1'}}>Партнёр</label>
                   <div style={{display:'flex',gap:'10px'}}>
                     <select value={selectedPartnerId||''} onChange={e => setSelectedPartnerId(e.target.value ? Number(e.target.value) : null)}
-                      style={{flex:1,padding:'10px 14px',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'10px',fontSize:'14px',backgroundColor:'#0f2337'}}>
+                      style={{flex:1,padding:'10px 14px',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'10px',fontSize:'14px',backgroundColor:'var(--os-surface)'}}>
                       <option value="">Выберите партнёра...</option>
                       {getCurrentPartners().map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
@@ -290,7 +291,7 @@ export default function UnifiedImportPage() {
                   <label style={{display:'block',fontSize:'14px',fontWeight:'600',marginBottom:'8px',color:'#cbd5e1'}}>Прайс-лист</label>
                   <textarea value={contractText} onChange={e => setContractText(e.target.value)}
                     placeholder={'Вставьте прайс партнёра:\nТом Ям — 350 THB\nПад Тай — 250 THB\nBBQ Seafood — 1500 THB'}
-                    style={{width:'100%',padding:'14px',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'10px',minHeight:'140px',fontFamily:'monospace',fontSize:'13px',backgroundColor:'#0f2337',resize:'vertical'}} />
+                    style={{width:'100%',padding:'14px',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'10px',minHeight:'140px',fontFamily:'monospace',fontSize:'13px',backgroundColor:'var(--os-surface)',resize:'vertical'}} />
                 </div>
 
                 {/* Action Buttons */}
@@ -300,7 +301,7 @@ export default function UnifiedImportPage() {
                     {loading ? '⏳ Анализ...' : '🤖 AI-распознавание'}
                   </button>
                   <button onClick={parseSimple} disabled={!selectedPartnerId||contractText.length<10}
-                    style={{padding:'12px 24px',backgroundColor:'#132840',color:'#cbd5e1',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'10px',cursor:'pointer',fontWeight:'500',fontSize:'14px',opacity:selectedPartnerId&&contractText.length>=10?1:0.5}}>
+                    style={{padding:'12px 24px',backgroundColor:'var(--os-card)',color:'#cbd5e1',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'10px',cursor:'pointer',fontWeight:'500',fontSize:'14px',opacity:selectedPartnerId&&contractText.length>=10?1:0.5}}>
                     📝 Простой парсинг
                   </button>
                 </div>
@@ -316,7 +317,7 @@ export default function UnifiedImportPage() {
                       </button>
                     </div>
                     {parsedItems.map((item: any, idx: number) => (
-                      <div key={idx} style={{display:'flex',alignItems:'center',padding:'10px 20px',borderBottom:'1px solid rgba(255,255,255,0.08)',gap:'10px',backgroundColor:idx%2===0?'#132840':'#0f2337'}}>
+                      <div key={idx} style={{display:'flex',alignItems:'center',padding:'10px 20px',borderBottom:'1px solid rgba(255,255,255,0.08)',gap:'10px',backgroundColor:idx%2===0?'var(--os-card)':'var(--os-surface)'}}>
                         <span style={{color:'#9ca3af',fontSize:'12px',width:'24px'}}>{idx+1}</span>
                         <input value={item.name_en||''} onChange={e => updateItem(idx,'name_en',e.target.value)}
                           style={{flex:2,padding:'8px 10px',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',fontSize:'13px'}} placeholder="Name EN" />
@@ -343,7 +344,7 @@ export default function UnifiedImportPage() {
                     ) : (
                       <div style={{border:'1px solid rgba(255,255,255,0.08)',borderRadius:'12px',overflow:'hidden'}}>
                         {getItemsForPartner(selectedPartnerId).map((item: any, idx: number) => (
-                          <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,0.05)',backgroundColor:idx%2===0?'#132840':'#0f2337'}}>
+                          <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,0.05)',backgroundColor:idx%2===0?'var(--os-card)':'var(--os-surface)'}}>
                             {editingItem?.id === item.id ? (
                               <>
                                 <input value={editingItem.name_en||''} onChange={e => setEditingItem({...editingItem, name_en: e.target.value})}
@@ -359,7 +360,7 @@ export default function UnifiedImportPage() {
                                   }}
                                   style={{width:'80px',padding:'6px 8px',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'6px',fontSize:'13px',textAlign:'right',marginRight:'8px'}} />
                                 <button onClick={saveEditItem} style={{padding:'4px 12px',backgroundColor:'#10b981',color:'white',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px',marginRight:'4px'}}>✓</button>
-                                <button onClick={() => setEditingItem(null)} style={{padding:'4px 12px',backgroundColor:'#132840',color:'#cbd5e1',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>✕</button>
+                                <button onClick={() => setEditingItem(null)} style={{padding:'4px 12px',backgroundColor:'var(--os-card)',color:'#cbd5e1',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>✕</button>
                               </>
                             ) : (
                               <>
@@ -393,6 +394,7 @@ export default function UnifiedImportPage() {
       {/* Edit Modal */}
       {editingItem && activeType === 'boats' && null}
     </div>
+    </>
     </AdminGuard>
   );
 }
