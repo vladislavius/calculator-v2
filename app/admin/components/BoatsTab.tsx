@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { supabase as sb } from '../../../lib/supabase';
+import BoatDetail from './BoatDetail';
 
 type Boat = {
   id: number; name: string; boat_type: string; model: string;
