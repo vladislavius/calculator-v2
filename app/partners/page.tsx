@@ -1,0 +1,2260 @@
+'use client';
+import AdminGuard from '../components/AdminGuard';
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+
+
+
+const CATEGORY_META: Record<string, { label: string; icon: string; color: string; nameEn: string }> = {
+  transfer:   { label: 'Трансфер',        icon: '🚐', color: '#22c55e', nameEn: 'Transfer' },
+  diving:     { label: 'Дайвинг',         icon: '🤿', color: '#0ea5e9', nameEn: 'Diving' },
+  photo:      { label: 'Фото / Видео',    icon: '📸', color: '#3b82f6', nameEn: 'Photo/Video' },
+  guide:      { label: 'Гиды',            icon: '🗺️', color: '#06b6d4', nameEn: 'Guide' },
+  other:      { label: 'Другое',          icon: '📦', color: '#94a3b8', nameEn: 'Other' },
+};
+
+function UniversalServiceTab({ category, supabase }: { category: string; supabase: any }) {
+  const meta = CATEGORY_META[category] || CATEGORY_META.other;
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name_en: '', name_ru: '', price: '', price_per: 'day', description: '' });
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase.from('staff_services').select('*').eq('category', category).order('name_en');
+    if (data) setServices(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [category]);
+
+  const addService = async () => {
+    if (!form.name_en) return;
+    setSaving(true);
+    await supabase.from('staff_services').insert({
+      name_en: form.name_en,
+      name_ru: form.name_ru || null,
+      price: Number(form.price) || 0,
+      price_per: form.price_per,
+      category,
+      description: form.description || null,
+    });
+    setForm({ name_en: '', name_ru: '', price: '', price_per: 'day', description: '' });
+    setShowForm(false);
+    setSaving(false);
+    load();
+  };
+
+  const saveEdit = async (id: number) => {
+    await supabase.from('staff_services').update({
+      name_en: editForm.name_en,
+      name_ru: editForm.name_ru || null,
+      price: Number(editForm.price) || 0,
+      price_per: editForm.price_per,
+      description: editForm.description || null,
+    }).eq('id', id);
+    setEditingId(null);
+    load();
+  };
+
+  const deleteService = async (id: number) => {
+    if (!confirm('Удалить услугу?')) return;
+    await supabase.from('staff_services').delete().eq('id', id);
+    load();
+  };
+
+  const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '14px', backgroundColor: '#0f2337', color: '#e2e8f0', marginBottom: '10px' };
+
+  return (
+    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', border: '1px solid rgba(255,255,255,0.08)' }}>
+        {/* Заголовок */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: meta.color }}>
+            {meta.icon} {meta.label}
+          </h2>
+          <button onClick={() => setShowForm(!showForm)}
+            style={{ padding: '10px 18px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+            {showForm ? '✕ Закрыть' : '➕ Добавить услугу'}
+          </button>
+        </div>
+
+        {/* Форма добавления */}
+        {showForm && (
+          <div style={{ backgroundColor: '#0d2137', borderRadius: '12px', padding: '20px', marginBottom: '20px', border: `1px solid ${meta.color}40` }}>
+            <h4 style={{ margin: '0 0 16px', color: meta.color }}>➕ Новая услуга — {meta.label}</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <input placeholder="Название (EN) *" value={form.name_en} onChange={e => setForm({...form, name_en: e.target.value})} style={inputStyle} />
+              <input placeholder="Название (RU)" value={form.name_ru} onChange={e => setForm({...form, name_ru: e.target.value})} style={inputStyle} />
+              <input placeholder="Цена (THB)" type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} style={inputStyle} />
+              <select value={form.price_per} onChange={e => setForm({...form, price_per: e.target.value})}
+                style={{ ...inputStyle, marginBottom: '10px' }}>
+                <option value="day">За день</option>
+                <option value="hour">За час</option>
+                <option value="person">За человека</option>
+                <option value="trip">За поездку</option>
+                <option value="session">За сессию</option>
+              </select>
+            </div>
+            <input placeholder="Описание (необязательно)" value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={inputStyle} />
+            <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+              <button onClick={addService} disabled={saving || !form.name_en}
+                style={{ padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: saving || !form.name_en ? 0.6 : 1 }}>
+                {saving ? 'Сохранение...' : '✅ Добавить → появится в калькуляторе'}
+              </button>
+              <button onClick={() => setShowForm(false)}
+                style={{ padding: '10px 16px', backgroundColor: '#0f2337', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}>
+                Отмена
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Список услуг */}
+        {loading ? (
+          <p style={{ color: '#64748b' }}>Загрузка...</p>
+        ) : services.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>{meta.icon}</div>
+            <p>Нет услуг в категории "{meta.label}"</p>
+            <p style={{ fontSize: '13px' }}>Добавьте услугу — она сразу появится в калькуляторе</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {services.map(s => (
+              <div key={s.id} style={{ backgroundColor: '#0f2337', borderRadius: '10px', padding: '14px 16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {editingId === s.id ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <input value={editForm.name_en || ''} onChange={e => setEditForm({...editForm, name_en: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }} placeholder="EN" />
+                    <input value={editForm.name_ru || ''} onChange={e => setEditForm({...editForm, name_ru: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }} placeholder="RU" />
+                    <input type="number" value={editForm.price || ''} onChange={e => setEditForm({...editForm, price: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }} placeholder="Цена" />
+                    <select value={editForm.price_per || 'day'} onChange={e => setEditForm({...editForm, price_per: e.target.value})} style={{ ...inputStyle, marginBottom: 0 }}>
+                      <option value="day">За день</option>
+                      <option value="hour">За час</option>
+                      <option value="person">За человека</option>
+                      <option value="trip">За поездку</option>
+                      <option value="session">За сессию</option>
+                    </select>
+                    <div style={{ gridColumn: '1/-1', display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      <button onClick={() => saveEdit(s.id)} style={{ padding: '6px 14px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>💾 Сохранить</button>
+                      <button onClick={() => setEditingId(null)} style={{ padding: '6px 14px', backgroundColor: '#132840', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer' }}>Отмена</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span style={{ fontWeight: '600', color: '#e2e8f0' }}>{s.name_ru || s.name_en}</span>
+                      {s.name_ru && <span style={{ marginLeft: '8px', fontSize: '12px', color: '#64748b' }}>{s.name_en}</span>}
+                      <span style={{ marginLeft: '12px', color: meta.color, fontWeight: '600' }}>{Number(s.price || 0).toLocaleString()} ฿</span>
+                      <span style={{ marginLeft: '6px', fontSize: '12px', color: '#64748b' }}>/ {s.price_per === 'day' ? 'день' : s.price_per === 'hour' ? 'час' : s.price_per === 'person' ? 'чел' : s.price_per}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={() => { setEditingId(s.id); setEditForm({...s}); }}
+                        style={{ padding: '6px 12px', backgroundColor: '#1e3a5f', color: '#93c5fd', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>✏️ Изменить</button>
+                      <button onClick={() => deleteService(s.id)}
+                        style={{ padding: '6px 12px', backgroundColor: '#3d0f0f', color: '#f87171', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>🗑️ Удалить</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function PartnersPage() {
+  const [activeTab, setActiveTab] = useState<'catering' | 'watersports' | 'boats' | 'transfer' | 'diving' | 'photo' | 'guide' | 'other'>('boats');
+  const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
+  const [showOtherDropdown, setShowOtherDropdown] = useState(false);
+
+  // Закрываем dropdown по клику вне
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-dropdown="other"]')) {
+        setShowOtherDropdown(false);
+      }
+    };
+    if (showOtherDropdown) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showOtherDropdown]);
+  const [cateringPartners, setCateringPartners] = useState<any[]>([]);
+  const [cateringMenu, setCateringMenu] = useState<any[]>([]);
+  const [watersportsPartners, setWatersportsPartners] = useState<any[]>([]);
+  const [watersportsCatalog, setWatersportsCatalog] = useState<any[]>([]);
+  const [boatPartners, setBoatPartners] = useState<any[]>([]);
+  const [boats, setBoats] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedPartners, setExpandedPartners] = useState<Set<number>>(new Set());
+  const [editingPartner, setEditingPartner] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [editingOtherPartner, setEditingOtherPartner] = useState<any>(null);
+  const [editOtherForm, setEditOtherForm] = useState<any>({});
+  const [editingServiceItem, setEditingServiceItem] = useState<any>(null);
+  const [editServiceForm, setEditServiceForm] = useState<any>({});
+
+  const [selectedBoat, setSelectedBoat] = useState<any>(null);
+  const [boatRoutes, setBoatRoutes] = useState<any[]>([]);
+  const [boatPrices, setBoatPrices] = useState<any[]>([]);
+  const [boatPricingRules, setBoatPricingRules] = useState<any[]>([]);
+  const [boatOptions, setBoatOptions] = useState<any[]>([]);
+  const [allRoutes, setAllRoutes] = useState<any[]>([]);
+  const [showAddPriceModal, setShowAddPriceModal] = useState(false);
+  const [newPriceRoute, setNewPriceRoute] = useState<number | 'new'>(0);
+  const [newRouteName, setNewRouteName] = useState('');
+  const [newPriceSeason, setNewPriceSeason] = useState('low');
+  const [newPriceSlot, setNewPriceSlot] = useState('full_day');
+  const [newPriceAgent, setNewPriceAgent] = useState(50000);
+  const [newPriceClient, setNewPriceClient] = useState(57500);
+  const [editMode, setEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  
+  // Menu editor states
+  const [menuEditorOpen, setMenuEditorOpen] = useState(false);
+  const [menuEditorPartnerId, setMenuEditorPartnerId] = useState<number | null>(null);
+  const [partnerMenus, setPartnerMenus] = useState<any[]>([]);
+  const [menuSets, setMenuSets] = useState<any[]>([]);
+  const [editingMenu, setEditingMenu] = useState<any>(null);
+  const [editingSets, setEditingSets] = useState<any[]>([]);
+  const [menuLoading, setMenuLoading] = useState(false);
+
+  // Load boat details when selected
+  const loadBoatDetails = async (boat: any) => {
+    setSelectedBoat(boat);
+    setEditMode(false);
+    
+    // Load all routes for dropdown
+    const { data: routes } = await supabase
+      .from('routes')
+      .select('*')
+      .order('name');
+    if (routes) setAllRoutes(routes);
+    
+    // Load prices
+    const { data: prices } = await supabase
+      .from('route_prices')
+      .select('*, routes(*)')
+      .eq('boat_id', boat.id)
+      .order('season');
+    if (prices) setBoatPrices(prices);
+    
+    // Load boat options
+    const { data: options } = await supabase
+      .from('boat_options')
+      .select('*, options_catalog(*)')
+      .eq('boat_id', boat.id);
+    if (options) setBoatOptions(options);
+
+    // Load pricing rules (per-pax tiers)
+    const { data: pricingRules } = await supabase
+      .from('boat_pricing_rules')
+      .select('*')
+      .eq('boat_id', boat.id)
+      .order('guests_from');
+    if (pricingRules) setBoatPricingRules(pricingRules);
+    else setBoatPricingRules([]);
+  };
+
+  // Save boat changes
+  const deleteBoat = async (boatId: number, boatName: string) => {
+    if (!confirm(`Удалить лодку "${boatName}"? Это также удалит все её маршруты и цены.`)) return;
+    
+    try {
+      // Delete route prices
+      await supabase.from('route_prices').delete().eq('boat_id', boatId);
+      // Delete boat options
+      await supabase.from('boat_options').delete().eq('boat_id', boatId);
+      // Delete the boat
+      const { error } = await supabase.from('boats').delete().eq('id', boatId);
+      
+      if (error) throw error;
+      
+      // Refresh boats list
+      const { data: b } = await supabase.from('boats').select('*').order('name');
+      if (b) setBoats(b);
+      
+      setSelectedBoat(null);
+      alert('Лодка удалена');
+    } catch (err: any) {
+      alert('Ошибка удаления: ' + err.message);
+    }
+  };
+
+  const saveBoatChanges = async () => {
+    if (!selectedBoat) return;
+    setSaving(true);
+    
+    const { error } = await supabase
+      .from('boats')
+      .update({
+        name: selectedBoat.name,
+        code: selectedBoat.code || null,
+        model: selectedBoat.model || null,
+        boat_type: selectedBoat.boat_type,
+        length_ft: selectedBoat.length_ft,
+        max_pax_day: selectedBoat.max_pax_day,
+        max_pax_overnight: selectedBoat.max_pax_overnight || null,
+        cabins: selectedBoat.cabins,
+        toilets: selectedBoat.toilets || 0,
+        speed_knots: selectedBoat.speed_knots || null,
+        has_flybridge: selectedBoat.has_flybridge || false,
+        has_jacuzzi: selectedBoat.has_jacuzzi || false,
+        year_built: selectedBoat.year_built,
+        default_pier: selectedBoat.default_pier,
+        main_photo_url: selectedBoat.main_photo_url || null,
+        notes: selectedBoat.notes
+      })
+      .eq('id', selectedBoat.id);
+    
+    setSaving(false);
+    if (!error) {
+      setEditMode(false);
+      setMessage('✅ Лодка обновлена!');
+      loadData();
+    } else {
+      setMessage('❌ Ошибка: ' + error.message);
+    }
+  };
+
+  // Update price
+  const updatePrice = async (priceId: number, field: string, value: number | string) => {
+    const { error } = await supabase
+      .from('route_prices')
+      .update({ [field]: value })
+      .eq('id', priceId);
+    
+    if (!error) {
+      // Update local state
+      setBoatPrices(boatPrices.map(p => 
+        p.id === priceId ? { ...p, [field]: value } : p
+      ));
+    }
+  };
+
+  // Open add price modal
+  const addBoatPrice = () => {
+    if (!selectedBoat) return;
+    setNewPriceRoute(allRoutes[0]?.id || 0);
+    setNewRouteName('');
+    setNewPriceSeason('low');
+    setNewPriceSlot('full_day');
+    setNewPriceAgent(50000);
+    setNewPriceClient(57500);
+    setShowAddPriceModal(true);
+  };
+
+  // Save new price from modal
+  const saveNewPrice = async () => {
+    if (!selectedBoat) return;
+    
+    let routeId: number = typeof newPriceRoute === 'number' ? newPriceRoute : 0;
+    
+    // If creating new route
+    if (newPriceRoute === 'new' && newRouteName.trim()) {
+      const { data: newRoute, error: routeError } = await supabase
+        .from('routes')
+        .insert({ name: newRouteName.trim() })
+        .select('id')
+        .single();
+      
+      if (routeError) {
+        setMessage('❌ Ошибка создания маршрута: ' + routeError.message);
+        return;
+      }
+      routeId = newRoute.id;
+      setAllRoutes([...allRoutes, { id: newRoute.id, name: newRouteName.trim() }]);
+    }
+    
+    const { data: newPrice, error } = await supabase
+      .from('route_prices')
+      .insert({
+        boat_id: selectedBoat.id,
+        route_id: routeId,
+        season: newPriceSeason,
+        time_slot: newPriceSlot,
+        base_price: newPriceAgent,
+        agent_price: newPriceAgent,
+        client_price: newPriceClient,
+        valid_from: new Date().toISOString().split('T')[0],
+        valid_to: '2027-12-31'
+      })
+      .select('*, routes(*)')
+      .single();
+    
+    if (error) {
+      setMessage('❌ ' + error.message);
+      return;
+    }
+    
+    if (newPrice) {
+      setBoatPrices([...boatPrices, newPrice]);
+      setMessage('✅ Цена добавлена');
+      setShowAddPriceModal(false);
+    }
+  };
+
+  // Delete price
+  const deletePrice = async (priceId: number) => {
+    if (!confirm('Удалить эту цену?')) return;
+    
+    const { error } = await supabase
+      .from('route_prices')
+      .delete()
+      .eq('id', priceId);
+    
+    if (!error) {
+      setBoatPrices(boatPrices.filter(p => p.id !== priceId));
+      setMessage('✅ Цена удалена');
+    }
+  };
+
+  // Toggle boat option (included/paid)
+  const toggleBoatOption = async (optionId: number, field: string, value: boolean | number) => {
+    const { error } = await supabase
+      .from('boat_options')
+      .update({ [field]: value })
+      .eq('id', optionId);
+    
+    if (!error) {
+      setBoatOptions(boatOptions.map(o => 
+        o.id === optionId ? { ...o, [field]: value } : o
+      ));
+    }
+  };
+
+  // Delete boat option
+  const deleteBoatOption = async (optionId: number) => {
+    const { error } = await supabase
+      .from('boat_options')
+      .delete()
+      .eq('id', optionId);
+    
+    if (!error) {
+      setBoatOptions(boatOptions.filter(o => o.id !== optionId));
+    }
+  };
+  
+  const togglePartnerExpand = (id: number) => {
+    const newSet = new Set(expandedPartners);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setExpandedPartners(newSet);
+  };
+  
+  const filteredBoatPartners = boatPartners.filter((p: any) => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    boats.some((b: any) => b.partner_id === p.id && b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+  
+  // New partner form
+  const [newPartnerName, setNewPartnerName] = useState('');
+  const [newPartnerContact, setNewPartnerContact] = useState('');
+  const [newPartnerPhone, setNewPartnerPhone] = useState('');
+  const [newPartnerEmail, setNewPartnerEmail] = useState('');
+  const [newPartnerDescription, setNewPartnerDescription] = useState('');
+  const [newPartnerCommission, setNewPartnerCommission] = useState('');
+  const [newPartnerBankName, setNewPartnerBankName] = useState('');
+  const [newPartnerBankAccount, setNewPartnerBankAccount] = useState('');
+  const [newPartnerBankAccountName, setNewPartnerBankAccountName] = useState('');
+  const [newPartnerBankBranch, setNewPartnerBankBranch] = useState('');
+  const [newPartnerSwift, setNewPartnerSwift] = useState('');
+  const [newPartnerTaxId, setNewPartnerTaxId] = useState('');
+  const [newPartnerAddress, setNewPartnerAddress] = useState('');
+  const [newPartnerWebsite, setNewPartnerWebsite] = useState('');
+  
+  // Menu import
+  const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
+  const [menuText, setMenuText] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const { data: cp } = await supabase.from('catering_partners').select('*').order('name');
+    if (cp) setCateringPartners(cp);
+    
+    const { data: cm } = await supabase.from('catering_menu').select('*').order('name_en');
+    if (cm) setCateringMenu(cm);
+    
+    const { data: wp } = await supabase.from('watersports_partners').select('*').order('name');
+    if (wp) setWatersportsPartners(wp);
+    
+    const { data: wc } = await supabase.from('watersports_catalog').select('*').order('name_en');
+    if (wc) setWatersportsCatalog(wc);
+
+    const { data: bp } = await supabase.from('partners').select('*').order('name');
+    if (bp) setBoatPartners(bp);
+
+    const { data: b } = await supabase.from('boats').select('*').order('name');
+    if (b) setBoats(b);
+  };
+
+  const addCateringPartner = async () => {
+    if (!newPartnerName) return;
+    
+    const { error } = await supabase.from('catering_partners').insert({
+      name: newPartnerName,
+      contact_person: newPartnerContact,
+      phone: newPartnerPhone,
+      email: newPartnerEmail,
+      description: newPartnerDescription
+    });
+    
+    if (!error) {
+      setMessage('Партнёр добавлен!');
+      setNewPartnerName('');
+      setNewPartnerContact('');
+      setNewPartnerPhone('');
+      setNewPartnerEmail('');
+      setNewPartnerDescription('');
+      loadData();
+    } else {
+      setMessage('Ошибка: ' + error.message);
+    }
+  };
+
+  const addWatersportsPartner = async () => {
+    if (!newPartnerName) return;
+    
+    const { error } = await supabase.from('watersports_partners').insert({
+      name: newPartnerName,
+      contact_person: newPartnerContact,
+      phone: newPartnerPhone,
+      email: newPartnerEmail
+    });
+    
+    if (!error) {
+      setMessage('Партнёр добавлен!');
+      setNewPartnerName('');
+      setNewPartnerContact('');
+      setNewPartnerPhone('');
+      setNewPartnerEmail('');
+      loadData();
+    } else {
+      setMessage('Ошибка: ' + error.message);
+    }
+  };
+
+  const addBoatPartner = async () => {
+    if (!newPartnerName) return;
+
+    const { error } = await supabase.from('partners').insert({
+      name: newPartnerName,
+      contact_name: newPartnerContact || null,
+      contact_phone: newPartnerPhone || null,
+      contact_email: newPartnerEmail || null,
+      commission_percent: newPartnerCommission ? Number(newPartnerCommission) : null,
+      notes: newPartnerDescription || null,
+      bank_name: newPartnerBankName || null,
+      bank_account_number: newPartnerBankAccount || null,
+      bank_account_name: newPartnerBankAccountName || null,
+      bank_branch: newPartnerBankBranch || null,
+      swift_code: newPartnerSwift || null,
+      tax_id: newPartnerTaxId || null,
+      address: newPartnerAddress || null,
+      website: newPartnerWebsite || null,
+    });
+
+    if (!error) {
+      setMessage('Партнёр добавлен!');
+      setNewPartnerName('');
+      setNewPartnerContact('');
+      setNewPartnerPhone('');
+      setNewPartnerEmail('');
+      setNewPartnerDescription('');
+      setNewPartnerCommission('');
+      setNewPartnerBankName('');
+      setNewPartnerBankAccount('');
+      setNewPartnerBankAccountName('');
+      setNewPartnerBankBranch('');
+      setNewPartnerSwift('');
+      setNewPartnerTaxId('');
+      setNewPartnerAddress('');
+      setNewPartnerWebsite('');
+      loadData();
+    } else {
+      setMessage('Ошибка: ' + error.message);
+    }
+  };
+
+  const deleteBoatPartner = async (id: number) => {
+    const partnerBoats = boats.filter((b: any) => b.partner_id === id);
+    if (partnerBoats.length > 0) {
+      if (!confirm('У этого партнёра есть ' + partnerBoats.length + ' лодок. Удалить партнёра и все его данные (лодки, цены, опции)?')) {
+        return;
+      }
+      // Получаем ID всех лодок партнёра
+      const boatIds = partnerBoats.map((b: any) => b.id);
+      
+      // Удаляем в правильном порядке (из-за foreign keys)
+      // 1. Удаляем boat_options
+      await supabase.from('boat_options').delete().in('boat_id', boatIds);
+      // 2. Удаляем route_prices
+      await supabase.from('route_prices').delete().in('boat_id', boatIds);
+      await supabase.from('boat_options').delete().in('boat_id', boatIds);
+      await supabase.from('boat_pricing_rules').delete().in('boat_id', boatIds);
+      // 3. Удаляем лодки
+      await supabase.from('boats').delete().eq('partner_id', id);
+    }
+    // 4. Удаляем partner_menus
+    await supabase.from('partner_menus').delete().eq('partner_id', id);
+    // 5. Удаляем историю импорта
+    await supabase.from('import_history').delete().eq('partner_id', id);
+    // 6. Удаляем партнёра
+    const { error } = await supabase.from('partners').delete().eq('id', id);
+    if (!error) {
+      setMessage('Партнёр и все связанные данные удалены');
+      loadData();
+    } else {
+      setMessage('Ошибка: ' + error.message);
+    }
+  };
+
+  const importCateringMenu = async () => {
+    if (!selectedPartnerId || !menuText.trim()) return;
+    setImporting(true);
+    setMessage('');
+    
+    try {
+      // Parse menu text - expecting format: "Name | Name RU | Price per person | Min persons | Category"
+      // Or simple: "Name - Price THB"
+      const lines = menuText.split('\n').filter(l => l.trim());
+      const items: any[] = [];
+      
+      for (const line of lines) {
+        // Try format: Name | Price | Min | Category
+        if (line.includes('|')) {
+          const parts = line.split('|').map(p => p.trim());
+          if (parts.length >= 2) {
+            items.push({
+              partner_id: selectedPartnerId,
+              name_en: parts[0],
+              name_ru: parts[1] || parts[0],
+              price_per_person: parseFloat(parts[2]?.replace(/[^\d.]/g, '')) || 0,
+              min_persons: parseInt(parts[3]) || 1,
+              category: parts[4] || 'main'
+            });
+          }
+        } 
+        // Try format: Name - Price THB
+        else if (line.includes(' - ') || line.includes(' — ')) {
+          const parts = line.split(/\s[-—]\s/);
+          if (parts.length >= 2) {
+            const price = parseFloat(parts[1].replace(/[^\d.]/g, '')) || 0;
+            items.push({
+              partner_id: selectedPartnerId,
+              name_en: parts[0].trim(),
+              name_ru: parts[0].trim(),
+              price_per_person: price,
+              min_persons: 1,
+              category: 'main'
+            });
+          }
+        }
+        // Simple format: just name and try to extract price
+        else {
+          const priceMatch = line.match(/(\d+(?:,\d+)?)\s*(?:THB|฿|бат)?/i);
+          const price = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
+          const name = line.replace(/(\d+(?:,\d+)?)\s*(?:THB|฿|бат)?/gi, '').trim();
+          if (name) {
+            items.push({
+              partner_id: selectedPartnerId,
+              name_en: name,
+              name_ru: name,
+              price_per_person: price,
+              min_persons: 1,
+              category: 'main'
+            });
+          }
+        }
+      }
+      
+      if (items.length > 0) {
+        const { error } = await supabase.from('catering_menu').insert(items);
+        if (!error) {
+          setMessage(`Импортировано ${items.length} позиций!`);
+          setMenuText('');
+          loadData();
+        } else {
+          setMessage('Ошибка: ' + error.message);
+        }
+      } else {
+        setMessage('Не удалось распознать позиции меню');
+      }
+    } catch (e: any) {
+      setMessage('Ошибка парсинга: ' + e.message);
+    }
+    setImporting(false);
+  };
+
+  const importWatersportsCatalog = async () => {
+    if (!selectedPartnerId || !menuText.trim()) return;
+    setImporting(true);
+    setMessage('');
+    
+    try {
+      // Parse format: "Name | Price/hour | Price/day" or "Name - Price THB"
+      const lines = menuText.split('\n').filter(l => l.trim());
+      const items: any[] = [];
+      
+      for (const line of lines) {
+        if (line.includes('|')) {
+          const parts = line.split('|').map(p => p.trim());
+          if (parts.length >= 2) {
+            items.push({
+              partner_id: selectedPartnerId,
+              name_en: parts[0],
+              name_ru: parts[1] || parts[0],
+              price_per_hour: parseFloat(parts[2]?.replace(/[^\d.]/g, '')) || 0,
+              price_per_day: parseFloat(parts[3]?.replace(/[^\d.]/g, '')) || 0,
+              description: parts[4] || ''
+            });
+          }
+        } else {
+          const priceMatch = line.match(/(\d+(?:,\d+)?)\s*(?:THB|฿)?/i);
+          const price = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
+          const name = line.replace(/(\d+(?:,\d+)?)\s*(?:THB|฿)?/gi, '').replace(/[-—]/g, '').trim();
+          if (name) {
+            items.push({
+              partner_id: selectedPartnerId,
+              name_en: name,
+              name_ru: name,
+              price_per_hour: price,
+              price_per_day: price * 5,
+              description: ''
+            });
+          }
+        }
+      }
+      
+      if (items.length > 0) {
+        const { error } = await supabase.from('watersports_catalog').insert(items);
+        if (!error) {
+          setMessage(`Импортировано ${items.length} позиций!`);
+          setMenuText('');
+          loadData();
+        } else {
+          setMessage('Ошибка: ' + error.message);
+        }
+      } else {
+        setMessage('Не удалось распознать позиции');
+      }
+    } catch (e: any) {
+      setMessage('Ошибка парсинга: ' + e.message);
+    }
+    setImporting(false);
+  };
+
+  const deleteMenuItem = async (table: string, id: number) => {
+    const { error } = await supabase.from(table).delete().eq('id', id);
+    if (!error) loadData();
+  };
+
+  const deletePartner = async (table: string, id: number) => {
+    // First delete related items
+    if (table === 'catering_partners') {
+      await supabase.from('catering_menu').delete().eq('partner_id', id);
+    } else {
+      await supabase.from('watersports_catalog').delete().eq('partner_id', id);
+    }
+    const { error } = await supabase.from(table).delete().eq('id', id);
+    if (!error) loadData();
+  };
+
+  const styles = {
+    page: { minHeight: '100vh', backgroundColor: '#132840', padding: '20px' },
+    header: { maxWidth: '1200px', margin: '0 auto 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    title: { fontSize: '24px', fontWeight: 'bold', color: '#e2e8f0' },
+    backLink: { color: '#60a5fa', textDecoration: 'none', fontSize: '14px' },
+    tabs: { display: 'flex', gap: '10px', marginBottom: '20px', maxWidth: '1200px', margin: '0 auto 20px' },
+    tab: { padding: '10px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' },
+    tabActive: { backgroundColor: '#2563eb', color: 'white' },
+    tabInactive: { backgroundColor: '#132840', color: '#64748b' },
+    content: { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' },
+    card: { backgroundColor: '#132840', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+    cardTitle: { fontSize: '16px', fontWeight: '600', marginBottom: '15px', color: '#e2e8f0' },
+    input: { width: '100%', padding: '10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '10px', fontSize: '14px' },
+    textarea: { width: '100%', padding: '10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '10px', fontSize: '13px', minHeight: '150px', fontFamily: 'monospace' },
+    btn: { padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
+    btnDanger: { padding: '4px 8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' },
+    select: { width: '100%', padding: '10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '10px', fontSize: '14px' },
+    list: { maxHeight: '300px', overflowY: 'auto' as const },
+    listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)' },
+    message: { padding: '10px', backgroundColor: '#0e3a2a', borderRadius: '6px', marginBottom: '15px', color: '#065f46' }
+  };
+
+  // ==================== MENU EDITOR FUNCTIONS ====================
+  const openMenuEditor = async (partnerId: number) => {
+    setMenuEditorPartnerId(partnerId);
+    setMenuEditorOpen(true);
+    setMenuLoading(true);
+    
+    try {
+      // Load partner menus
+      const { data: menus } = await supabase
+        .from('partner_menus')
+        .select('*')
+        .eq('partner_id', partnerId)
+        .eq('active', true);
+      
+      setPartnerMenus(menus || []);
+      
+      // Load all menu sets for these menus
+      if (menus && menus.length > 0) {
+        const menuIds = menus.map((m: any) => m.id);
+        const { data: sets } = await supabase
+          .from('menu_sets')
+          .select('*')
+          .in('menu_id', menuIds)
+          .eq('active', true)
+          .order('sort_order');
+        
+        setMenuSets(sets || []);
+      } else {
+        setMenuSets([]);
+      }
+    } catch (error) {
+      console.error('Error loading menus:', error);
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  const closeMenuEditor = () => {
+    setMenuEditorOpen(false);
+    setMenuEditorPartnerId(null);
+    setPartnerMenus([]);
+    setMenuSets([]);
+    setEditingMenu(null);
+    setEditingSets([]);
+  };
+
+  const startEditMenu = (menu: any) => {
+    setEditingMenu({ ...menu });
+    setEditingSets(menuSets.filter(s => s.menu_id === menu.id).map(s => ({ ...s })));
+  };
+
+  const saveMenuChanges = async () => {
+    if (!editingMenu) return;
+    setMenuLoading(true);
+    
+    try {
+      // Update menu
+      await supabase
+        .from('partner_menus')
+        .update({
+          name: editingMenu.name,
+          type: editingMenu.type,
+          conditions: editingMenu.conditions,
+          conditions_ru: editingMenu.conditions_ru
+        })
+        .eq('id', editingMenu.id);
+      
+      // Update/insert sets
+      for (const set of editingSets) {
+        if (set.id && !set._isNew) {
+          await supabase.from('menu_sets').update({
+            name: set.name,
+            name_ru: set.name_ru,
+            category: set.category,
+            price: set.price,
+            dishes: set.dishes,
+            dishes_ru: set.dishes_ru
+          }).eq('id', set.id);
+        } else if (set._isNew) {
+          await supabase.from('menu_sets').insert({
+            menu_id: editingMenu.id,
+            name: set.name,
+            name_ru: set.name_ru,
+            category: set.category,
+            price: set.price,
+            dishes: set.dishes || [],
+            dishes_ru: set.dishes_ru || [],
+            sort_order: editingSets.indexOf(set)
+          });
+        }
+      }
+      
+      // Reload menus
+      await openMenuEditor(menuEditorPartnerId!);
+      setEditingMenu(null);
+      setEditingSets([]);
+    } catch (error) {
+      console.error('Error saving menu:', error);
+      alert('Ошибка сохранения');
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  const addNewSet = () => {
+    setEditingSets([...editingSets, {
+      _isNew: true,
+      name: 'New Set',
+      name_ru: 'Новый сет',
+      category: 'other',
+      price: null,
+      dishes: [],
+      dishes_ru: []
+    }]);
+  };
+
+  const deleteSet = async (setId: number) => {
+    if (!confirm('Удалить этот сет?')) return;
+    
+    try {
+      await supabase.from('menu_sets').update({ active: false }).eq('id', setId);
+      setMenuSets(menuSets.filter(s => s.id !== setId));
+      setEditingSets(editingSets.filter(s => s.id !== setId));
+    } catch (error) {
+      console.error('Error deleting set:', error);
+    }
+  };
+
+  const createNewMenu = async () => {
+    if (!menuEditorPartnerId) return;
+    
+    try {
+      const { data: newMenu } = await supabase
+        .from('partner_menus')
+        .insert({
+          partner_id: menuEditorPartnerId,
+          name: 'Новое меню',
+          type: 'included'
+        })
+        .select()
+        .single();
+      
+      if (newMenu) {
+        setPartnerMenus([...partnerMenus, newMenu]);
+        startEditMenu(newMenu);
+      }
+    } catch (error) {
+      console.error('Error creating menu:', error);
+    }
+  };
+
+  const deleteMenu = async (menuId: number) => {
+    if (!confirm('Удалить это меню и все его сеты?')) return;
+    
+    try {
+      await supabase.from('menu_sets').update({ active: false }).eq('menu_id', menuId);
+      await supabase.from('partner_menus').update({ active: false }).eq('id', menuId);
+      setPartnerMenus(partnerMenus.filter(m => m.id !== menuId));
+      setMenuSets(menuSets.filter(s => s.menu_id !== menuId));
+    } catch (error) {
+      console.error('Error deleting menu:', error);
+    }
+  };
+
+
+
+  const startEditOtherPartner = async (partner: any) => {
+    const table = activeTab === 'catering' ? 'catering_partners' : 'watersports_partners';
+    const { data } = await supabase.from(table).select('*').eq('id', partner.id).single();
+    setEditOtherForm(data || partner);
+    setEditingOtherPartner(partner.id);
+  };
+
+  const saveOtherPartner = async () => {
+    if (!editingOtherPartner) return;
+    const table = activeTab === 'catering' ? 'catering_partners' : 'watersports_partners';
+    const { error } = await supabase.from(table).update({
+      name: editOtherForm.name,
+      contact_person: editOtherForm.contact_person || null,
+      phone: editOtherForm.phone || null,
+      email: editOtherForm.email || null,
+      website: editOtherForm.website || null,
+      address: editOtherForm.address || null,
+      bank_name: editOtherForm.bank_name || null,
+      bank_account_name: editOtherForm.bank_account_name || null,
+      bank_account_number: editOtherForm.bank_account_number || null,
+      bank_branch: editOtherForm.bank_branch || null,
+      swift_code: editOtherForm.swift_code || null,
+      tax_id: editOtherForm.tax_id || null,
+      notes: editOtherForm.notes || null,
+    }).eq('id', editingOtherPartner);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    setEditingOtherPartner(null);
+    loadData();
+  };
+
+  const startEditServiceItem = (item: any) => {
+    setEditServiceForm({...item});
+    setEditingServiceItem(item.id);
+  };
+
+  const saveServiceItem = async () => {
+    if (!editingServiceItem) return;
+    const table = activeTab === 'catering' ? 'catering_menu' : 'watersports_catalog';
+    const updateData: any = { name_en: editServiceForm.name_en, name_ru: editServiceForm.name_ru };
+    if (activeTab === 'catering') {
+      updateData.price_per_person = Number(editServiceForm.price_per_person) || 0;
+      updateData.cost_price = editServiceForm.cost_price || editServiceForm.price_per_person;
+      updateData.client_price = Number(editServiceForm.client_price) || Number(editServiceForm.price_per_person) || 0;
+      updateData.category = editServiceForm.category;
+    } else {
+      updateData.price_per_hour = Number(editServiceForm.price_per_hour) || 0;
+      updateData.price_per_day = Number(editServiceForm.price_per_day) || 0;
+      updateData.cost_per_hour = editServiceForm.cost_per_hour || editServiceForm.price_per_hour;
+      updateData.client_per_hour = editServiceForm.client_per_hour || editServiceForm.price_per_hour;
+      updateData.cost_per_day = editServiceForm.cost_per_day || editServiceForm.price_per_day;
+      updateData.client_per_day = editServiceForm.client_per_day || editServiceForm.price_per_day;
+    }
+    const { error } = await supabase.from(table).update(updateData).eq('id', editingServiceItem);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    setEditingServiceItem(null);
+    loadData();
+  };
+
+  const startEditPartner = async (partner: any) => {
+    const { data } = await supabase.from('partners').select('*').eq('id', partner.id).single();
+    setEditForm(data || partner);
+    setEditingPartner(partner.id);
+  };
+
+  const savePartner = async () => {
+    if (!editingPartner) return;
+    const { error } = await supabase.from('partners').update({
+      name: editForm.name,
+      contact_name: editForm.contact_name || null,
+      contact_phone: editForm.contact_phone || null,
+      contact_email: editForm.contact_email || null,
+      website: editForm.website || null,
+      address: editForm.address || null,
+      commission_percent: editForm.commission_percent || null,
+      tax_id: editForm.tax_id || null,
+      bank_name: editForm.bank_name || null,
+      bank_account_name: editForm.bank_account_name || null,
+      bank_account_number: editForm.bank_account_number || null,
+      bank_branch: editForm.bank_branch || null,
+      swift_code: editForm.swift_code || null,
+      contract_valid_from: editForm.contract_valid_from || null,
+      contract_valid_until: editForm.contract_valid_until || null,
+      notes: editForm.notes || null,
+    }).eq('id', editingPartner);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    setEditingPartner(null);
+    loadData();
+  };
+
+  return (
+    <AdminGuard>
+    <div style={styles.page}>
+      
+      {/* Boat Detail Modal */}
+      {selectedBoat && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '20px'
+        }} onClick={() => setSelectedBoat(null)}>
+          <div 
+            style={{
+              backgroundColor: '#132840', borderRadius: '16px', 
+              maxWidth: '900px', width: '100%', maxHeight: '90vh',
+              overflow: 'auto', padding: '24px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>🚤 {selectedBoat.name}</h2>
+                <p style={{ color: '#666', margin: '4px 0 0' }}>
+                  {boatPartners.find((p: any) => p.id === selectedBoat.partner_id)?.name || 'Партнёр не указан'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {!editMode ? (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={() => setEditMode(true)}
+                      style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      ✏️ Редактировать
+                    </button>
+                    <button 
+                      onClick={() => deleteBoat(selectedBoat.id, selectedBoat.name)}
+                      style={{ padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      🗑️ Удалить
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button 
+                      onClick={saveBoatChanges}
+                      disabled={saving}
+                      style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      {saving ? '💾 Сохранение...' : '💾 Сохранить'}
+                    </button>
+                    <button 
+                      onClick={() => setEditMode(false)}
+                      style={{ padding: '8px 16px', backgroundColor: '#1a3050', color: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      Отмена
+                    </button>
+                  </>
+                )}
+                <button 
+                  onClick={() => setSelectedBoat(null)}
+                  style={{ padding: '8px 12px', backgroundColor: '#132840', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px', color: '#e2e8f0' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            {/* Boat Info Grid — полный */}
+            {/* Фото */}
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+              {selectedBoat.main_photo_url && (
+                <img src={selectedBoat.main_photo_url} alt={selectedBoat.name}
+                  style={{ width: '160px', height: '110px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }} />
+              )}
+              <div style={{ flex: 1 }}>
+                {editMode ? (
+                  <>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>URL главного фото</div>
+                    <input value={selectedBoat.main_photo_url || ''} onChange={e => setSelectedBoat({...selectedBoat, main_photo_url: e.target.value})}
+                      style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px', backgroundColor: '#0f2337', color: '#e2e8f0', marginBottom: '8px' }}
+                      placeholder="https://..." />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Код лодки</div>
+                    <input value={selectedBoat.code || ''} onChange={e => setSelectedBoat({...selectedBoat, code: e.target.value})}
+                      style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px', backgroundColor: '#0f2337', color: '#e2e8f0', marginBottom: '8px' }}
+                      placeholder="AIM-AYANA" />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Модель</div>
+                    <input value={selectedBoat.model || ''} onChange={e => setSelectedBoat({...selectedBoat, model: e.target.value})}
+                      style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px', backgroundColor: '#0f2337', color: '#e2e8f0' }}
+                      placeholder="CATAMARAN 50 FT" />
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '13px', color: '#94a3b8' }}>Код: <span style={{ color: '#e2e8f0', fontWeight: '600' }}>{selectedBoat.code || '-'}</span></div>
+                    <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>Модель: <span style={{ color: '#e2e8f0' }}>{selectedBoat.model || '-'}</span></div>
+                    {!selectedBoat.main_photo_url && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>⚠️ Фото не загружено</div>}
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+              {[
+                { label: 'Тип', key: 'boat_type', type: 'select', options: ['yacht','catamaran','sailing_catamaran','speedboat'] },
+                { label: 'Длина (ft)', key: 'length_ft', type: 'number' },
+                { label: 'Гостей (день)', key: 'max_pax_day', type: 'number' },
+                { label: 'Гостей (ночь)', key: 'max_pax_overnight', type: 'number' },
+                { label: 'Каюты', key: 'cabins', type: 'number' },
+                { label: 'Туалеты', key: 'toilets', type: 'number' },
+                { label: 'Скорость (уз)', key: 'speed_knots', type: 'number' },
+                { label: 'Год постройки', key: 'year_built', type: 'text' },
+                { label: 'Пирс', key: 'default_pier', type: 'text', span: 2 },
+              ].map((f: any) => (
+                <div key={f.key} style={{ backgroundColor: '#0f2337', padding: '10px 12px', borderRadius: '8px', gridColumn: f.span ? `span ${f.span}` : undefined }}>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>{f.label}</div>
+                  {editMode ? (
+                    f.type === 'select' ? (
+                      <select value={selectedBoat[f.key] || ''} onChange={e => setSelectedBoat({...selectedBoat, [f.key]: e.target.value})}
+                        style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', backgroundColor: '#132840', color: '#e2e8f0', fontSize: '13px' }}>
+                        {f.options.map((o: string) => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    ) : (
+                      <input type={f.type} value={selectedBoat[f.key] || ''} onChange={e => setSelectedBoat({...selectedBoat, [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value})}
+                        style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', backgroundColor: '#132840', color: '#e2e8f0', fontSize: '13px' }} />
+                    )
+                  ) : (
+                    <div style={{ fontWeight: '600', fontSize: '13px' }}>{selectedBoat[f.key] || '-'}{f.key === 'length_ft' && selectedBoat[f.key] ? ' ft' : ''}{f.key === 'speed_knots' && selectedBoat[f.key] ? ' kn' : ''}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Чекбоксы характеристик */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              {[
+                { key: 'has_flybridge', label: '🛥️ Флайбридж' },
+                { key: 'has_jacuzzi', label: '♨️ Джакузи' },
+                { key: 'active', label: '✅ Активна' },
+              ].map(cb => (
+                <label key={cb.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editMode ? 'pointer' : 'default', padding: '8px 12px', backgroundColor: selectedBoat[cb.key] ? '#0d3320' : '#0f2337', borderRadius: '8px', border: `1px solid ${selectedBoat[cb.key] ? '#22c55e' : 'rgba(255,255,255,0.08)'}` }}>
+                  <input type="checkbox" checked={!!selectedBoat[cb.key]} disabled={!editMode}
+                    onChange={e => editMode && setSelectedBoat({...selectedBoat, [cb.key]: e.target.checked})}
+                    style={{ accentColor: '#22c55e' }} />
+                  <span style={{ fontSize: '13px', color: selectedBoat[cb.key] ? '#4ade80' : '#94a3b8' }}>{cb.label}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* Заметки */}
+            <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>📝 Заметки / Описание</div>
+              {editMode ? (
+                <textarea value={selectedBoat.notes || ''} onChange={e => setSelectedBoat({...selectedBoat, notes: e.target.value})}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', minHeight: '80px', backgroundColor: '#132840', color: '#e2e8f0', fontSize: '13px', resize: 'vertical' }} />
+              ) : (
+                <div style={{ fontSize: '13px', color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{selectedBoat.notes || '—'}</div>
+              )}
+            </div>
+            
+            {/* Prices Section */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>💰 Цены по маршрутам</h3>
+                {editMode && (
+                  <button 
+                    onClick={addBoatPrice}
+                    style={{ padding: '6px 12px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                  >
+                    + Добавить цену
+                  </button>
+                )}
+              </div>
+              {boatPrices.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#132840' }}>
+                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Маршрут</th>
+                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Сезон</th>
+                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Слот</th>
+                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Агент (THB)</th>
+                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>Клиент (THB)</th>
+                      <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', width: '50px' }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {boatPrices.map((price: any) => (
+                      <tr key={price.id}>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>
+                          {editMode ? (
+                            <select 
+                              value={price.route_id}
+                              onChange={(e) => updatePrice(price.id, 'route_id', Number(e.target.value))}
+                              style={{ padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', maxWidth: '150px' }}
+                            >
+                              {allRoutes.map((r: any) => (
+                                <option key={r.id} value={r.id}>{r.name}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span>{price.routes?.name || allRoutes.find((r: any) => r.id === price.route_id)?.name || 'Маршрут ' + price.route_id}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>
+                          {editMode ? (
+                            <select 
+                              value={price.season || 'low'}
+                              onChange={(e) => updatePrice(price.id, 'season', e.target.value)}
+                              style={{ padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }}
+                            >
+                              <option value="all">All Seasons</option>
+                              <option value="low">Low</option>
+                              <option value="high">High</option>
+                              <option value="peak">Peak</option>
+                            </select>
+                          ) : (
+                            <span>{price.season}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>
+                          {editMode ? (
+                            <select 
+                              value={price.time_slot || 'full_day'}
+                              onChange={(e) => updatePrice(price.id, 'time_slot', e.target.value)}
+                              style={{ padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }}
+                            >
+                              <option value="half_day">Полдня</option>
+                              <option value="full_day">Полный день</option>
+                              <option value="sunset">Закат</option>
+                              <option value="overnight">Ночёвка</option>
+                            </select>
+                          ) : (
+                            <span>{price.time_slot === 'full_day' ? 'Полный день' : price.time_slot === 'half_day' ? 'Полдня' : price.time_slot === 'sunset' ? 'Закат' : price.time_slot === 'overnight' ? 'Ночёвка' : price.time_slot}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right' }}>
+                          {editMode ? (
+                            <input 
+                              type="number"
+                              value={price.agent_price || 0}
+                              onChange={(e) => updatePrice(price.id, 'agent_price', Number(e.target.value))}
+                              style={{ width: '90px', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', textAlign: 'right', color: '#059669' }}
+                            />
+                          ) : (
+                            <span style={{ color: '#059669' }}>{price.agent_price?.toLocaleString()}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right' }}>
+                          {editMode ? (
+                            <input 
+                              type="number"
+                              value={price.client_price || 0}
+                              onChange={(e) => updatePrice(price.id, 'client_price', Number(e.target.value))}
+                              style={{ width: '90px', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', textAlign: 'right', fontWeight: '600' }}
+                            />
+                          ) : (
+                            <span style={{ fontWeight: '600' }}>{price.client_price?.toLocaleString()}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'center' }}>
+                          {editMode && (
+                            <button 
+                              onClick={() => deletePrice(price.id)}
+                              style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '14px' }}
+                              title="Удалить"
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p style={{ color: '#475569', fontSize: '13px' }}>Цены не загружены. Нажмите "+ Добавить цену"</p>
+              )}
+            </div>
+            
+            
+            
+            
+
+            
+            {/* Pricing Rules / Тарифные тиры */}
+            {boatPricingRules.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>📊 Тарифные тиры (по кол-ву гостей)</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#0f2337' }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Гостей</th>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Тип</th>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #e5e7eb' }}>Сезон</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #e5e7eb' }}>Цена (NET)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boatPricingRules.map((rule: any) => (
+                    <tr key={rule.id}>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>
+                        {rule.guests_from === rule.guests_to ? rule.guests_from + ' чел.' : rule.guests_from + '–' + rule.guests_to + ' чел.'}
+                      </td>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>{rule.charter_type}</td>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6' }}>{rule.season}</td>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', fontWeight: '600', color: '#059669' }}>
+                        {Number(rule.base_price).toLocaleString()} ฿
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            )}
+
+            {/* Options Section — Included */}
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>✅ Включено в стоимость</h3>
+              {boatOptions.filter((o: any) => o.status === 'included').length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {boatOptions.filter((o: any) => o.status === 'included').map((opt: any) => (
+                    <div 
+                      key={opt.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 12px',
+                        backgroundColor: opt.status === 'included' ? '#0d3320' : '#2d1f00',
+                        color: opt.status === 'included' ? '#4ade80' : '#fbbf24',
+                        borderRadius: '16px',
+                        fontSize: '12px'
+                      }}
+                    >
+                      {editMode ? (
+                        <span 
+                          onClick={() => toggleBoatOption(opt.id, 'included', opt.status !== 'included')}
+                          style={{ cursor: 'pointer' }}
+                          title={opt.status === 'included' ? 'Сделать платным' : 'Сделать включённым'}
+                        >
+                          {opt.status === 'included' ? '✓' : '💰'}
+                        </span>
+                      ) : (
+                        <span>{opt.status === 'included' ? '✓' : '💰'}</span>
+                      )}
+                      <span>{opt.options_catalog?.name_en || opt.option_id}</span>
+                      {opt.status !== 'included' && (
+                        editMode ? (
+                          <input 
+                            type="number"
+                            value={opt.price || 0}
+                            onChange={(e) => toggleBoatOption(opt.id, 'price', Number(e.target.value))}
+                            style={{ width: '60px', padding: '2px 4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '11px' }}
+                            placeholder="THB"
+                          />
+                        ) : (
+                          <span>+{opt.price || 0} THB</span>
+                        )
+                      )}
+                      {editMode && (
+                        <button 
+                          onClick={() => deleteBoatOption(opt.id)}
+                          style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '12px', padding: '0 2px' }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: '#475569', fontSize: '13px' }}>Опции не загружены</p>
+              )}
+            </div>
+
+            {/* Paid Options Section */}
+            <div style={{ marginTop: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>💰 Платные опции</h3>
+              {boatOptions.filter((o: any) => o.status !== 'included').length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {boatOptions.filter((o: any) => o.status !== 'included').map((opt: any) => (
+                    <div 
+                      key={opt.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 12px',
+                        backgroundColor: '#0d2137',
+                        color: '#fbbf24',
+                        borderRadius: '16px',
+                        fontSize: '12px'
+                      }}
+                    >
+                      <span>💰</span>
+                      <span>{opt.options_catalog?.name_en || opt.option_id}</span>
+                      <span>+{Number(opt.price || 0).toLocaleString()} THB</span>
+                      {editMode && (
+                        <button 
+                          onClick={() => deleteBoatOption(opt.id)}
+                          style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '12px', padding: '0 2px' }}
+                        >✕</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: '#475569', fontSize: '13px' }}>Нет платных опций</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Price Modal */}
+      {showAddPriceModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1100,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }} onClick={() => setShowAddPriceModal(false)}>
+          <div 
+            style={{ backgroundColor: '#132840', borderRadius: '12px', padding: '24px', width: '450px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 20px', fontSize: '18px' }}>➕ Добавить цену</h3>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Маршрут</label>
+              <select 
+                value={newPriceRoute}
+                onChange={(e) => setNewPriceRoute(e.target.value === 'new' ? 'new' : Number(e.target.value))}
+                style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
+              >
+                {allRoutes.map((r: any) => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+                <option value="new">➕ Создать новый маршрут...</option>
+              </select>
+            </div>
+            
+            {newPriceRoute === 'new' && (
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Название нового маршрута</label>
+                <input 
+                  value={newRouteName}
+                  onChange={(e) => setNewRouteName(e.target.value)}
+                  placeholder="Например: Coral Island + Racha"
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
+                />
+              </div>
+            )}
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Сезон</label>
+                <select 
+                  value={newPriceSeason}
+                  onChange={(e) => setNewPriceSeason(e.target.value)}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
+                >
+                  <option value="all">All Seasons (круглый год)</option>
+                  <option value="low">Low Season</option>
+                  <option value="high">High Season</option>
+                  <option value="peak">Peak Season</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Слот</label>
+                <select 
+                  value={newPriceSlot}
+                  onChange={(e) => setNewPriceSlot(e.target.value)}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
+                >
+                  <option value="half_day">Полдня (4-5 ч)</option>
+                  <option value="full_day">Полный день (8 ч)</option>
+                  <option value="sunset">Закат (3-4 ч)</option>
+                  <option value="overnight">Ночёвка</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Цена агента (THB)</label>
+                <input 
+                  type="number"
+                  value={newPriceAgent}
+                  onChange={(e) => setNewPriceAgent(Number(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Цена клиента (THB)</label>
+                <input 
+                  type="number"
+                  value={newPriceClient}
+                  onChange={(e) => setNewPriceClient(Number(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}
+                />
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => setShowAddPriceModal(false)}
+                style={{ padding: '8px 16px', backgroundColor: '#1a3050', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={saveNewPrice}
+                style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                💾 Сохранить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={styles.header}>
+        <h1 style={styles.title}>👥 Управление партнёрами</h1>
+        <div style={{display:'flex',gap:'8px'}}>
+          <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#1e3a5f',borderRadius:'8px',color:'#93c5fd',textDecoration:'none',fontWeight:'500',border:'1px solid #3b82f6'}}>📦 Центр импорта</a>
+          <a href="/import" style={{padding:'8px 16px',backgroundColor:'#1e1a3a',borderRadius:'8px',color:'#a78bfa',textDecoration:'none',fontWeight:'500',border:'1px solid #7c3aed'}}>🤖 AI-парсер яхт</a>
+          <a href="/" style={{padding:'8px 16px',backgroundColor:'#2563eb',borderRadius:'8px',color:'white',textDecoration:'none',fontWeight:'500'}}>← Калькулятор</a>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', padding: '0 0 16px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button style={{ ...styles.tab, ...(activeTab === 'boats' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('boats')}>
+          🚤 Яхты ({boatPartners.length})
+        </button>
+        <button style={{ ...styles.tab, ...(activeTab === 'catering' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('catering')}>
+          🍽️ Кейтеринг ({cateringPartners.length})
+        </button>
+        <button style={{ ...styles.tab, ...(activeTab === 'watersports' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('watersports')}>
+          🏄 Водные игрушки ({watersportsPartners.length})
+        </button>
+        {/* Выпадающее меню "Другие партнёры" */}
+        <div data-dropdown="other" style={{ position: 'relative' }}>
+          <button
+            style={{ ...styles.tab, ...(['transfer','diving','photo','guide','other'].includes(activeTab) ? styles.tabActive : styles.tabInactive) }}
+            onClick={() => setShowOtherDropdown(!showOtherDropdown)}
+          >
+            📦 Другие партнёры {showOtherDropdown ? '▲' : '▾'}
+          </button>
+          {showOtherDropdown && (
+            <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, backgroundColor: '#132840', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '6px', zIndex: 200, minWidth: '190px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+              {[
+                { key: 'transfer', icon: '🚐', label: 'Трансфер' },
+                { key: 'diving',   icon: '🤿', label: 'Дайвинг' },
+                { key: 'photo',    icon: '📸', label: 'Фото / Видео' },
+                { key: 'guide',    icon: '🗺️', label: 'Гиды' },
+                { key: 'other',    icon: '📦', label: 'Другое' },
+              ].map(t => (
+                <button key={t.key}
+                  onClick={() => { setActiveTab(t.key as any); setShowOtherDropdown(false); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', backgroundColor: activeTab === t.key ? '#2563eb' : 'transparent', color: activeTab === t.key ? 'white' : '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: activeTab === t.key ? '600' : '400' }}
+                  onMouseOver={e => { if (activeTab !== t.key) e.currentTarget.style.backgroundColor = '#1e3a5f'; }}
+                  onMouseOut={e => { if (activeTab !== t.key) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <span>{t.icon}</span><span>{t.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {message && <div style={{ ...styles.message, maxWidth: '1200px', margin: '0 auto 20px' }}>{message}</div>}
+
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px' }}>
+        {/* Left: Add Partner & Import */}
+        {(activeTab === 'catering' || activeTab === 'watersports') && (
+        <div>
+          <div style={styles.card}>
+            <h3 style={styles.cardTitle}>➕ Добавить партнёра</h3>
+            <input 
+              placeholder="Название компании *" 
+              value={newPartnerName} 
+              onChange={e => setNewPartnerName(e.target.value)} 
+              style={styles.input} 
+            />
+            <input 
+              placeholder="Контактное лицо" 
+              value={newPartnerContact} 
+              onChange={e => setNewPartnerContact(e.target.value)} 
+              style={styles.input} 
+            />
+            <input 
+              placeholder="Телефон" 
+              value={newPartnerPhone} 
+              onChange={e => setNewPartnerPhone(e.target.value)} 
+              style={styles.input} 
+            />
+            <input 
+              placeholder="Email" 
+              value={newPartnerEmail} 
+              onChange={e => setNewPartnerEmail(e.target.value)} 
+              style={styles.input} 
+            />
+            {activeTab === 'catering' && (
+              <input 
+                placeholder="Описание" 
+                value={newPartnerDescription} 
+                onChange={e => setNewPartnerDescription(e.target.value)} 
+                style={styles.input} 
+              />
+            )}
+            <button 
+              style={styles.btn} 
+              onClick={activeTab === 'catering' ? addCateringPartner : activeTab === 'watersports' ? addWatersportsPartner : addBoatPartner}
+            >
+              Добавить партнёра
+            </button>
+          </div>
+
+          {(activeTab === 'catering' || activeTab === 'watersports') && (
+          <div style={{ ...styles.card, marginTop: '20px' }}>
+            <h3 style={styles.cardTitle}>📄 Импорт прайса</h3>
+            <select 
+              value={selectedPartnerId || ''} 
+              onChange={e => setSelectedPartnerId(Number(e.target.value))} 
+              style={styles.select}
+            >
+              <option value="">Выберите партнёра</option>
+              {(activeTab === 'catering' ? cateringPartners : watersportsPartners).map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            
+            <textarea 
+              placeholder={activeTab === 'catering' 
+                ? "Вставьте меню в формате:\nНазвание | Название RU | Цена | Мин. чел | Категория\n\nИли просто:\nТом Ям - 350 THB\nПад Тай - 250 THB"
+                : "Вставьте прайс в формате:\nНазвание | Название RU | Цена/час | Цена/день\n\nИли просто:\nSeabob - 3000 THB\nJet Ski - 2500 THB"
+              }
+              value={menuText}
+              onChange={e => setMenuText(e.target.value)}
+              style={styles.textarea}
+            />
+            
+            <button 
+              style={{ ...styles.btn, opacity: importing || !selectedPartnerId ? 0.6 : 1 }}
+              onClick={activeTab === 'catering' ? importCateringMenu : importWatersportsCatalog}
+              disabled={importing || !selectedPartnerId}
+            >
+              {importing ? 'Импорт...' : 'Импортировать'}
+            </button>
+          </div>
+          )}
+        </div>
+        )}
+
+        {/* Right: Current Partners & Items */}
+        {(activeTab === 'catering' || activeTab === 'watersports') && (
+        <div>
+          <div style={styles.card}>
+            <h3 style={styles.cardTitle}>
+              {activeTab === 'catering' ? '🍽️ Партнёры по кейтерингу' : '🏄 Партнёры по водным игрушкам'}
+            </h3>
+            <div style={styles.list}>
+              {(activeTab === 'catering' ? cateringPartners : watersportsPartners).map(partner => (
+                <div key={partner.id}>
+                  <div style={{ ...styles.listItem, backgroundColor: '#0f2337', fontWeight: '600' }}>
+                    <div style={{ flex: 1 }}>
+                      <span>{partner.name}</span>
+                      {partner.phone && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#64748b' }}>📞 {partner.phone}</span>}
+                      {partner.email && <span style={{ marginLeft: '10px', fontSize: '12px', color: '#64748b' }}>✉️ {partner.email}</span>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                        onClick={() => startEditOtherPartner(partner)}
+                      >
+                        ✏️ Редактировать
+                      </button>
+                      <button 
+                        style={{ fontSize: '12px', padding: '6px 12px', backgroundColor: '#2a0e0e', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                        onClick={() => deletePartner(activeTab === 'catering' ? 'catering_partners' : 'watersports_partners', partner.id)}
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+                  {/* Show items for this partner */}
+                  {(activeTab === 'catering' 
+                    ? cateringMenu.filter(m => m.partner_id === partner.id)
+                    : watersportsCatalog.filter(w => w.partner_id === partner.id)
+                  ).map(item => (
+                    <div key={item.id} style={{ ...styles.listItem, paddingLeft: '20px', fontSize: '13px' }}>
+                      {editingServiceItem === item.id ? (
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flex: 1 }}>
+                          <input value={editServiceForm.name_en || ''} onChange={e => setEditServiceForm({...editServiceForm, name_en: e.target.value})}
+                            style={{ flex: 1, padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
+                          {activeTab === 'catering' ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <input type="number" value={editServiceForm.price_per_person ?? 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_person: e.target.value})}
+                                style={{ width: '90px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#94a3b8' }} placeholder="Закупка" />
+                              <input type="number" value={editServiceForm.client_price ?? editServiceForm.price_per_person ?? 0} onChange={e => setEditServiceForm({...editServiceForm, client_price: e.target.value})}
+                                style={{ width: '90px', padding: '4px 8px', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px', color: '#60a5fa', fontWeight: '600' }} placeholder="Клиент ฿" />
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <input type="number" value={editServiceForm.price_per_hour ?? 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_hour: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#94a3b8' }} placeholder="час" />
+                                <input type="number" value={editServiceForm.price_per_day ?? 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_day: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#94a3b8' }} placeholder="день" />
+                              </div>
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <input type="number" value={editServiceForm.client_per_hour ?? editServiceForm.price_per_hour ?? 0} onChange={e => setEditServiceForm({...editServiceForm, client_per_hour: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px', color: '#60a5fa', fontWeight: '600' }} placeholder="кл/час" />
+                                <input type="number" value={editServiceForm.client_per_day ?? editServiceForm.price_per_day ?? 0} onChange={e => setEditServiceForm({...editServiceForm, client_per_day: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px', color: '#60a5fa', fontWeight: '600' }} placeholder="кл/день" />
+                              </div>
+                            </div>
+                          )}
+                          <button onClick={saveServiceItem} style={{ padding: '4px 10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✓</button>
+                          <button onClick={() => setEditingServiceItem(null)} style={{ padding: '4px 10px', backgroundColor: '#132840', color: '#cbd5e1', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+                        </div>
+                      ) : (
+                        <>
+                          <span style={{ flex: 1 }}>
+                            {item.name_en}
+                            {activeTab === 'catering' ? (
+                              <span>
+                                <span style={{ color: '#64748b', fontSize: '11px' }}> закупка: {item.price_per_person} ฿</span>
+                                <span style={{ color: '#60a5fa', fontWeight: '600' }}> → клиент: {item.client_price || item.price_per_person} ฿/чел</span>
+                              </span>
+                            ) : (
+                              <span>
+                                <span style={{ color: '#64748b', fontSize: '11px' }}> {item.price_per_hour || 0}/{item.price_per_day || 0} ฿</span>
+                                <span style={{ color: '#60a5fa', fontWeight: '600' }}> → {item.client_per_hour || item.price_per_hour || 0}/{item.client_per_day || item.price_per_day || 0} ฿</span>
+                              </span>
+                            )}
+                          </span>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button onClick={() => startEditServiceItem(item)}
+                              style={{ padding: '4px 8px', backgroundColor: '#0d2137', color: '#60a5fa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️</button>
+                            <button 
+                              style={{ padding: '4px 8px', backgroundColor: '#2a0e0e', color: '#dc2626', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                              onClick={() => deleteMenuItem(activeTab === 'catering' ? 'catering_menu' : 'watersports_catalog', item.id)}
+                            >✕</button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* Boats Tab Content */}
+        {activeTab === 'boats' && (
+          <>
+            
+            <div>
+              {/* Модал добавления партнёра */}
+              {showAddPartnerModal && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                  <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#e2e8f0' }}>➕ Добавить партнёра</h3>
+                      <button onClick={() => setShowAddPartnerModal(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#e2e8f0' }}>✕</button>
+                    </div>
+                    <input placeholder="Название компании *" value={newPartnerName} onChange={e => setNewPartnerName(e.target.value)} style={styles.input} />
+                    <input placeholder="Контактное лицо" value={newPartnerContact} onChange={e => setNewPartnerContact(e.target.value)} style={styles.input} />
+                    <input placeholder="Телефон" value={newPartnerPhone} onChange={e => setNewPartnerPhone(e.target.value)} style={styles.input} />
+                    <input placeholder="Email" value={newPartnerEmail} onChange={e => setNewPartnerEmail(e.target.value)} style={styles.input} />
+                    <input placeholder="Комиссия %" type="number" value={newPartnerCommission} onChange={e => setNewPartnerCommission(e.target.value)} style={styles.input} />
+                    <input placeholder="Адрес" value={newPartnerAddress} onChange={e => setNewPartnerAddress(e.target.value)} style={styles.input} />
+                    <input placeholder="Вебсайт" value={newPartnerWebsite} onChange={e => setNewPartnerWebsite(e.target.value)} style={styles.input} />
+                    <input placeholder="Tax ID" value={newPartnerTaxId} onChange={e => setNewPartnerTaxId(e.target.value)} style={styles.input} />
+                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid #1e3a5f' }}>
+                      <p style={{ margin: '0 0 8px', fontWeight: '600', fontSize: '13px', color: '#93c5fd' }}>🏦 Банковские реквизиты</p>
+                      <input placeholder="Название банка (напр. Bangkok Bank)" value={newPartnerBankName} onChange={e => setNewPartnerBankName(e.target.value)} style={styles.input} />
+                      <input placeholder="Имя владельца счёта" value={newPartnerBankAccountName} onChange={e => setNewPartnerBankAccountName(e.target.value)} style={styles.input} />
+                      <input placeholder="Номер счёта" value={newPartnerBankAccount} onChange={e => setNewPartnerBankAccount(e.target.value)} style={styles.input} />
+                      <input placeholder="Отделение банка (Branch)" value={newPartnerBankBranch} onChange={e => setNewPartnerBankBranch(e.target.value)} style={styles.input} />
+                      <input placeholder="SWIFT код" value={newPartnerSwift} onChange={e => setNewPartnerSwift(e.target.value)} style={styles.input} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                      <button style={{ ...styles.btn, flex: 1 }} onClick={() => { addBoatPartner(); setShowAddPartnerModal(false); }}>✅ Добавить партнёра</button>
+                      <button onClick={() => setShowAddPartnerModal(false)} style={{ padding: '10px 20px', backgroundColor: '#0f2337', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}>Отмена</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div style={styles.card}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                  <h3 style={{ ...styles.cardTitle, margin: 0 }}>🚤 Владельцы яхт ({boatPartners.length})</h3>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: '#64748b' }}>Лодок: {boats.length}</span>
+                    <button onClick={() => setShowAddPartnerModal(true)} style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>➕ Добавить</button>
+                  </div>
+                </div>
+                
+                {/* Search */}
+                <input
+                  placeholder="🔍 Поиск по партнёру или лодке..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{ ...styles.input, marginBottom: '15px' }}
+                />
+                
+                <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                  {filteredBoatPartners.length === 0 ? (
+                    <p style={{ color: '#64748b', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                      {searchQuery ? 'Ничего не найдено' : 'Нет партнёров'}
+                    </p>
+                  ) : (
+                    filteredBoatPartners.map((partner: any) => {
+                      const partnerBoats = boats.filter((b: any) => b.partner_id === partner.id);
+                      const isExpanded = expandedPartners.has(partner.id);
+                      return (
+                        <div key={partner.id} style={{ marginBottom: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', overflow: 'hidden' }}>
+                          {/* Partner Header - Clickable */}
+                          <div 
+                            onClick={() => togglePartnerExpand(partner.id)}
+                            style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center',
+                              padding: '12px',
+                              backgroundColor: isExpanded ? '#0e2a4a' : '#0f2337',
+                              cursor: 'pointer',
+                              transition: 'background 0.2s'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ fontSize: '16px' }}>{isExpanded ? '▼' : '▶'}</span>
+                              <div>
+                                <strong style={{ fontSize: '14px' }}>{partner.name}</strong>
+                                <span style={{ marginLeft: '10px', fontSize: '12px', color: '#64748b' }}>
+                                  🚢 {partnerBoats.length} лодок • {partner.commission_percent ? partner.commission_percent + '%' : ''}
+                                </span>
+                              </div>
+                            </div>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
+                              <button
+                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#3b82f6", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
+                                onClick={(e) => { e.stopPropagation(); startEditPartner(partner); }}
+                              >
+                                ✏️ Редактировать
+                              </button>
+                              <button
+                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#3d0f0f", color: "#f87171", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
+                                onClick={(e) => { e.stopPropagation(); deleteBoatPartner(partner.id); }}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          </div>
+                          {/* Expanded Content */}
+                          {isExpanded && (
+                            <div style={{ padding: '12px', backgroundColor: '#132840', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                              {/* Contact Info */}
+                              <div style={{ marginBottom: '10px', fontSize: '13px', color: '#64748b' }}>
+                                {partner.contact_phone && <span style={{ marginRight: '15px' }}>📞 {partner.contact_phone}</span>}
+                                {partner.contact_email && <span>✉️ {partner.contact_email}</span>}
+                              </div>
+                              
+                              {/* Menu Button */}
+                              <div style={{ marginBottom: '12px' }}>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openMenuEditor(partner.id); }}
+                                  style={{ padding: '8px 16px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
+                                >
+                                  🍽️ Меню партнёра
+                                </button>
+                              </div>
+                              
+                              {/* Boats List */}
+                              {partnerBoats.length > 0 ? (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '8px' }}>
+                                  {partnerBoats.map((boat: any) => (
+                                    <div 
+                                      key={boat.id} 
+                                      onClick={() => loadBoatDetails(boat)}
+                                      style={{ 
+                                        fontSize: '13px', 
+                                        padding: '8px 10px', 
+                                        backgroundColor: '#0f2337',
+                                        borderRadius: '6px',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                      }}
+                                      onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#1e3a5f'; e.currentTarget.style.borderColor = '#3b82f6'; }}
+                                      onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#0f2337'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                                    >
+                                      <strong>{boat.name}</strong>
+                                      {boat.length_ft && <span style={{ color: '#64748b' }}> ({boat.length_ft}ft)</span>}
+                                      {boat.boat_type && <span style={{ color: '#475569' }}> - {boat.boat_type}</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p style={{ fontSize: '13px', color: '#475569' }}>Нет лодок</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Menu Editor Modal */}
+      {menuEditorOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#132840', borderRadius: '12px', width: '90%', maxWidth: '900px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {/* Header */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '18px' }}>🍽️ Меню партнёра</h2>
+              <button onClick={closeMenuEditor} style={{ background: "none", border: "none", fontSize: "24px", cursor: "pointer", color: "#e2e8f0" }}>×</button>
+            </div>
+            
+            {/* Content */}
+            <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+              {menuLoading ? (
+                <p style={{ textAlign: 'center', color: '#64748b' }}>Загрузка...</p>
+              ) : editingMenu ? (
+                /* Edit Mode */
+                <div>
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0 }}>Редактирование: {editingMenu.name}</h3>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => { setEditingMenu(null); setEditingSets([]); }} style={{ padding: '8px 16px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Отмена</button>
+                      <button onClick={saveMenuChanges} style={{ padding: '8px 16px', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>💾 Сохранить</button>
+                    </div>
+                  </div>
+                  
+                  {/* Menu Info */}
+                  <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#0f2337', borderRadius: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Название</label>
+                        <input value={editingMenu.name || ''} onChange={(e) => setEditingMenu({...editingMenu, name: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Тип</label>
+                        <select value={editingMenu.type || 'included'} onChange={(e) => setEditingMenu({...editingMenu, type: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px' }}>
+                          <option value="included">Включено в стоимость</option>
+                          <option value="paid">Платное</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Условия (EN)</label>
+                      <textarea value={editingMenu.conditions || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', minHeight: '60px' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Условия (RU)</label>
+                      <textarea value={editingMenu.conditions_ru || ''} onChange={(e) => setEditingMenu({...editingMenu, conditions_ru: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', minHeight: '60px' }} />
+                    </div>
+                  </div>
+                  
+                  {/* Sets */}
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4 style={{ margin: 0 }}>Сеты ({editingSets.length})</h4>
+                    <button onClick={addNewSet} style={{ padding: '6px 12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Добавить сет</button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {editingSets.map((set, idx) => (
+                      <div key={set.id || idx} style={{ padding: '12px', backgroundColor: '#0f2337', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr auto', gap: '8px', marginBottom: '8px' }}>
+                          <input placeholder="Name" value={set.name || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
+                          <input placeholder="Название (RU)" value={set.name_ru || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].name_ru = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
+                          <select value={set.category || 'other'} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].category = e.target.value; setEditingSets(newSets); }} style={{ padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }}>
+                            <option value="thai">🇹🇭 Thai</option>
+                            <option value="western">🍝 Western</option>
+                            <option value="vegetarian">🥗 Vegetarian</option>
+                            <option value="kids">👶 Kids</option>
+                            <option value="seafood">🦐 Seafood</option>
+                            <option value="bbq">🍖 BBQ</option>
+                            <option value="other">🍽️ Other</option>
+                          </select>
+                          {!set._isNew && <button onClick={() => deleteSet(set.id)} style={{ padding: '6px 10px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>🗑️</button>}
+                        </div>
+                        <div style={{ marginBottom: '8px' }}>
+                          <label style={{ fontSize: '11px', color: '#64748b' }}>Блюда (через запятую)</label>
+                          <input value={(set.dishes || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748b' }}>Блюда RU (через запятую)</label>
+                          <input value={(set.dishes_ru || []).join(', ')} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].dishes_ru = e.target.value.split(',').map((d: string) => d.trim()).filter((d: string) => d); setEditingSets(newSets); }} style={{ width: '100%', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }} />
+                        </div>
+                        {editingMenu.type === 'paid' && (
+                          <div style={{ marginTop: '8px' }}>
+                            <label style={{ fontSize: '11px', color: '#64748b' }}>Цена (THB)</label>
+                            <input type="number" value={set.price || ''} onChange={(e) => { const newSets = [...editingSets]; newSets[idx].price = e.target.value ? Number(e.target.value) : null; setEditingSets(newSets); }} style={{ width: '100px', padding: '6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px' }} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* View Mode */
+                <div>
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0 }}>Меню ({partnerMenus.length})</h3>
+                    <button onClick={createNewMenu} style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>+ Создать меню</button>
+                  </div>
+                  
+                  {partnerMenus.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>У этого партнёра пока нет меню. Создайте новое или импортируйте через /menu-import</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {partnerMenus.map(menu => (
+                        <div key={menu.id} style={{ padding: '16px', backgroundColor: '#0f2337', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <div>
+                              <h4 style={{ margin: 0 }}>{menu.name}</h4>
+                              <span style={{ fontSize: '12px', color: menu.type === 'included' ? '#22c55e' : '#f59e0b' }}>{menu.type === 'included' ? '✅ Включено' : '💰 Платное'}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button onClick={() => startEditMenu(menu)} style={{ padding: '6px 12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>✏️ Редактировать</button>
+                              <button onClick={() => deleteMenu(menu.id)} style={{ padding: '6px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>🗑️</button>
+                            </div>
+                          </div>
+                          
+                          {menu.conditions_ru && (
+                            <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#0d2137', borderRadius: '6px', fontSize: '13px', color: '#92400e' }}>
+                              <strong>⚠️ Условия:</strong> {menu.conditions_ru}
+                            </div>
+                          )}
+                          
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {menuSets.filter(s => s.menu_id === menu.id).map(set => (
+                              <span key={set.id} style={{ padding: '4px 10px', backgroundColor: menu.type === 'paid' ? '#fef3c7' : '#e0f2fe', borderRadius: '4px', fontSize: '12px' }}>
+                                {set.name} {set.name_ru && `(${set.name_ru})`}
+                                {menu.type === 'paid' && set.price && <strong style={{ marginLeft: '6px', color: '#d97706' }}>{set.price} THB</strong>}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+        {/* Partner Edit Modal */}
+        {editingPartner && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', width: '600px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ margin: 0, fontSize: '18px' }}>✏️ Редактировать партнёра</h2>
+                <button onClick={() => setEditingPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#e2e8f0' }}>✕</button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Название компании *</label>
+                  <input value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Контактное лицо</label>
+                  <input value={editForm.contact_name || ''} onChange={e => setEditForm({...editForm, contact_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Телефон</label>
+                  <input value={editForm.contact_phone || ''} onChange={e => setEditForm({...editForm, contact_phone: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Email</label>
+                  <input value={editForm.contact_email || ''} onChange={e => setEditForm({...editForm, contact_email: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Вебсайт</label>
+                  <input value={editForm.website || ''} onChange={e => setEditForm({...editForm, website: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Комиссия %</label>
+                  <input type="number" value={editForm.commission_percent || ""} onChange={e => setEditForm({...editForm, commission_percent: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Адрес</label>
+                  <input value={editForm.address || ''} onChange={e => setEditForm({...editForm, address: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Tax ID</label>
+                  <input value={editForm.tax_id || ''} onChange={e => setEditForm({...editForm, tax_id: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px', marginTop: '4px' }}>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#60a5fa' }}>🏦 Банковские реквизиты</h3>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Банк</label>
+                  <input value={editForm.bank_name || ''} onChange={e => setEditForm({...editForm, bank_name: e.target.value})} placeholder="Bangkok Bank, Kasikorn, SCB..." style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Имя на счёте</label>
+                  <input value={editForm.bank_account_name || ''} onChange={e => setEditForm({...editForm, bank_account_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Номер счёта</label>
+                  <input value={editForm.bank_account_number || ''} onChange={e => setEditForm({...editForm, bank_account_number: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Отделение</label>
+                  <input value={editForm.bank_branch || ''} onChange={e => setEditForm({...editForm, bank_branch: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>SWIFT код</label>
+                  <input value={editForm.swift_code || ''} onChange={e => setEditForm({...editForm, swift_code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px', marginTop: '4px' }}>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '15px', color: '#60a5fa' }}>📋 Контракт</h3>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Контракт с</label>
+                  <input type="date" value={editForm.contract_valid_from || ''} onChange={e => setEditForm({...editForm, contract_valid_from: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Контракт до</label>
+                  <input type="date" value={editForm.contract_valid_until || ''} onChange={e => setEditForm({...editForm, contract_valid_until: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Заметки</label>
+                  <textarea value={editForm.notes || ''} onChange={e => setEditForm({...editForm, notes: e.target.value})} rows={3} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px', resize: 'vertical' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                <button onClick={() => setEditingPartner(null)} style={{ padding: '10px 20px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', backgroundColor: '#132840', cursor: 'pointer', fontSize: '14px' }}>Отмена</button>
+                <button onClick={savePartner} style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>💾 Сохранить</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+      {/* Edit Other Partner Modal */}
+      {editingOtherPartner && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', maxWidth: '500px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, fontSize: '18px' }}>✏️ Редактировать партнёра</h2>
+              <button onClick={() => setEditingOtherPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#e2e8f0' }}>✕</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Название</label>
+              <input value={editOtherForm.name || ''} onChange={e => setEditOtherForm({...editOtherForm, name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Контактное лицо</label>
+              <input value={editOtherForm.contact_person || ''} onChange={e => setEditOtherForm({...editOtherForm, contact_person: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Телефон</label>
+              <input value={editOtherForm.phone || ''} onChange={e => setEditOtherForm({...editOtherForm, phone: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Email</label>
+              <input value={editOtherForm.email || ''} onChange={e => setEditOtherForm({...editOtherForm, email: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Вебсайт</label>
+              <input value={editOtherForm.website || ''} onChange={e => setEditOtherForm({...editOtherForm, website: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Адрес</label>
+              <input value={editOtherForm.address || ''} onChange={e => setEditOtherForm({...editOtherForm, address: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Tax ID</label>
+              <input value={editOtherForm.tax_id || ''} onChange={e => setEditOtherForm({...editOtherForm, tax_id: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} /></div>
+              <div style={{ padding: '12px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                <p style={{ margin: '0 0 8px', fontWeight: '600', fontSize: '13px', color: '#0369a1' }}>🏦 Банковские реквизиты</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input placeholder="Название банка" value={editOtherForm.bank_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Имя владельца счёта" value={editOtherForm.bank_account_name || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_name: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Номер счёта" value={editOtherForm.bank_account_number || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_account_number: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="Отделение (Branch)" value={editOtherForm.bank_branch || ''} onChange={e => setEditOtherForm({...editOtherForm, bank_branch: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                  <input placeholder="SWIFT код" value={editOtherForm.swift_code || ''} onChange={e => setEditOtherForm({...editOtherForm, swift_code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px' }} />
+                </div>
+              </div>
+              <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Заметки</label>
+              <textarea value={editOtherForm.notes || ''} onChange={e => setEditOtherForm({...editOtherForm, notes: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', fontSize: '14px', minHeight: '60px' }} /></div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+              <button onClick={() => setEditingOtherPartner(null)} style={{ padding: '10px 20px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', backgroundColor: '#132840', cursor: 'pointer' }}>Отмена</button>
+              <button onClick={saveOtherPartner} style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>💾 Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Универсальные вкладки: Трансфер, Дайвинг, Фото, Гиды, Другое */}
+      {['transfer', 'diving', 'photo', 'guide', 'other'].includes(activeTab) && (
+        <UniversalServiceTab
+          category={activeTab}
+          supabase={supabase}
+        />
+      )}
+    </div>
+    </AdminGuard>
+  );
+}
