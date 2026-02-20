@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase as sb } from '../lib/supabase';
 
 // Кэш чтобы не дёргать Supabase для каждой карточки отдельно
 let cachedUnavailable: Record<number, Array<{date_from: string, date_to: string}>> | null = null;
