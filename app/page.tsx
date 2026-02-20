@@ -386,6 +386,21 @@ export default function Home() {
         if (calData) {
           setBoatCalSet(new Set(calData.map((c: any) => c.boat_id)));
         }
+
+        // Загружаем все лодки по умолчанию (без поиска)
+        const nowDate = new Date();
+        const defaultDate = `${nowDate.getFullYear()}-${String(nowDate.getMonth()+1).padStart(2,'0')}-${String(nowDate.getDate()).padStart(2,'0')}`;
+        const { data: defaultBoats } = await supabase.rpc('search_available_boats', {
+          p_date: defaultDate,
+          p_guests: 2,
+          p_time_slot: 'full_day',
+          p_boat_type: '',
+          p_destination: '',
+          p_max_budget: 999999,
+        });
+        if (defaultBoats && defaultBoats.length > 0) {
+          storeSet({ results: defaultBoats, loading: false });
+        }
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
       }
