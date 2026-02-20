@@ -10,6 +10,7 @@ import { generateWhatsAppMessage } from './lib/generateWhatsApp';
 import Header from './components/Header';
 import { useCharterStore } from './store/useCharterStore';
 import SearchResults from './components/SearchResults';
+import { preloadAvailability } from './hooks/useBoatAvailability';
 import IncludedSection from './components/IncludedSection';
 import FoodSection from './components/FoodSection';
 import SearchPanel from './components/SearchPanel';
@@ -108,6 +109,8 @@ export default function Home() {
 
   // Results state
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [boatUnavailMap, setBoatUnavailMap] = useState<Record<number, Array<{date_from: string, date_to: string}>>>({});
+  const [boatCalSet, setBoatCalSet] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
 
   // Modal state
@@ -404,6 +407,15 @@ export default function Home() {
       }
 
       // Sort
+      // Если выбрана дата — сначала сортируем по доступности (свободные вверху)
+      if (searchDate && cachedUnavailableIds) {
+        filtered.sort((a: SearchResult, b: SearchResult) => {
+          const aFree = !cachedUnavailableIds.has(a.boat_id) ? 0 : 1; // нет в занятых = свободна
+          const bFree = !cachedUnavailableIds.has(b.boat_id) ? 0 : 1;
+          return aFree - bFree;
+        });
+      }
+
       if (sortBy === 'price_asc') {
         filtered.sort((a: SearchResult, b: SearchResult) => a.calculated_total - b.calculated_total);
       } else if (sortBy === 'price_desc') {

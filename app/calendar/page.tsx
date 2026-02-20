@@ -173,7 +173,7 @@ export default function CalendarPage() {
         {/* Шапка */}
         <div style={{ position: 'sticky', top: 0, zIndex: 50, backgroundColor: 'var(--os-card)', borderBottom: '1px solid var(--os-border)', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
           <a href="/" style={{ color: 'var(--os-aqua)', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>🔍 Поиск</a>
-          <a href="/admin" style={{ color: 'var(--os-aqua)', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>⚙️ Админка</a>
+          
           <span style={{ color: 'var(--os-text-1)', fontSize: 14, fontWeight: 700 }}>📅 Календарь доступности</span>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             <a href="/admin#calendar" style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-2)', padding: '4px 12px', fontSize: 12, textDecoration: 'none' }}>⚙️ Управление</a>
