@@ -296,12 +296,20 @@ export default function PartnersPage() {
       .from('boats')
       .update({
         name: selectedBoat.name,
+        code: selectedBoat.code || null,
+        model: selectedBoat.model || null,
         boat_type: selectedBoat.boat_type,
         length_ft: selectedBoat.length_ft,
         max_pax_day: selectedBoat.max_pax_day,
+        max_pax_overnight: selectedBoat.max_pax_overnight || null,
         cabins: selectedBoat.cabins,
+        toilets: selectedBoat.toilets || 0,
+        speed_knots: selectedBoat.speed_knots || null,
+        has_flybridge: selectedBoat.has_flybridge || false,
+        has_jacuzzi: selectedBoat.has_jacuzzi || false,
         year_built: selectedBoat.year_built,
         default_pier: selectedBoat.default_pier,
+        main_photo_url: selectedBoat.main_photo_url || null,
         notes: selectedBoat.notes
       })
       .eq('id', selectedBoat.id);
@@ -995,11 +1003,17 @@ export default function PartnersPage() {
     const table = activeTab === 'catering' ? 'catering_menu' : 'watersports_catalog';
     const updateData: any = { name_en: editServiceForm.name_en, name_ru: editServiceForm.name_ru };
     if (activeTab === 'catering') {
-      updateData.price_per_person = editServiceForm.price_per_person;
+      updateData.price_per_person = Number(editServiceForm.price_per_person) || 0;
+      updateData.cost_price = editServiceForm.cost_price || editServiceForm.price_per_person;
+      updateData.client_price = Number(editServiceForm.client_price) || Number(editServiceForm.price_per_person) || 0;
       updateData.category = editServiceForm.category;
     } else {
-      updateData.price_per_hour = editServiceForm.price_per_hour;
-      updateData.price_per_day = editServiceForm.price_per_day;
+      updateData.price_per_hour = Number(editServiceForm.price_per_hour) || 0;
+      updateData.price_per_day = Number(editServiceForm.price_per_day) || 0;
+      updateData.cost_per_hour = editServiceForm.cost_per_hour || editServiceForm.price_per_hour;
+      updateData.client_per_hour = editServiceForm.client_per_hour || editServiceForm.price_per_hour;
+      updateData.cost_per_day = editServiceForm.cost_per_day || editServiceForm.price_per_day;
+      updateData.client_per_day = editServiceForm.client_per_day || editServiceForm.price_per_day;
     }
     const { error } = await supabase.from(table).update(updateData).eq('id', editingServiceItem);
     if (error) { alert('Ошибка: ' + error.message); return; }
@@ -1108,95 +1122,95 @@ export default function PartnersPage() {
               </div>
             </div>
             
-            {/* Boat Info Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Тип</div>
+            {/* Boat Info Grid — полный */}
+            {/* Фото */}
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+              {selectedBoat.main_photo_url && (
+                <img src={selectedBoat.main_photo_url} alt={selectedBoat.name}
+                  style={{ width: '160px', height: '110px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }} />
+              )}
+              <div style={{ flex: 1 }}>
                 {editMode ? (
-                  <input 
-                    value={selectedBoat.boat_type || ''} 
-                    onChange={(e) => setSelectedBoat({...selectedBoat, boat_type: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
-                  />
+                  <>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>URL главного фото</div>
+                    <input value={selectedBoat.main_photo_url || ''} onChange={e => setSelectedBoat({...selectedBoat, main_photo_url: e.target.value})}
+                      style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px', backgroundColor: '#0f2337', color: '#e2e8f0', marginBottom: '8px' }}
+                      placeholder="https://..." />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Код лодки</div>
+                    <input value={selectedBoat.code || ''} onChange={e => setSelectedBoat({...selectedBoat, code: e.target.value})}
+                      style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px', backgroundColor: '#0f2337', color: '#e2e8f0', marginBottom: '8px' }}
+                      placeholder="AIM-AYANA" />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Модель</div>
+                    <input value={selectedBoat.model || ''} onChange={e => setSelectedBoat({...selectedBoat, model: e.target.value})}
+                      style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px', backgroundColor: '#0f2337', color: '#e2e8f0' }}
+                      placeholder="CATAMARAN 50 FT" />
+                  </>
                 ) : (
-                  <div style={{ fontWeight: '600' }}>{selectedBoat.boat_type || '-'}</div>
+                  <>
+                    <div style={{ fontSize: '13px', color: '#94a3b8' }}>Код: <span style={{ color: '#e2e8f0', fontWeight: '600' }}>{selectedBoat.code || '-'}</span></div>
+                    <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>Модель: <span style={{ color: '#e2e8f0' }}>{selectedBoat.model || '-'}</span></div>
+                    {!selectedBoat.main_photo_url && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>⚠️ Фото не загружено</div>}
+                  </>
                 )}
               </div>
-              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Длина</div>
-                {editMode ? (
-                  <input 
-                    type="number"
-                    value={selectedBoat.length_ft || ''} 
-                    onChange={(e) => setSelectedBoat({...selectedBoat, length_ft: Number(e.target.value)})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{selectedBoat.length_ft ? selectedBoat.length_ft + ' ft' : '-'}</div>
-                )}
-              </div>
-              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Макс. гостей</div>
-                {editMode ? (
-                  <input 
-                    type="number"
-                    value={selectedBoat.max_pax_day || ''} 
-                    onChange={(e) => setSelectedBoat({...selectedBoat, max_pax_day: Number(e.target.value)})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{selectedBoat.max_pax_day || '-'}</div>
-                )}
-              </div>
-              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Каюты</div>
-                {editMode ? (
-                  <input 
-                    type="number"
-                    value={selectedBoat.cabins || ''} 
-                    onChange={(e) => setSelectedBoat({...selectedBoat, cabins: Number(e.target.value)})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{selectedBoat.cabins || '-'}</div>
-                )}
-              </div>
-              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Год постройки</div>
-                {editMode ? (
-                  <input 
-                    value={selectedBoat.year_built || ''} 
-                    onChange={(e) => setSelectedBoat({...selectedBoat, year_built: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{selectedBoat.year_built || '-'}</div>
-                )}
-              </div>
-              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Пирс</div>
-                {editMode ? (
-                  <input 
-                    value={selectedBoat.default_pier || ''} 
-                    onChange={(e) => setSelectedBoat({...selectedBoat, default_pier: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{selectedBoat.default_pier || '-'}</div>
-                )}
-              </div>
-              <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px', gridColumn: 'span 2' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Заметки</div>
-                {editMode ? (
-                  <textarea 
-                    value={selectedBoat.notes || ''} 
-                    onChange={(e) => setSelectedBoat({...selectedBoat, notes: e.target.value})}
-                    style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', minHeight: '60px' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '500', fontSize: '13px' }}>{selectedBoat.notes || '-'}</div>
-                )}
-              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+              {[
+                { label: 'Тип', key: 'boat_type', type: 'select', options: ['yacht','catamaran','sailing_catamaran','speedboat'] },
+                { label: 'Длина (ft)', key: 'length_ft', type: 'number' },
+                { label: 'Гостей (день)', key: 'max_pax_day', type: 'number' },
+                { label: 'Гостей (ночь)', key: 'max_pax_overnight', type: 'number' },
+                { label: 'Каюты', key: 'cabins', type: 'number' },
+                { label: 'Туалеты', key: 'toilets', type: 'number' },
+                { label: 'Скорость (уз)', key: 'speed_knots', type: 'number' },
+                { label: 'Год постройки', key: 'year_built', type: 'text' },
+                { label: 'Пирс', key: 'default_pier', type: 'text', span: 2 },
+              ].map((f: any) => (
+                <div key={f.key} style={{ backgroundColor: '#0f2337', padding: '10px 12px', borderRadius: '8px', gridColumn: f.span ? `span ${f.span}` : undefined }}>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>{f.label}</div>
+                  {editMode ? (
+                    f.type === 'select' ? (
+                      <select value={selectedBoat[f.key] || ''} onChange={e => setSelectedBoat({...selectedBoat, [f.key]: e.target.value})}
+                        style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', backgroundColor: '#132840', color: '#e2e8f0', fontSize: '13px' }}>
+                        {f.options.map((o: string) => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    ) : (
+                      <input type={f.type} value={selectedBoat[f.key] || ''} onChange={e => setSelectedBoat({...selectedBoat, [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value})}
+                        style={{ width: '100%', padding: '4px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', backgroundColor: '#132840', color: '#e2e8f0', fontSize: '13px' }} />
+                    )
+                  ) : (
+                    <div style={{ fontWeight: '600', fontSize: '13px' }}>{selectedBoat[f.key] || '-'}{f.key === 'length_ft' && selectedBoat[f.key] ? ' ft' : ''}{f.key === 'speed_knots' && selectedBoat[f.key] ? ' kn' : ''}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Чекбоксы характеристик */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              {[
+                { key: 'has_flybridge', label: '🛥️ Флайбридж' },
+                { key: 'has_jacuzzi', label: '♨️ Джакузи' },
+                { key: 'active', label: '✅ Активна' },
+              ].map(cb => (
+                <label key={cb.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editMode ? 'pointer' : 'default', padding: '8px 12px', backgroundColor: selectedBoat[cb.key] ? '#0d3320' : '#0f2337', borderRadius: '8px', border: `1px solid ${selectedBoat[cb.key] ? '#22c55e' : 'rgba(255,255,255,0.08)'}` }}>
+                  <input type="checkbox" checked={!!selectedBoat[cb.key]} disabled={!editMode}
+                    onChange={e => editMode && setSelectedBoat({...selectedBoat, [cb.key]: e.target.checked})}
+                    style={{ accentColor: '#22c55e' }} />
+                  <span style={{ fontSize: '13px', color: selectedBoat[cb.key] ? '#4ade80' : '#94a3b8' }}>{cb.label}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* Заметки */}
+            <div style={{ backgroundColor: '#0f2337', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>📝 Заметки / Описание</div>
+              {editMode ? (
+                <textarea value={selectedBoat.notes || ''} onChange={e => setSelectedBoat({...selectedBoat, notes: e.target.value})}
+                  style={{ width: '100%', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', minHeight: '80px', backgroundColor: '#132840', color: '#e2e8f0', fontSize: '13px', resize: 'vertical' }} />
+              ) : (
+                <div style={{ fontSize: '13px', color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{selectedBoat.notes || '—'}</div>
+              )}
             </div>
             
             {/* Prices Section */}
@@ -1732,15 +1746,27 @@ export default function PartnersPage() {
                           <input value={editServiceForm.name_en || ''} onChange={e => setEditServiceForm({...editServiceForm, name_en: e.target.value})}
                             style={{ flex: 1, padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
                           {activeTab === 'catering' ? (
-                            <input type="number" value={editServiceForm.price_per_person || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_person: Number(e.target.value)})}
-                              style={{ width: '80px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <input type="number" value={editServiceForm.price_per_person ?? 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_person: e.target.value})}
+                                style={{ width: '90px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#94a3b8' }} placeholder="Закупка" />
+                              <input type="number" value={editServiceForm.client_price ?? editServiceForm.price_per_person ?? 0} onChange={e => setEditServiceForm({...editServiceForm, client_price: e.target.value})}
+                                style={{ width: '90px', padding: '4px 8px', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px', color: '#60a5fa', fontWeight: '600' }} placeholder="Клиент ฿" />
+                            </div>
                           ) : (
-                            <>
-                              <input type="number" value={editServiceForm.price_per_hour || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_hour: Number(e.target.value)})}
-                                style={{ width: '70px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} placeholder="час" />
-                              <input type="number" value={editServiceForm.price_per_day || 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_day: Number(e.target.value)})}
-                                style={{ width: '70px', padding: '4px 8px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '13px' }} placeholder="день" />
-                            </>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <input type="number" value={editServiceForm.price_per_hour ?? 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_hour: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#94a3b8' }} placeholder="час" />
+                                <input type="number" value={editServiceForm.price_per_day ?? 0} onChange={e => setEditServiceForm({...editServiceForm, price_per_day: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', fontSize: '12px', color: '#94a3b8' }} placeholder="день" />
+                              </div>
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <input type="number" value={editServiceForm.client_per_hour ?? editServiceForm.price_per_hour ?? 0} onChange={e => setEditServiceForm({...editServiceForm, client_per_hour: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px', color: '#60a5fa', fontWeight: '600' }} placeholder="кл/час" />
+                                <input type="number" value={editServiceForm.client_per_day ?? editServiceForm.price_per_day ?? 0} onChange={e => setEditServiceForm({...editServiceForm, client_per_day: e.target.value})}
+                                  style={{ width: '65px', padding: '4px 6px', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px', color: '#60a5fa', fontWeight: '600' }} placeholder="кл/день" />
+                              </div>
+                            </div>
                           )}
                           <button onClick={saveServiceItem} style={{ padding: '4px 10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✓</button>
                           <button onClick={() => setEditingServiceItem(null)} style={{ padding: '4px 10px', backgroundColor: '#132840', color: '#cbd5e1', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
@@ -1748,11 +1774,18 @@ export default function PartnersPage() {
                       ) : (
                         <>
                           <span style={{ flex: 1 }}>
-                            {item.name_en} — 
-                            {activeTab === 'catering' 
-                              ? ` ${item.price_per_person} THB/чел`
-                              : ` ${item.price_per_hour || 0} THB/час, ${item.price_per_day || 0} THB/день`
-                            }
+                            {item.name_en}
+                            {activeTab === 'catering' ? (
+                              <span>
+                                <span style={{ color: '#64748b', fontSize: '11px' }}> закупка: {item.price_per_person} ฿</span>
+                                <span style={{ color: '#60a5fa', fontWeight: '600' }}> → клиент: {item.client_price || item.price_per_person} ฿/чел</span>
+                              </span>
+                            ) : (
+                              <span>
+                                <span style={{ color: '#64748b', fontSize: '11px' }}> {item.price_per_hour || 0}/{item.price_per_day || 0} ฿</span>
+                                <span style={{ color: '#60a5fa', fontWeight: '600' }}> → {item.client_per_hour || item.price_per_hour || 0}/{item.client_per_day || item.price_per_day || 0} ฿</span>
+                              </span>
+                            )}
                           </span>
                           <div style={{ display: 'flex', gap: '4px' }}>
                             <button onClick={() => startEditServiceItem(item)}
