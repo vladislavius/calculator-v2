@@ -1,11 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase as sb } from '../../../lib/supabase';
 
 type Route = { id: number; name: string; name_ru: string; duration_hours: number; code: string };
 type RoutePrice = {

@@ -1,12 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import AdminGuard from '../components/AdminGuard';
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase as sb } from '../lib/supabase';
 
 interface UnavailableDate { date_from: string; date_to: string; title: string; source: string; }
 interface BoatAvailability { id: number; name: string; partner_name: string; unavailable: UnavailableDate[]; has_calendar: boolean; }

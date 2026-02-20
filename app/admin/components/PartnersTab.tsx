@@ -1,12 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import PartnerDetail from './PartnerDetail';
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase as sb } from '../../../lib/supabase';
 
 type Partner = {
   id: number; name: string; contact_name: string; contact_phone: string;

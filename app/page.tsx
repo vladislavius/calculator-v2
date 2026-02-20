@@ -432,18 +432,27 @@ export default function Home() {
 
       // Sort
       // Если выбрана дата — сначала сортируем по доступности (свободные вверху)
+      // Сортировка по доступности — загружаем свежие данные
+      // Загружаем доступность для сортировки и квадратиков
+      let availCalSet = new Set<number>();
+      let availUnavailMap: Record<number, Array<{date_from: string, date_to: string}>> = {};
       if (searchDate) {
-        filtered.sort((a: SearchResult, b: SearchResult) => {
-          const dateStr = searchDate;
-          const aUnavail = (boatUnavailMap[a.boat_id] || []).some((u: any) => dateStr >= u.date_from && dateStr <= u.date_to);
-          const bUnavail = (boatUnavailMap[b.boat_id] || []).some((u: any) => dateStr >= u.date_from && dateStr <= u.date_to);
-          const aHasCal = boatCalSet.has(a.boat_id);
-          const bHasCal = boatCalSet.has(b.boat_id);
-          // 0=свободна с календарём, 1=нет данных, 2=занята
-          const aScore = aUnavail ? 2 : aHasCal ? 0 : 1;
-          const bScore = bUnavail ? 2 : bHasCal ? 0 : 1;
-          return aScore - bScore;
+        const today = new Date().toISOString().split('T')[0];
+        const in30days = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+        const [{ data: freshUnavail }, { data: freshCals }] = await Promise.all([
+          supabase.from('boat_unavailable_dates')
+            .select('boat_id, date_from, date_to')
+            .gte('date_to', today)
+            .lte('date_from', in30days),
+          supabase.from('boat_calendars').select('boat_id').eq('active', true)
+        ]);
+        (freshUnavail || []).forEach((u: any) => {
+          if (!availUnavailMap[u.boat_id]) availUnavailMap[u.boat_id] = [];
+          availUnavailMap[u.boat_id].push({ date_from: u.date_from, date_to: u.date_to });
         });
+        availCalSet = new Set((freshCals || []).map((c: any) => c.boat_id));
+        setBoatUnavailMap(availUnavailMap);
+        setBoatCalSet(availCalSet);
       }
 
       if (sortBy === 'price_asc') {
@@ -454,6 +463,17 @@ export default function Home() {
         filtered.sort((a: SearchResult, b: SearchResult) => b.length_ft - a.length_ft);
       } else if (sortBy === 'capacity') {
         filtered.sort((a: SearchResult, b: SearchResult) => b.max_guests - a.max_guests);
+      }
+
+      // Сортировка по доступности — всегда поверх основной
+      if (searchDate && availCalSet.size > 0) {
+        filtered.sort((a: SearchResult, b: SearchResult) => {
+          const aUnavail = (availUnavailMap[a.boat_id] || []).some((u: any) => searchDate >= u.date_from && searchDate <= u.date_to);
+          const bUnavail = (availUnavailMap[b.boat_id] || []).some((u: any) => searchDate >= u.date_from && searchDate <= u.date_to);
+          const aScore = aUnavail ? 2 : availCalSet.has(a.boat_id) ? 0 : 1;
+          const bScore = bUnavail ? 2 : availCalSet.has(b.boat_id) ? 0 : 1;
+          return aScore - bScore;
+        });
       }
 
       setResults(filtered);

@@ -1,11 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase as sb } from '../../../lib/supabase';
 
 export default function StatsTab() {
   const [counts, setCounts] = useState({ boats: 0, partners: 0, options: 0, activeBoats: 0 });
