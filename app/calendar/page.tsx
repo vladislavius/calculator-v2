@@ -11,10 +11,10 @@ const sb = createClient(
 interface UnavailableDate { date_from: string; date_to: string; title: string; source: string; }
 interface BoatAvailability { id: number; name: string; partner_name: string; unavailable: UnavailableDate[]; has_calendar: boolean; }
 
-function getNext7Days(fromDate?: Date): Date[] {
+function getNextNDays(fromDate?: Date, n: number = 7): Date[] {
   const days = [];
   const start = fromDate || new Date();
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < n; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     days.push(d);
@@ -33,17 +33,24 @@ function getUnavailableTitle(date: Date, unavailable: UnavailableDate[]): string
   return found?.title || '';
 }
 
-const DAY_NAMES = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const DAY_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
 export default function CalendarPage() {
   const [boats, setBoats] = useState<BoatAvailability[]>([]);
   const [loading, setLoading] = useState(true);
-  const [weekStart, setWeekStart] = useState(new Date());
+  const [weekStart, setWeekStart] = useState(() => {
+    const d = new Date();
+    const day = d.getDay(); // 0=Вс, 1=Пн...
+    const diff = day === 0 ? -6 : 1 - day; // сдвиг до понедельника
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPartner, setFilterPartner] = useState('');
   const [partners, setPartners] = useState<{id: number, name: string}[]>([]);
-  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+  const [viewMode, setViewMode] = useState<'day' | 'week' | 'month' | 'quarter'>('week');
   const [selectedBoat, setSelectedBoat] = useState<BoatAvailability | null>(null);
   const [monthDate, setMonthDate] = useState(new Date());
 
@@ -95,7 +102,8 @@ export default function CalendarPage() {
     }
   }
 
-  const days = getNext7Days(weekStart);
+  const viewDays = viewMode === 'day' ? 1 : viewMode === 'week' ? 7 : viewMode === 'month' ? 30 : 90;
+  const days = getNextNDays(weekStart, viewDays);
   
   const filteredBoats = boats.filter(b => {
     const matchName = !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -112,7 +120,8 @@ export default function CalendarPage() {
     const year = monthDate.getFullYear();
     const month = monthDate.getMonth();
     const daysInMonth = getDaysInMonth(year, month);
-    const firstDay = new Date(year, month, 1).getDay();
+    const firstDayRaw = new Date(year, month, 1).getDay();
+    const firstDay = firstDayRaw === 0 ? 6 : firstDayRaw - 1; // Пн=0, Вс=6
     const today = new Date().toISOString().split('T')[0];
 
     const cells = [];
@@ -184,28 +193,36 @@ export default function CalendarPage() {
               {partners.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
             </select>
             <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
-              <button onClick={() => setViewMode('week')}
-                style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--os-border)', background: viewMode === 'week' ? 'var(--os-aqua)' : 'var(--os-surface)', color: viewMode === 'week' ? '#000' : 'var(--os-text-1)', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-                7 дней
-              </button>
-              <button onClick={() => setViewMode('month')}
-                style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--os-border)', background: viewMode === 'month' ? 'var(--os-aqua)' : 'var(--os-surface)', color: viewMode === 'month' ? '#000' : 'var(--os-text-1)', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-                Месяц
-              </button>
+              {(['day','week','month','quarter'] as const).map(mode => {
+                const labels = { day: '1 день', week: '7 дней', month: 'Месяц', quarter: '3 месяца' };
+                return (
+                  <button key={mode} onClick={() => setViewMode(mode)}
+                    style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--os-border)', background: viewMode === mode ? 'var(--os-aqua)' : 'var(--os-surface)', color: viewMode === mode ? '#000' : 'var(--os-text-1)', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                    {labels[mode]}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Навигация по неделе */}
           {viewMode === 'week' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate()-7); setWeekStart(d); }}
+              <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - viewDays); setWeekStart(d); }}
                 style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-1)', padding: '4px 14px', cursor: 'pointer', fontSize: 16 }}>‹</button>
               <span style={{ color: 'var(--os-text-2)', fontSize: 13 }}>
-                {days[0].toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} — {days[6].toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {days[0].toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} — {days[days.length-1].toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
-              <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate()+7); setWeekStart(d); }}
+              <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + viewDays); setWeekStart(d); }}
                 style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-1)', padding: '4px 14px', cursor: 'pointer', fontSize: 16 }}>›</button>
-              <button onClick={() => setWeekStart(new Date())}
+              <button onClick={() => {
+                  const d = new Date();
+                  const day = d.getDay();
+                  const diff = day === 0 ? -6 : 1 - day;
+                  d.setDate(d.getDate() + diff);
+                  d.setHours(0,0,0,0);
+                  setWeekStart(d);
+                }}
                 style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-aqua)', padding: '4px 10px', cursor: 'pointer', fontSize: 12 }}>Сегодня</button>
             </div>
           )}
@@ -231,7 +248,7 @@ export default function CalendarPage() {
               </div>
 
               {/* Таблица лодок */}
-              {viewMode === 'week' && (
+              {(viewMode === 'day' || viewMode === 'week' || viewMode === 'month' || viewMode === 'quarter') && viewMode !== 'month' && (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
@@ -287,7 +304,7 @@ export default function CalendarPage() {
               )}
 
               {/* Месячный вид */}
-              {viewMode === 'month' && (
+              {(viewMode === 'month') && (
                 <div>
                   {selectedBoat ? (
                     <div style={{ backgroundColor: 'var(--os-card)', borderRadius: 12, padding: 20, maxWidth: 400 }}>
