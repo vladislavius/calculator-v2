@@ -21,9 +21,9 @@ export default function Header() {
         </a>
         <nav className="os-nav">
           <a href="/" className="os-nav__link active">🔍{!isMobile && <span> Поиск</span>}</a>
-          <a href="/partners" className="os-nav__link">👥{!isMobile && <span> Партнёры</span>}</a>
+          <a href="/partners" style={{display:"none"}} className="os-nav__link">👥{!isMobile && <span> Партнёры</span>}</a>
           <a href="/admin" className="os-nav__link">⚙️{!isMobile && <span> Админ</span>}</a>
-          <a href="/import-all" className="os-nav__link">📦{!isMobile && <span> Импорт</span>}</a>
+          <a href="/import-all" className="os-nav__link" style={{display:"none"}}>📦{!isMobile && <span> Импорт</span>}</a>
         </nav>
         <div className="os-header__spacer" />
         <div className="os-lang-switch">
