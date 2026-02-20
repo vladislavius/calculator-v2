@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 
 
 export default function PartnersPage() {
-  const [activeTab, setActiveTab] = useState<'catering' | 'watersports' | 'boats'>('boats');
+  const [activeTab, setActiveTab] = useState<'catering' | 'watersports' | 'boats' | 'transfer' | 'diving' | 'photo' | 'guide' | 'other'>('boats');
+  const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
   const [cateringPartners, setCateringPartners] = useState<any[]>([]);
   const [cateringMenu, setCateringMenu] = useState<any[]>([]);
   const [watersportsPartners, setWatersportsPartners] = useState<any[]>([]);
@@ -922,7 +923,7 @@ export default function PartnersPage() {
                 )}
                 <button 
                   onClick={() => setSelectedBoat(null)}
-                  style={{ padding: '8px 12px', backgroundColor: '#132840', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px' }}
+                  style={{ padding: '8px 12px', backgroundColor: '#132840', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px', color: '#e2e8f0' }}
                 >
                   ✕
                 </button>
@@ -1186,8 +1187,8 @@ export default function PartnersPage() {
                       style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '6px 12px',
-                        backgroundColor: opt.status === 'included' ? '#dcfce7' : '#fef3c7',
-                        color: opt.status === 'included' ? '#166534' : '#92400e',
+                        backgroundColor: opt.status === 'included' ? '#0d3320' : '#2d1f00',
+                        color: opt.status === 'included' ? '#4ade80' : '#fbbf24',
                         borderRadius: '16px',
                         fontSize: '12px'
                       }}
@@ -1245,7 +1246,7 @@ export default function PartnersPage() {
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '6px 12px',
                         backgroundColor: '#0d2137',
-                        color: '#92400e',
+                        color: '#fbbf24',
                         borderRadius: '16px',
                         fontSize: '12px'
                       }}
@@ -1380,30 +1381,36 @@ export default function PartnersPage() {
       <div style={styles.header}>
         <h1 style={styles.title}>👥 Управление партнёрами</h1>
         <div style={{display:'flex',gap:'8px'}}>
-          <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#eff6ff',borderRadius:'8px',color:'#2563eb',textDecoration:'none',fontWeight:'500',border:'1px solid #bfdbfe'}}>📦 Центр импорта</a>
-          <a href="/import" style={{padding:'8px 16px',backgroundColor:'#f5f3ff',borderRadius:'8px',color:'#7c3aed',textDecoration:'none',fontWeight:'500',border:'1px solid #ddd6fe'}}>🤖 AI-парсер яхт</a>
+          <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#1e3a5f',borderRadius:'8px',color:'#93c5fd',textDecoration:'none',fontWeight:'500',border:'1px solid #3b82f6'}}>📦 Центр импорта</a>
+          <a href="/import" style={{padding:'8px 16px',backgroundColor:'#1e1a3a',borderRadius:'8px',color:'#a78bfa',textDecoration:'none',fontWeight:'500',border:'1px solid #7c3aed'}}>🤖 AI-парсер яхт</a>
           <a href="/" style={{padding:'8px 16px',backgroundColor:'#2563eb',borderRadius:'8px',color:'white',textDecoration:'none',fontWeight:'500'}}>← Калькулятор</a>
         </div>
       </div>
 
-      <div style={styles.tabs}>
-        <button 
-          style={{ ...styles.tab, ...(activeTab === 'catering' ? styles.tabActive : styles.tabInactive) }}
-          onClick={() => setActiveTab('catering')}
-        >
+      <div style={{ ...styles.tabs, flexWrap: 'wrap', gap: '6px' }}>
+        <button style={{ ...styles.tab, ...(activeTab === 'boats' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('boats')}>
+          🚤 Яхты ({boatPartners.length})
+        </button>
+        <button style={{ ...styles.tab, ...(activeTab === 'catering' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('catering')}>
           🍽️ Кейтеринг ({cateringPartners.length})
         </button>
-        <button 
-          style={{ ...styles.tab, ...(activeTab === 'watersports' ? styles.tabActive : styles.tabInactive) }}
-          onClick={() => setActiveTab('watersports')}
-        >
+        <button style={{ ...styles.tab, ...(activeTab === 'watersports' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('watersports')}>
           🏄 Водные игрушки ({watersportsPartners.length})
         </button>
-        <button
-          style={{ ...styles.tab, ...(activeTab === 'boats' ? styles.tabActive : styles.tabInactive) }}
-          onClick={() => setActiveTab('boats')}
-        >
-          🚤 Владельцы яхт ({boatPartners.length})
+        <button style={{ ...styles.tab, ...(activeTab === 'transfer' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('transfer')}>
+          🚐 Трансфер
+        </button>
+        <button style={{ ...styles.tab, ...(activeTab === 'diving' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('diving')}>
+          🤿 Дайвинг
+        </button>
+        <button style={{ ...styles.tab, ...(activeTab === 'photo' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('photo')}>
+          📸 Фото/Видео
+        </button>
+        <button style={{ ...styles.tab, ...(activeTab === 'guide' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('guide')}>
+          🗺️ Гиды
+        </button>
+        <button style={{ ...styles.tab, ...(activeTab === 'other' ? styles.tabActive : styles.tabInactive) }} onClick={() => setActiveTab('other')}>
+          📦 Другое
         </button>
       </div>
 
@@ -1577,77 +1584,47 @@ export default function PartnersPage() {
         {/* Boats Tab Content */}
         {activeTab === 'boats' && (
           <>
-            <div>
-              <div style={styles.card}>
-                <h3 style={styles.cardTitle}>➕ Добавить владельца яхт</h3>
-                <input
-                  placeholder="Название компании *"
-                  value={newPartnerName}
-                  onChange={e => setNewPartnerName(e.target.value)}
-                  style={styles.input}
-                />
-                <input
-                  placeholder="Контактное лицо"
-                  value={newPartnerContact}
-                  onChange={e => setNewPartnerContact(e.target.value)}
-                  style={styles.input}
-                />
-                <input
-                  placeholder="Телефон"
-                  value={newPartnerPhone}
-                  onChange={e => setNewPartnerPhone(e.target.value)}
-                  style={styles.input}
-                />
-                <input
-                  placeholder="Email"
-                  value={newPartnerEmail}
-                  onChange={e => setNewPartnerEmail(e.target.value)}
-                  style={styles.input}
-                />
-                <input
-                  placeholder="Комиссия %"
-                  type="number"
-                  value={newPartnerCommission}
-                  onChange={e => setNewPartnerCommission(e.target.value)}
-                  style={styles.input}
-                />
-                <input
-                  placeholder="Адрес"
-                  value={newPartnerAddress}
-                  onChange={e => setNewPartnerAddress(e.target.value)}
-                  style={styles.input}
-                />
-                <input
-                  placeholder="Вебсайт"
-                  value={newPartnerWebsite}
-                  onChange={e => setNewPartnerWebsite(e.target.value)}
-                  style={styles.input}
-                />
-                <input
-                  placeholder="Tax ID"
-                  value={newPartnerTaxId}
-                  onChange={e => setNewPartnerTaxId(e.target.value)}
-                  style={styles.input}
-                />
-                <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#f0f9ff", borderRadius: "8px", border: "1px solid #bae6fd" }}>
-                  <p style={{ margin: "0 0 8px", fontWeight: "600", fontSize: "13px", color: "#0369a1" }}>🏦 Банковские реквизиты</p>
-                  <input placeholder="Название банка (напр. Bangkok Bank)" value={newPartnerBankName} onChange={e => setNewPartnerBankName(e.target.value)} style={styles.input} />
-                  <input placeholder="Имя владельца счёта" value={newPartnerBankAccountName} onChange={e => setNewPartnerBankAccountName(e.target.value)} style={styles.input} />
-                  <input placeholder="Номер счёта" value={newPartnerBankAccount} onChange={e => setNewPartnerBankAccount(e.target.value)} style={styles.input} />
-                  <input placeholder="Отделение банка (Branch)" value={newPartnerBankBranch} onChange={e => setNewPartnerBankBranch(e.target.value)} style={styles.input} />
-                  <input placeholder="SWIFT код" value={newPartnerSwift} onChange={e => setNewPartnerSwift(e.target.value)} style={styles.input} />
-                </div>
-                <button style={styles.btn} onClick={addBoatPartner}>
-                  Добавить партнёра
-                </button>
-              </div>
-            </div>
             
             <div>
+              {/* Модал добавления партнёра */}
+              {showAddPartnerModal && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                  <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#e2e8f0' }}>➕ Добавить партнёра</h3>
+                      <button onClick={() => setShowAddPartnerModal(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#e2e8f0' }}>✕</button>
+                    </div>
+                    <input placeholder="Название компании *" value={newPartnerName} onChange={e => setNewPartnerName(e.target.value)} style={styles.input} />
+                    <input placeholder="Контактное лицо" value={newPartnerContact} onChange={e => setNewPartnerContact(e.target.value)} style={styles.input} />
+                    <input placeholder="Телефон" value={newPartnerPhone} onChange={e => setNewPartnerPhone(e.target.value)} style={styles.input} />
+                    <input placeholder="Email" value={newPartnerEmail} onChange={e => setNewPartnerEmail(e.target.value)} style={styles.input} />
+                    <input placeholder="Комиссия %" type="number" value={newPartnerCommission} onChange={e => setNewPartnerCommission(e.target.value)} style={styles.input} />
+                    <input placeholder="Адрес" value={newPartnerAddress} onChange={e => setNewPartnerAddress(e.target.value)} style={styles.input} />
+                    <input placeholder="Вебсайт" value={newPartnerWebsite} onChange={e => setNewPartnerWebsite(e.target.value)} style={styles.input} />
+                    <input placeholder="Tax ID" value={newPartnerTaxId} onChange={e => setNewPartnerTaxId(e.target.value)} style={styles.input} />
+                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#0d2137', borderRadius: '8px', border: '1px solid #1e3a5f' }}>
+                      <p style={{ margin: '0 0 8px', fontWeight: '600', fontSize: '13px', color: '#93c5fd' }}>🏦 Банковские реквизиты</p>
+                      <input placeholder="Название банка (напр. Bangkok Bank)" value={newPartnerBankName} onChange={e => setNewPartnerBankName(e.target.value)} style={styles.input} />
+                      <input placeholder="Имя владельца счёта" value={newPartnerBankAccountName} onChange={e => setNewPartnerBankAccountName(e.target.value)} style={styles.input} />
+                      <input placeholder="Номер счёта" value={newPartnerBankAccount} onChange={e => setNewPartnerBankAccount(e.target.value)} style={styles.input} />
+                      <input placeholder="Отделение банка (Branch)" value={newPartnerBankBranch} onChange={e => setNewPartnerBankBranch(e.target.value)} style={styles.input} />
+                      <input placeholder="SWIFT код" value={newPartnerSwift} onChange={e => setNewPartnerSwift(e.target.value)} style={styles.input} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                      <button style={{ ...styles.btn, flex: 1 }} onClick={() => { addBoatPartner(); setShowAddPartnerModal(false); }}>✅ Добавить партнёра</button>
+                      <button onClick={() => setShowAddPartnerModal(false)} style={{ padding: '10px 20px', backgroundColor: '#0f2337', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}>Отмена</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div style={styles.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                   <h3 style={{ ...styles.cardTitle, margin: 0 }}>🚤 Владельцы яхт ({boatPartners.length})</h3>
-                  <span style={{ fontSize: '13px', color: '#64748b' }}>Лодок: {boats.length}</span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: '#64748b' }}>Лодок: {boats.length}</span>
+                    <button onClick={() => setShowAddPartnerModal(true)} style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>➕ Добавить</button>
+                  </div>
                 </div>
                 
                 {/* Search */}
@@ -1699,7 +1676,7 @@ export default function PartnersPage() {
                                 ✏️ Редактировать
                               </button>
                               <button
-                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#fee2e2", color: "#dc2626", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
+                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#3d0f0f", color: "#f87171", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
                                 onClick={(e) => { e.stopPropagation(); deleteBoatPartner(partner.id); }}
                               >
                                 Удалить
@@ -1741,8 +1718,8 @@ export default function PartnersPage() {
                                         cursor: 'pointer',
                                         transition: 'all 0.2s'
                                       }}
-                                      onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#3b82f6'; }}
-                                      onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#f9fafb'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                                      onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#1e3a5f'; e.currentTarget.style.borderColor = '#3b82f6'; }}
+                                      onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#0f2337'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                                     >
                                       <strong>{boat.name}</strong>
                                       {boat.length_ft && <span style={{ color: '#64748b' }}> ({boat.length_ft}ft)</span>}
@@ -1773,7 +1750,7 @@ export default function PartnersPage() {
             {/* Header */}
             <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '18px' }}>🍽️ Меню партнёра</h2>
-              <button onClick={closeMenuEditor} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>×</button>
+              <button onClick={closeMenuEditor} style={{ background: "none", border: "none", fontSize: "24px", cursor: "pointer", color: "#e2e8f0" }}>×</button>
             </div>
             
             {/* Content */}
@@ -1913,7 +1890,7 @@ export default function PartnersPage() {
             <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', width: '600px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0, fontSize: '18px' }}>✏️ Редактировать партнёра</h2>
-                <button onClick={() => setEditingPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+                <button onClick={() => setEditingPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#e2e8f0' }}>✕</button>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -2007,7 +1984,7 @@ export default function PartnersPage() {
           <div style={{ backgroundColor: '#132840', borderRadius: '16px', padding: '24px', maxWidth: '500px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0, fontSize: '18px' }}>✏️ Редактировать партнёра</h2>
-              <button onClick={() => setEditingOtherPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setEditingOtherPartner(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#e2e8f0' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div><label style={{ fontSize: '13px', fontWeight: '600', color: '#cbd5e1' }}>Название</label>
