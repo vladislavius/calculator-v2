@@ -894,7 +894,8 @@ export default function Home() {
       <Header />
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '8px' : '24px' }}>
-        {/* Search Panel */}
+        {/* Search Panel — sticky */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', background: 'rgba(12,24,37,0.92)', marginLeft: isMobile ? -8 : -24, marginRight: isMobile ? -8 : -24, paddingLeft: isMobile ? 8 : 24, paddingRight: isMobile ? 8 : 24, paddingTop: 8, paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <SearchPanel
           searchDate={searchDate}
           setSearchDate={setSearchDate}
@@ -926,6 +927,7 @@ export default function Home() {
           handleSearch={handleSearch}
           loading={loading}
         />
+        </div>
 
         <SearchResults onSelectBoat={openBoatDetails} />
       </div>
