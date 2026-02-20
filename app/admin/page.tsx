@@ -5,6 +5,7 @@ import BoatsTab     from './components/BoatsTab';
 import UsersTab     from './components/UsersTab';
 import StatsTab     from './components/StatsTab';
 import OptionsTab   from './components/OptionsTab';
+import CalendarTab  from './components/CalendarTab';
 
 const TABS = [
   { id: 'partners', label: '🤝 Партнёры & Контракты' },
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'options',  label: '⚙️ Опции' },
   { id: 'users',    label: '👥 Пользователи' },
   { id: 'stats',    label: '📊 Статистика' },
+  { id: 'calendar', label: '📅 Календари' },
 ];
 
 export default function AdminPage() {
@@ -47,6 +49,7 @@ export default function AdminPage() {
       {/* Content */}
       <div style={{ padding: '24px', maxWidth: 1300, margin: '0 auto' }}>
         {tab === 'partners' && <PartnersTab />}
+        {tab === 'calendar' && <CalendarTab />}
         {tab === 'boats'    && <BoatsTab />}
         {tab === 'options'  && <OptionsTab />}
         {tab === 'users'    && <UsersTab />}

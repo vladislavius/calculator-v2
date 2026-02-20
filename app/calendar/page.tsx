@@ -175,7 +175,10 @@ export default function CalendarPage() {
           <a href="/" style={{ color: 'var(--os-aqua)', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>🔍 Поиск</a>
           <a href="/admin" style={{ color: 'var(--os-aqua)', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>⚙️ Админка</a>
           <span style={{ color: 'var(--os-text-1)', fontSize: 14, fontWeight: 700 }}>📅 Календарь доступности</span>
-          <button onClick={loadData} style={{ marginLeft: 'auto', background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-aqua)', padding: '4px 12px', cursor: 'pointer', fontSize: 12 }}>🔄 Обновить</button>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <a href="/admin#calendar" style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-2)', padding: '4px 12px', fontSize: 12, textDecoration: 'none' }}>⚙️ Управление</a>
+            <button onClick={loadData} style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-aqua)', padding: '4px 12px', cursor: 'pointer', fontSize: 12 }}>🔄 Обновить</button>
+          </div>
         </div>
 
         <div style={{ padding: '20px', maxWidth: 1400, margin: '0 auto' }}>
@@ -256,7 +259,7 @@ export default function CalendarPage() {
                         <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--os-text-2)', borderBottom: '1px solid var(--os-border)', minWidth: 200 }}>Лодка</th>
                         {days.map(d => (
                           <th key={d.toISOString()} style={{ padding: '8px 6px', color: d.toDateString() === new Date().toDateString() ? 'var(--os-aqua)' : 'var(--os-text-2)', borderBottom: '1px solid var(--os-border)', textAlign: 'center', minWidth: 52 }}>
-                            <div style={{ fontSize: 10 }}>{DAY_NAMES[d.getDay()]}</div>
+                            <div style={{ fontSize: 10 }}>{['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()]}</div>
                             <div style={{ fontSize: 13, fontWeight: d.toDateString() === new Date().toDateString() ? 700 : 400 }}>{d.getDate()}</div>
                           </th>
                         ))}
