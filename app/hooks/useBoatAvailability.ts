@@ -43,7 +43,7 @@ export function useBoatAvailability(boatId: number, searchDate?: string) {
     async function load() {
       await preloadAvailability();
 
-      const startDate = searchDate ? new Date(searchDate) : new Date();
+      const startDate = new Date(); // всегда с сегодня
       startDate.setHours(0, 0, 0, 0);
 
       const hasCalendar = cachedCalendarBoats?.has(boatId) ?? false;
