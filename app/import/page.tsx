@@ -1369,7 +1369,23 @@ export default function ImportPage() {
 
   return (
     <AdminGuard>
-    <div style={{minHeight: '100vh', backgroundColor: '#132840', padding: '24px'}}>
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        backgroundColor: 'var(--os-card, #112233)',
+        borderBottom: '1px solid var(--os-border, rgba(255,255,255,0.08))',
+        padding: '10px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+      }}>
+        <a href="/admin" style={{
+          color: 'var(--os-aqua, #00D4B4)',
+          textDecoration: 'none',
+          fontSize: 13,
+          fontWeight: 600,
+        }}>⚙️ ← Назад в админку</a>
+      </div>
+      <div style={{minHeight: '100vh', backgroundColor: '#132840', padding: '24px'}}>
       <div style={{maxWidth: '1400px', margin: '0 auto'}}>
         {/* Header */}
         <div style={{marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -1405,7 +1421,6 @@ export default function ImportPage() {
             ) : (
               <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
                 {importHistory.map((item, idx) => (
-                  <div 
                     key={item.id}
                     style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -1453,7 +1468,6 @@ export default function ImportPage() {
                 <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', maxWidth: '800px', margin: '0 auto'}}>
                   
                   {/* Full Contract Mode */}
-                  <div 
                     onClick={() => { setImportMode('full'); fetchExistingPartners(); }}
                     style={{
                       border: '2px solid #e5e7eb', borderRadius: '16px', padding: '32px',
@@ -1469,7 +1483,6 @@ export default function ImportPage() {
                   </div>
                   
                   {/* Single Boat Mode */}
-                  <div 
                     onClick={() => { setImportMode('single_boat'); fetchExistingPartners(); }}
                     style={{
                       border: '2px solid #e5e7eb', borderRadius: '16px', padding: '32px',
@@ -1495,7 +1508,6 @@ export default function ImportPage() {
                 {/* Partner List */}
                 <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px'}}>
                   {existingPartnersList.map(p => (
-                    <div 
                       key={p.id}
                       onClick={() => { setSelectedPartnerId(p.id); setSelectedPartnerName(p.name); }}
                       style={{

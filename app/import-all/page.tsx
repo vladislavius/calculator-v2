@@ -172,7 +172,23 @@ export default function UnifiedImportPage() {
 
   return (
     <AdminGuard>
-    <div style={{minHeight:'100vh',backgroundColor:'#0C1825'}}>
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        backgroundColor: 'var(--os-card, #112233)',
+        borderBottom: '1px solid var(--os-border, rgba(255,255,255,0.08))',
+        padding: '10px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+      }}>
+        <a href="/admin" style={{
+          color: 'var(--os-aqua, #00D4B4)',
+          textDecoration: 'none',
+          fontSize: 13,
+          fontWeight: 600,
+        }}>⚙️ ← Назад в админку</a>
+      </div>
+      <div style={{minHeight:'100vh',backgroundColor:'#0C1825'}}>
       <div style={{maxWidth:'1200px',margin:'0 auto',padding:'24px'}}>
 
         {/* Header */}
