@@ -63,7 +63,7 @@ export default function CalendarTab() {
   async function syncAll() {
     setSyncing(true);
     setSyncResult(null);
-    const token = localStorage.getItem('admin_session_token');
+    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     try {
       const r = await fetch('/api/calendar/sync', {
         method: 'POST',
@@ -80,7 +80,7 @@ export default function CalendarTab() {
 
   async function syncOne(boatId: number) {
     setSyncing(true);
-    const token = localStorage.getItem('admin_session_token');
+    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     try {
       const r = await fetch('/api/calendar/sync', {
         method: 'POST',
@@ -99,7 +99,7 @@ export default function CalendarTab() {
     if (!form.boat_id || !form.ical_url) {
       setMsg('❌ Выберите лодку и укажите ссылку'); return;
     }
-    const token = localStorage.getItem('admin_session_token');
+    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     const r = await fetch('/api/calendar/boats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-session-token': token || '' },
@@ -116,7 +116,7 @@ export default function CalendarTab() {
 
   async function deleteCalendar(id: number) {
     if (!confirm('Удалить календарь?')) return;
-    const token = localStorage.getItem('admin_session_token');
+    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     await fetch('/api/calendar/boats', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json', 'x-session-token': token || '' },

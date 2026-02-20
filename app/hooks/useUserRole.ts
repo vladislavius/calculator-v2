@@ -5,7 +5,7 @@ export function useUserRole() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_session_token');
+    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     if (!token) {
       setRole(null);
       setLoading(false);
