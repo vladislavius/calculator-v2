@@ -20,7 +20,7 @@ export default function Header() {
           )}
         </a>
         <nav className="os-nav">
-          <a href="/" className="os-nav__link active">🔍{!isMobile && <span> Поиск</span>}</a>
+          <a href="/" className="os-nav__link active">🧮{!isMobile && <span> Калькулятор</span>}</a>
         <a href="/calendar" className="os-nav__link">📅{!isMobile && <span> Календарь</span>}</a>
           <a href="/partners" style={{display:"none"}} className="os-nav__link">👥{!isMobile && <span> Партнёры</span>}</a>
           <a href="/admin" className="os-nav__link">⚙️{!isMobile && <span> Админ</span>}</a>

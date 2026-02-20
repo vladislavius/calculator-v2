@@ -53,7 +53,7 @@ export function useBoatAvailability(boatId: number, searchDate?: string) {
       for (let i = 0; i < 7; i++) {
         const d = new Date(startDate);
         d.setDate(startDate.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
         const isBusy = unavailable.some(u => dateStr >= u.date_from && dateStr <= u.date_to);
         const status = !hasCalendar ? 'unknown' : isBusy ? 'busy' : 'free';
