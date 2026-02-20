@@ -146,7 +146,37 @@ export function generatePDFContent(p: PDFParams): string {
     summaryRow(t('total.transfer', lang), 'transfer'),
   ].join('');
 
-  const css = '*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:20px 30px;color:#333;max-width:550px;margin:0 auto;font-size:11px;line-height:1.4}.header{text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #2563eb}.logo{font-size:24px;font-weight:bold;color:#2563eb;margin-bottom:4px}.subtitle{color:#666;font-size:11px}.date{color:#888;font-size:10px;margin-top:8px}.yacht-info{background:#1e40af;color:white;padding:12px 15px;border-radius:6px;margin-bottom:15px}.yacht-name{font-size:16px;font-weight:bold;margin-bottom:8px}.yacht-details{display:flex;gap:20px;font-size:10px}.yacht-detail{display:flex;flex-direction:column}.yacht-detail-label{opacity:0.8;margin-bottom:2px}.yacht-detail-value{font-weight:600}.section{margin-bottom:12px}.section-title{font-size:11px;font-weight:bold;color:#2563eb;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #e5e7eb;text-transform:uppercase}.included-list{display:flex;flex-wrap:wrap;gap:6px}.included-item{background:#f3f4f6;color:#374151;padding:4px 10px;border-radius:4px;font-size:10px;border:1px solid #e5e7eb}table{width:100%;border-collapse:collapse;margin-top:6px;table-layout:fixed}th,td{padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:10px}th{text-align:left;font-weight:600;color:#6b7280;background:#f9fafb}th:first-child,td:first-child{width:auto}th:nth-child(2),td:nth-child(2){width:70px;text-align:center}th:last-child,td:last-child{width:90px;text-align:right}.total-section{background:#2563eb;color:white;padding:12px 15px;border-radius:6px;margin-top:15px}.total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:11px}.total-row.final{font-size:13px;font-weight:bold;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.3)}.footer{margin-top:20px;text-align:center;color:#666;font-size:9px;padding-top:15px;border-top:1px solid #e5e7eb}@media print{body{padding:15px}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}';
+  const css = '*{margin:0;padding:0;box-sizing:border-box}' +
+    'body{font-family:Arial,sans-serif;padding:20px 28px;background:#0C1825;color:#e2e8f0;max-width:580px;margin:0 auto;font-size:11px;line-height:1.5}' +
+    '.header{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #00D4B4}' +
+    '.logo{font-size:20px;font-weight:900;color:#00D4B4;margin-bottom:3px;letter-spacing:0.05em}' +
+    '.subtitle{color:#94a3b8;font-size:10px}' +
+    '.date{color:#64748b;font-size:10px;margin-top:6px}' +
+    '.yacht-info{background:linear-gradient(135deg,#132840 0%,#0f2337 100%);border:1px solid rgba(0,212,180,0.3);padding:14px 16px;border-radius:8px;margin-bottom:14px}' +
+    '.yacht-name{font-size:17px;font-weight:800;color:#00D4B4;margin-bottom:8px}' +
+    '.yacht-details{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:10px}' +
+    '.yacht-detail{display:flex;flex-direction:column}' +
+    '.yacht-detail-label{color:#64748b;margin-bottom:2px;font-size:9px;text-transform:uppercase;letter-spacing:0.05em}' +
+    '.yacht-detail-value{font-weight:700;color:#e2e8f0}' +
+    '.section{margin-bottom:12px;background:#132840;border-radius:6px;overflow:hidden;border:1px solid #1e3a5f}' +
+    '.section-title{font-size:10px;font-weight:800;color:#00D4B4;padding:8px 12px;background:#0f2337;border-bottom:1px solid #1e3a5f;text-transform:uppercase;letter-spacing:0.08em}' +
+    '.included-list{display:flex;flex-wrap:wrap;gap:5px;padding:10px 12px}' +
+    '.included-item{background:rgba(0,212,180,0.1);color:#00D4B4;padding:3px 8px;border-radius:3px;font-size:9px;border:1px solid rgba(0,212,180,0.25)}' +
+    'table{width:100%;border-collapse:collapse;table-layout:fixed}' +
+    'th,td{padding:6px 12px;border-bottom:1px solid #1e3a5f;font-size:10px;color:#e2e8f0}' +
+    'th{text-align:left;font-weight:700;color:#94a3b8;background:#0f2337;font-size:9px;text-transform:uppercase;letter-spacing:0.05em}' +
+    'th:first-child,td:first-child{width:auto}' +
+    'th:nth-child(2),td:nth-child(2){width:70px;text-align:center}' +
+    'th:last-child,td:last-child{width:90px;text-align:right;color:#00D4B4;font-weight:700}' +
+    'tr:last-child td{border-bottom:none}' +
+    '.total-section{background:#132840;border:1px solid rgba(0,212,180,0.3);padding:12px 16px;border-radius:8px;margin-top:14px}' +
+    '.total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:11px;color:#94a3b8;border-bottom:1px solid #1e3a5f}' +
+    '.total-row:last-child{border-bottom:none}' +
+    '.total-row span:last-child{color:#e2e8f0;font-weight:600}' +
+    '.total-row.final{font-size:14px;font-weight:900;margin-top:8px;padding-top:10px;border-top:2px solid #00D4B4;color:#00D4B4}' +
+    '.total-row.final span:last-child{color:#00D4B4;font-size:16px}' +
+    '.footer{margin-top:16px;text-align:center;color:#64748b;font-size:9px;padding-top:12px;border-top:1px solid #1e3a5f}' +
+    '@media print{body{padding:15px}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}';
 
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Расчёт - ' + selectedBoat.boat_name + '</title><style>' + css + '</style></head><body>' +
     '<div class="header"><div class="logo">' + t('pdf.company', lang) + '</div><div class="subtitle">' + t('pdf.footer', lang) + '</div><div class="date">' + new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }) + '</div></div>' +

@@ -84,6 +84,7 @@ export default function Home() {
   const [searchDate, setSearchDate] = useState('');
 
   const [adults, setAdults] = useState(2);
+  const lang = useCharterStore(s => s.lang);
   const [extraAdults, setExtraAdults] = useState(0);
   const [children3to11, setChildren3to11] = useState(0);
   const [childrenUnder3, setChildrenUnder3] = useState(0);
@@ -155,7 +156,7 @@ export default function Home() {
   const [boatMarkup, setBoatMarkup] = useState(0);
 
   const [markupMode, setMarkupMode] = useState<"percent" | "fixed">("fixed");
-  const [lang, setLang] = useState<Lang>("ru"); const [fixedMarkup, setFixedMarkup] = useState(0);  // Partner markups
+  const [fixedMarkup, setFixedMarkup] = useState(0);  // Partner markups
   const [partnerMarkups, setPartnerMarkups] = useState<{ [key: string]: number }>({});
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     boatFood: true,
