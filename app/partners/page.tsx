@@ -174,6 +174,18 @@ export default function PartnersPage() {
   const [activeTab, setActiveTab] = useState<'catering' | 'watersports' | 'boats' | 'transfer' | 'diving' | 'photo' | 'guide' | 'other'>('boats');
   const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
   const [showOtherDropdown, setShowOtherDropdown] = useState(false);
+
+  // Закрываем dropdown по клику вне
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-dropdown="other"]')) {
+        setShowOtherDropdown(false);
+      }
+    };
+    if (showOtherDropdown) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showOtherDropdown]);
   const [cateringPartners, setCateringPartners] = useState<any[]>([]);
   const [cateringMenu, setCateringMenu] = useState<any[]>([]);
   const [watersportsPartners, setWatersportsPartners] = useState<any[]>([]);
@@ -1564,7 +1576,7 @@ export default function PartnersPage() {
           🏄 Водные игрушки ({watersportsPartners.length})
         </button>
         {/* Выпадающее меню "Другие партнёры" */}
-        <div style={{ position: 'relative' }}>
+        <div data-dropdown="other" style={{ position: 'relative' }}>
           <button
             style={{ ...styles.tab, ...(['transfer','diving','photo','guide','other'].includes(activeTab) ? styles.tabActive : styles.tabInactive) }}
             onClick={() => setShowOtherDropdown(!showOtherDropdown)}
