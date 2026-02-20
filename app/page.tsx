@@ -362,6 +362,30 @@ export default function Home() {
 
         const { data: msData } = await supabase.from('menu_sets').select('*').eq('active', true);
         if (msData) setPartnerMenuSets(msData);
+
+        // Загружаем доступность лодок для сортировки
+        const today = new Date().toISOString().split('T')[0];
+        const in30days = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+        const { data: unavailData } = await supabase
+          .from('boat_unavailable_dates')
+          .select('boat_id, date_from, date_to')
+          .gte('date_to', today)
+          .lte('date_from', in30days);
+        if (unavailData) {
+          const unavailMap: Record<number, Array<{date_from: string, date_to: string}>> = {};
+          unavailData.forEach((u: any) => {
+            if (!unavailMap[u.boat_id]) unavailMap[u.boat_id] = [];
+            unavailMap[u.boat_id].push({ date_from: u.date_from, date_to: u.date_to });
+          });
+          setBoatUnavailMap(unavailMap);
+        }
+        const { data: calData } = await supabase
+          .from('boat_calendars')
+          .select('boat_id')
+          .eq('active', true);
+        if (calData) {
+          setBoatCalSet(new Set(calData.map((c: any) => c.boat_id)));
+        }
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
       }
