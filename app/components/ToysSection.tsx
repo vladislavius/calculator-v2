@@ -72,16 +72,16 @@ export default function ToysSection() {
       {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').length > 0 && (
         <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'var(--os-card)', borderRadius: '12px', border: '1px solid var(--os-border)' }}>
           <p style={{ margin: '0 0 12px', fontWeight: '600', color: 'var(--os-aqua)' }}>➕ Добавить с яхты:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '8px' }}>
             {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').map(opt => {
               const isAdded = selectedExtras.some(e => e.optionId === opt.id);
               return (
-                <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: isAdded ? 'var(--os-aqua-glow)' : 'var(--os-surface)', borderRadius: '8px', border: isAdded ? '2px solid #00C9FF' : '1px solid rgba(255,255,255,0.08)' }}>
+                <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', flexWrap: 'wrap', gap: '8px', backgroundColor: isAdded ? 'var(--os-aqua-glow)' : 'var(--os-surface)', borderRadius: '8px', border: isAdded ? '2px solid #00C9FF' : '1px solid rgba(255,255,255,0.08)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <input type="checkbox" checked={isAdded} onChange={() => toggleExtra(opt)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                     <span style={{ fontWeight: '500' }}>{opt.option_name}</span>
                   </div>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', color: 'var(--os-aqua)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', color: 'var(--os-aqua)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     +<input
                       type="number"
                       value={getPrice(`opt_${opt.id}`, opt.price || 0)}
@@ -106,8 +106,8 @@ export default function ToysSection() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '13px' }}>{expandedSections.partnerWatersports ? '▼' : '▶'}</span>
-              <span style={{ fontWeight: '600', color: 'var(--os-aqua)' }}>🏄 🏄 Водные развлечения от партнёров</span>
-              <span style={{ fontSize: '13px', color: 'var(--os-text-3)' }}>({watersportsPartners.length} партнёров)</span>
+              <span style={{ fontWeight: '600', color: 'var(--os-aqua)' }}>🏄 Водные игрушки</span>
+              
             </div>
           </div>
           
@@ -122,7 +122,7 @@ export default function ToysSection() {
                     </div>
                   </div>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '8px' }}>
                     {watersportsCatalog.filter(w => w.partner_id === partner.id).map(item => {
                       const isAdded = selectedPartnerWatersports.some(w => w.id === item.id);
                       const pw = selectedPartnerWatersports.find(w => w.id === item.id);
@@ -154,7 +154,7 @@ export default function ToysSection() {
                             />
                             <div>
                               <span style={{ fontWeight: '500', fontSize: '13px', color: 'var(--os-text-1)' }}>{item.name_en}</span>
-                              {item.name_ru && <span style={{ marginLeft: '6px', fontSize: '13px', color: 'var(--os-text-3)' }}>({item.name_ru})</span>}
+                              {item.name_ru && <span className="os-hide-mobile" style={{ marginLeft: '6px', fontSize: '13px', color: 'var(--os-text-3)' }}>({item.name_ru})</span>}
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

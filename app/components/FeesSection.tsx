@@ -5,7 +5,7 @@ interface RouteFee { id:number; name_en:string; name_ru?:string; price_per_perso
 interface SelectedFee { id:number; name:string; pricePerPerson:number; adults:number; children:number; }
 
 const feeRow: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 10,
+  display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
   padding: '9px 12px', borderRadius: 'var(--r-sm)',
   border: '1.5px solid var(--os-border)',
   backgroundColor: 'var(--os-surface)',
@@ -63,13 +63,13 @@ export default function FeesSection() {
       <div className="os-section__title" style={{ color: 'var(--os-red)', marginBottom: 12 }}>🏝️ ПАРКОВЫЕ СБОРЫ И ВЫСАДКА</div>
 
       {/* ── Основные сборы: 2 колонки ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 8, marginBottom: 8 }}>
       {/* ── Высадка на остров ── */}
       <div style={landingEnabled ? feeRowActive : feeRow}>
         <input type="checkbox" checked={landingEnabled} onChange={() => setLandingEnabled(!landingEnabled)}
           style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--os-red)', flexShrink: 0 }} />
         <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--os-text-1)' }}>🚤 Высадка на остров</span>
-        <span style={{ fontSize: 11, color: 'var(--os-text-3)', marginRight: 4 }}>Landing fee</span>
+        <span className="os-hide-mobile" style={{ fontSize: 11, color: 'var(--os-text-3)', marginRight: 4 }}>Landing fee</span>
         <input type="number" value={landingFee} onChange={e => setLandingFee(Number(e.target.value)||0)}
           style={numInput} onClick={e => e.stopPropagation()} />
         <span style={unitLabel}>THB</span>
@@ -80,7 +80,7 @@ export default function FeesSection() {
         <input type="checkbox" checked={defaultParkFeeEnabled} onChange={() => setDefaultParkFeeEnabled(!defaultParkFeeEnabled)}
           style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--os-red)', flexShrink: 0 }} />
         <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--os-text-1)' }}>🌴 Парковый сбор</span>
-        <span style={{ fontSize: 11, color: 'var(--os-text-3)', marginRight: 4 }}>National Park Fee</span>
+        <span className="os-hide-mobile" style={{ fontSize: 11, color: 'var(--os-text-3)', marginRight: 4 }}>National Park Fee</span>
         <input type="number" value={defaultParkFee} onChange={e => setDefaultParkFee(Number(e.target.value)||0)}
           style={numInput} onClick={e => e.stopPropagation()} />
         <span style={unitLabel}>THB/чел</span>
@@ -103,7 +103,7 @@ export default function FeesSection() {
             <span style={{ minWidth: 24, textAlign: 'center', fontSize: 13, fontWeight: 700 }}>{defaultParkFeeChildren}</span>
             <button style={counterBtn} onClick={() => setDefaultParkFeeChildren(defaultParkFeeChildren+1)}>+</button>
           </div>
-          <span style={{ marginLeft: 'auto', fontWeight: 800, color: 'var(--os-red)', fontSize: 14 }}>
+          <span style={{ width: '100%', textAlign: 'right', fontWeight: 800, color: 'var(--os-red)', fontSize: 14 }}>
             = {(defaultParkFee * (defaultParkFeeAdults + defaultParkFeeChildren)).toLocaleString()} THB
           </span>
         </div>
@@ -115,18 +115,18 @@ export default function FeesSection() {
           <div style={{ fontSize: 11, color: 'var(--os-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             📍 {routeName}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 8 }}>
           {routeFees.map(fee => {
             const sel = selectedFees.find(f => f.id === fee.id);
             return (
               <div key={fee.id} style={sel ? feeRowActive : feeRow}>
                 <input type="checkbox" checked={!!sel} onChange={() => toggleFee(fee)}
                   style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--os-red)', flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--os-text-1)' }}>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--os-text-1)', minWidth: '150px' }}>
                   {fee.name_en}
                   {fee.mandatory && <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', backgroundColor: 'rgba(239,68,68,0.15)', borderRadius: 4, color: 'var(--os-red)' }}>⚠️ обязательно</span>}
                 </span>
-                {fee.name_ru && <span style={{ fontSize: 11, color: 'var(--os-text-3)', marginRight: 4 }}>{fee.name_ru}</span>}
+                {fee.name_ru && <span className="os-hide-mobile" style={{ fontSize: 11, color: 'var(--os-text-3)', marginRight: 4 }}>{fee.name_ru}</span>}
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--os-text-1)', flexShrink: 0 }}>
                   {fee.price_per_person.toLocaleString()}
                 </span>

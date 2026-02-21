@@ -1,9 +1,20 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useCharterStore } from '../store/useCharterStore';
 
 export default function SearchPanel({ handleSearch }: { handleSearch: () => void }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [isMob, setIsMob] = useState(false);
   const s = useCharterStore();
+
+  useEffect(() => {
+    const check = () => setIsMob(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const searchDate = s.searchDate;
   const setSearchDate = (v: string) => s.set({ searchDate: v });
   const destination = s.destination;
@@ -34,240 +45,170 @@ export default function SearchPanel({ handleSearch }: { handleSearch: () => void
   const seasons = [
     { value: 'auto', label: '📅 Авто (по дате)' },
     { value: 'all_seasons', label: '🌍 Все сезоны' },
-    { value: 'high', label: '🔴 Высокий (Ноя-Апр)' },
-    { value: 'low', label: '🟢 Низкий (Май-Окт)' },
-    { value: 'peak', label: '🔥 Пик (15Дек-15Янв)' },
-    { value: 'dec_feb', label: 'Дек-Фев' },
-    { value: 'nov_dec', label: 'Ноя-Дек' },
-    { value: 'jan_feb', label: 'Янв-Фев' },
-    { value: 'mar_apr', label: 'Мар-Апр' },
-    { value: 'may_jun', label: 'Май-Июн' },
-    { value: 'jul_aug', label: 'Июл-Авг' },
-    { value: 'sep_oct', label: 'Сен-Окт' },
-    { value: 'chinese_new_year', label: '🧧 Кит. НГ' },
-    { value: 'chinese_national_day', label: '🇨🇳 Нац. день Китая' },
-    { value: 'international_labour_day', label: '👷 День труда' },
+    { value: 'high', label: '🔴 Высокий' },
+    { value: 'low', label: '🟢 Низкий' },
+    { value: 'peak', label: '🔥 Пик' },
   ];
-
   const timeSlots = [
     { value: 'full_day', label: 'Полный день (8ч)' },
     { value: 'half_day', label: 'Полдня (4ч)' },
-    { value: 'morning', label: 'Утро (4ч)' },
-    { value: 'afternoon', label: 'После обеда (4ч)' },
     { value: 'sunset', label: 'Закат (3ч)' },
     { value: 'overnight', label: 'С ночёвкой' },
   ];
-
   const boatTypes = [
     { value: '', label: 'Любой тип' },
     { value: 'catamaran', label: '⛵ Катамаран' },
-    { value: 'sailing_catamaran', label: '⛵ Парусный' },
     { value: 'speedboat', label: '🚤 Спидбот' },
     { value: 'yacht', label: '🛥 Яхта' },
   ];
 
-  const inputStyle: React.CSSProperties = {
+  const inp: React.CSSProperties = {
     width: '100%',
-    padding: '10px 14px',
+    padding: isMob ? '8px 10px' : '10px 14px',
     border: '1.5px solid var(--os-border)',
     borderRadius: 'var(--r-md)',
-    fontSize: '14px',
+    fontSize: isMob ? '12px' : '14px',
     backgroundColor: 'var(--os-surface)',
     color: 'var(--os-text-1)',
     outline: 'none',
-    transition: 'border-color var(--t-fast)',
     fontFamily: 'var(--font-body)',
   };
-
-  const labelStyle: React.CSSProperties = {
+  const lbl: React.CSSProperties = {
     display: 'block',
-    marginBottom: '6px',
-    fontSize: '11px',
-    fontWeight: '600',
+    marginBottom: isMob ? '3px' : '6px',
+    fontSize: isMob ? '9px' : '11px',
+    fontWeight: 600,
     color: 'var(--os-text-3)',
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
+    letterSpacing: '0.05em',
   };
-
-  const dropdownStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 'calc(100% + 4px)',
-    left: 0,
-    right: 0,
-    backgroundColor: 'var(--os-card)',
-    border: '1.5px solid var(--os-border-hover)',
-    borderRadius: 'var(--r-md)',
-    maxHeight: '200px',
-    overflowY: 'auto',
-    zIndex: 200,
+  const dd: React.CSSProperties = {
+    position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+    backgroundColor: 'var(--os-card)', border: '1.5px solid var(--os-border-hover)',
+    borderRadius: 'var(--r-md)', maxHeight: 200, overflowY: 'auto', zIndex: 200,
     boxShadow: 'var(--shadow-float)',
   };
 
   const filterRoutes = (routes: any[]) => routes.filter(r => {
-    const s = destination.toLowerCase().replace(/\s+/g, '');
-    const en = (r.name_en || '').toLowerCase();
-    const ru = (r.name_ru || '').toLowerCase();
-    return en.includes(destination.toLowerCase()) || ru.includes(destination.toLowerCase()) ||
-      en.replace(/\s+/g, '').includes(s) ||
-      destination.toLowerCase().split(' ').every((w: string) => en.includes(w) || ru.includes(w));
+    const q = destination.toLowerCase();
+    return (r.name_en||'').toLowerCase().includes(q) || (r.name_ru||'').toLowerCase().includes(q);
   });
+  const filterBoats = (boats: any[]) => boats.filter(b => b.name.toLowerCase().includes(boatNameSearch.toLowerCase()));
 
-  const filterBoats = (boats: any[]) => boats.filter(b => {
-    const s = boatNameSearch.toLowerCase().replace(/\s+/g, '');
-    const n = b.name.toLowerCase();
-    return n.includes(boatNameSearch.toLowerCase()) || n.replace(/\s+/g, '').includes(s);
-  });
+  const doSearch = () => { handleSearch(); setCollapsed(true); };
+
+  if (collapsed) {
+    return (
+      <div style={{
+        padding: isMob ? '8px 12px' : '10px 16px',
+        background: 'var(--os-card)', borderRadius: 'var(--r-lg)',
+        border: '1px solid var(--os-border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: 8, marginBottom: 8
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: isMob ? 11 : 13, color: 'var(--os-text-2)', flexWrap: 'wrap' }}>
+          <span>📅 {searchDate || '—'}</span>
+          <span>·</span>
+          <span>👥 {adults}</span>
+          {destination && <><span>·</span><span style={{maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>🏝️ {destination}</span></>}
+        </div>
+        <button onClick={() => setCollapsed(false)} style={{
+          padding: isMob ? '5px 10px' : '6px 14px',
+          background: 'var(--os-aqua-btn)', color: '#0C1825', border: 'none',
+          borderRadius: 'var(--r-md)', fontSize: isMob ? 11 : 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
+        }}>🔍 Фильтры</button>
+      </div>
+    );
+  }
+
+  const gap = isMob ? '8px' : '12px';
+  const pad = isMob ? '12px 14px' : '16px 20px';
 
   return (
-    <div className="os-card" style={{ marginBottom: '20px', padding: '16px 20px' }}>
-
-      {/* ROW 1: дата / направление / лодка / партнёр */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
-
-        {/* Дата */}
-        <div style={{ flex: '0 0 150px' }}>
-          <label style={labelStyle}>📅 Дата чартера</label>
-          <input
-            type="date"
-            value={searchDate}
-            onChange={e => setSearchDate(e.target.value)}
-            style={{ ...inputStyle, colorScheme: 'dark' }}
-          />
+    <div className="os-card" style={{ marginBottom: isMob ? 10 : 20, padding: pad }}>
+      {/* ROW 1 */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : '150px 1fr 1fr 1fr', gap, marginBottom: gap }}>
+        <div>
+          <label style={lbl}>📅 Дата</label>
+          <input type="date" value={searchDate} onChange={e => setSearchDate(e.target.value)} style={{...inp, colorScheme:'dark'}} />
         </div>
-
-        {/* Направление */}
-        <div style={{ flex: '2 1 200px', position: 'relative' }}>
-          <label style={labelStyle}>🗺️ Направление</label>
-          <input
-            placeholder="Phi Phi, Phang Nga, James Bond..."
-            value={destination}
+        <div style={{ position: 'relative', gridColumn: isMob ? 'span 1' : 'auto' }}>
+          <label style={lbl}>🗺️ Направление</label>
+          <input placeholder={isMob ? "Phi Phi..." : "Phi Phi, Phang Nga..."} value={destination}
             onChange={e => { setDestination(e.target.value); setShowDestinationSuggestions(true); }}
             onFocus={() => setShowDestinationSuggestions(true)}
             onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
-            style={inputStyle}
-          />
+            style={inp} />
           {showDestinationSuggestions && destination && filterRoutes(allRoutes).length > 0 && (
-            <div style={dropdownStyle}>
-              {filterRoutes(allRoutes).slice(0, 8).map(r => (
-                <div
-                  key={r.id}
-                  onClick={() => { setDestination(r.name_en || r.name_ru); setShowDestinationSuggestions(false); }}
-                  style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--os-border)', fontSize: '13px', color: 'var(--os-text-1)' }}
-                  onMouseOver={e => (e.currentTarget.style.backgroundColor = 'var(--os-card-hover)')}
-                  onMouseOut={e => (e.currentTarget.style.backgroundColor = '')}
-                >
-                  <span style={{ fontWeight: 500 }}>{r.name_en}</span>
-                  {r.name_ru && <span style={{ color: 'var(--os-text-2)', marginLeft: 8, fontSize: 12 }}>{r.name_ru}</span>}
-                </div>
-              ))}
-            </div>
+            <div style={dd}>{filterRoutes(allRoutes).slice(0,6).map(r => (
+              <div key={r.id} onClick={() => { setDestination(r.name_en||r.name_ru); setShowDestinationSuggestions(false); }}
+                style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid var(--os-border)', fontSize: 12, color: 'var(--os-text-1)' }}>
+                {r.name_en}
+              </div>
+            ))}</div>
           )}
         </div>
-
-        {/* Название лодки */}
-        <div style={{ flex: '1.5 1 160px', position: 'relative' }}>
-          <label style={labelStyle}>🚢 Название лодки</label>
-          <input
-            placeholder="Real, Princess, Chowa..."
-            value={boatNameSearch}
+        <div style={{ position: 'relative' }}>
+          <label style={lbl}>🚢 Лодка</label>
+          <input placeholder={isMob ? "Real..." : "Real, Princess..."} value={boatNameSearch}
             onChange={e => { setBoatNameSearch(e.target.value); setShowBoatSuggestions(true); }}
             onFocus={() => setShowBoatSuggestions(true)}
             onBlur={() => setTimeout(() => setShowBoatSuggestions(false), 200)}
-            style={inputStyle}
-          />
+            style={inp} />
           {showBoatSuggestions && boatNameSearch && filterBoats(allBoats).length > 0 && (
-            <div style={dropdownStyle}>
-              {filterBoats(allBoats).slice(0, 8).map(b => (
-                <div
-                  key={b.id}
-                  onClick={() => { setBoatNameSearch(b.name); setShowBoatSuggestions(false); }}
-                  style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--os-border)', fontSize: '13px', color: 'var(--os-text-1)' }}
-                  onMouseOver={e => (e.currentTarget.style.backgroundColor = 'var(--os-card-hover)')}
-                  onMouseOut={e => (e.currentTarget.style.backgroundColor = '')}
-                >
-                  <span style={{ fontWeight: 500 }}>{b.name}</span>
-                  <span style={{ color: 'var(--os-text-2)', marginLeft: 8, fontSize: 12 }}>
-                    {boatPartners.find((p: any) => p.id === b.partner_id)?.name || ''}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <div style={dd}>{filterBoats(allBoats).slice(0,6).map(b => (
+              <div key={b.id} onClick={() => { setBoatNameSearch(b.name); setShowBoatSuggestions(false); }}
+                style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid var(--os-border)', fontSize: 12, color: 'var(--os-text-1)' }}>
+                {b.name}
+              </div>
+            ))}</div>
           )}
         </div>
-
-        {/* Партнёр */}
-        <div style={{ flex: '1.5 1 160px' }}>
-          <label style={labelStyle}>🏢 Партнёр</label>
-          <select
-            value={selectedPartnerFilter}
-            onChange={e => setSelectedPartnerFilter(e.target.value)}
-            style={inputStyle as any}
-          >
-            <option value="">Все партнёры</option>
+        <div>
+          <label style={lbl}>🏢 Партнёр</label>
+          <select value={selectedPartnerFilter} onChange={e => setSelectedPartnerFilter(e.target.value)} style={inp as any}>
+            <option value="">Все</option>
             {boatPartners.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
       </div>
 
-      {/* ROW 2: тип / длительность / сезон / гости / сортировка / кнопка */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-
-        {/* Тип лодки */}
-        <div style={{ flex: '1 1 130px' }}>
-          <label style={labelStyle}>🚤 Тип</label>
-          <select value={boatType} onChange={e => setBoatType(e.target.value)} style={inputStyle as any}>
+      {/* ROW 2 */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : '1fr 1fr 1fr 80px 1fr auto', gap, alignItems: 'end' }}>
+        <div>
+          <label style={lbl}>🚤 Тип</label>
+          <select value={boatType} onChange={e => setBoatType(e.target.value)} style={inp as any}>
             {boatTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </div>
-
-        {/* Длительность */}
-        <div style={{ flex: '1.5 1 170px' }}>
-          <label style={labelStyle}>⏱️ Длительность</label>
-          <select value={timeSlot} onChange={e => setTimeSlot(e.target.value)} style={inputStyle as any}>
+        <div>
+          <label style={lbl}>⏱️ Время</label>
+          <select value={timeSlot} onChange={e => setTimeSlot(e.target.value)} style={inp as any}>
             {timeSlots.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </div>
-
-        {/* Сезон */}
-        <div style={{ flex: '1 1 140px' }}>
-          <label style={labelStyle}>📅 Сезон</label>
-          <select value={season} onChange={e => setSeason(e.target.value)} style={inputStyle as any}>
-            {seasons.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+        <div>
+          <label style={lbl}>📅 Сезон</label>
+          <select value={season} onChange={e => setSeason(e.target.value)} style={inp as any}>
+            {seasons.map(ss => <option key={ss.value} value={ss.value}>{ss.label}</option>)}
           </select>
         </div>
-
-        {/* Гости */}
-        <div style={{ flex: '0 0 90px' }}>
-          <label style={labelStyle}>👥 Гостей</label>
-          <input
-            type="number"
-            min="1"
-            max="100"
-            value={adults}
-            onChange={e => setAdults(Math.max(1, Number(e.target.value)))}
-            style={inputStyle}
-          />
+        <div>
+          <label style={lbl}>👥 Гости</label>
+          <input type="number" min={1} max={100} value={adults} onChange={e => setAdults(Math.max(1,+e.target.value))} style={inp} />
         </div>
-
-        {/* Сортировка */}
-        <div style={{ flex: '1 1 120px' }}>
-          <label style={labelStyle}>📊 Сортировка</label>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={inputStyle as any}>
+        <div>
+          <label style={lbl}>📊 Сортировка</label>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={inp as any}>
             <option value="price_asc">Цена ↑</option>
             <option value="price_desc">Цена ↓</option>
             <option value="size">Размер</option>
             <option value="capacity">Вместимость</option>
           </select>
         </div>
-
-        {/* Кнопка */}
-        <div style={{ flex: '0 0 auto', marginLeft: 'auto' }}>
-          <button
-            onClick={handleSearch}
-            disabled={loading}
-            className="os-btn-search"
-            style={{ padding: '10px 28px', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8 }}
-          >
+        <div style={{ gridColumn: isMob ? '1 / -1' : 'auto' }}>
+          <button onClick={doSearch} disabled={loading} className="os-btn-search"
+            style={{ width: isMob ? '100%' : 'auto', padding: isMob ? '10px' : '10px 28px', fontSize: isMob ? 13 : 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             {loading ? '⏳ Поиск...' : '🔍 Найти лодки'}
           </button>
         </div>

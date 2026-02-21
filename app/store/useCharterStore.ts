@@ -29,6 +29,7 @@ interface CharterState {
 
   // Results
   results: SearchResult[];
+  totalGuests: number;
   loading: boolean;
 
   // Modal
@@ -159,6 +160,7 @@ export const useCharterStore = create<CharterState>((set, get) => ({
 
   // Results
   results: [],
+    totalGuests: 2,
   loading: false,
 
   // Modal
