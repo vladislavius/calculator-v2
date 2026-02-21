@@ -167,8 +167,8 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
 
   async function deleteUnavailDate(id: number) {
     const token = getToken();
-    await fetch(`/api/calendar/unavailable?id=${id}`, {
-      method: 'DELETE', headers: { 'x-session-token': token },
+    await fetch('/api/calendar/unavailable', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-session-token': token }, body: JSON.stringify({ id }),
     });
     loadCalendarData();
   }
@@ -457,6 +457,13 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
                           🕐 {new Date(bc.last_synced).toLocaleDateString('ru')}
                         </span>}
                         <button onClick={() => syncIcal(bc.boat_id)} style={btn('var(--os-aqua)')}>🔄 Sync</button>
+                        <button onClick={async () => {
+                          if (!confirm('Удалить календарь и все синхронизированные даты?')) return;
+                          const token = getToken();
+                          await fetch('/api/calendar/boats', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-session-token': token }, body: JSON.stringify({ id: bc.id }) });
+                          await fetch('/api/calendar/unavailable', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-session-token': token }, body: JSON.stringify({ boat_id: bc.boat_id, source: 'all_synced' }) });
+                          loadCalendarData();
+                        }} style={btn('#ef4444')}>🗑</button>
                       </div>
                     ))}
                   </div>
@@ -495,7 +502,19 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
               {/* Список занятых дат */}
               <div style={card}>
                 <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, color: 'var(--os-aqua)' }}>
-                  📋 Занятые даты {calLoading && <span style={{ fontSize: 12, color: 'var(--os-text-3)' }}>загрузка...</span>}
+                  📋 Занятые даты ({unavailDates.length}) {calLoading && <span style={{ fontSize: 12, color: 'var(--os-text-3)' }}>загрузка...</span>}
+                  {unavailDates.some(d => ['ical','teamup','url_import'].includes(d.source)) && (
+                    <button onClick={async () => {
+                      if (!confirm('Удалить все синхронизированные даты (ical/teamup)?')) return;
+                      const token = getToken();
+                      await fetch('/api/calendar/unavailable', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+                        body: JSON.stringify({ boat_id: calBoatId, source: 'all_synced' }),
+                      });
+                      loadCalendarData();
+                    }} style={{ ...btn('#ef4444'), marginLeft: 8, fontSize: 11 }}>🗑 Очистить синхр.</button>
+                  )}
                 </div>
                 {unavailDates.length === 0
                   ? <div style={{ color: 'var(--os-text-3)', fontSize: 13, padding: '12px 0' }}>Нет занятых дат</div>

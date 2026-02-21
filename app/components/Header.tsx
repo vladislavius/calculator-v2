@@ -17,6 +17,7 @@ export default function Header() {
         </a>
         <nav className="os-nav">
           <a href="/" className="os-nav__link active">🧮<span className="hidden md:inline"> Калькулятор</span></a>
+          <a href="/calendar" className="os-nav__link">📅<span className="hidden md:inline"> Календарь</span></a>
           <a href="/partners" style={{display:"none"}} className="os-nav__link">👥<span className="hidden md:inline"> Партнёры</span></a>
           <a href="/admin" className="os-nav__link">⚙️<span className="hidden md:inline"> Админ</span></a>
           <a href="/import-all" className="os-nav__link" style={{display:"none"}}>📦<span className="hidden md:inline"> Импорт</span></a>
