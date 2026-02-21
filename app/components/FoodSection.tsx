@@ -59,20 +59,20 @@ export default function FoodSection() {
   const setSelectedDishes = (v: any) => set({ selectedDishes: typeof v === 'function' ? v(selectedDishes) : v });
 
   const toggleExtra = (id: any, name: any, price: any) => {
-    const exists = selectedExtras.find(e => e.id === id);
-    if (exists) set({ selectedExtras: selectedExtras.filter(e => e.id !== id) });
-    else set({ selectedExtras: [...selectedExtras, { id, name, price }] });
+    const exists = selectedExtras.find(e => e.optionId === id);
+    if (exists) set({ selectedExtras: selectedExtras.filter(e => e.optionId !== id) });
+    else set({ selectedExtras: [...selectedExtras, { optionId: id, name, nameRu: '', quantity: 1, price, pricePer: 'fix', category: 'other' }] });
   };
 
   const addMenuItem = (partnerId: any, itemId: any, itemName: any, pricePerPerson: any) => {
-    const exists = cateringOrders.find(o => o.partner_id === partnerId && o.menu_item_id === itemId);
+    const exists = cateringOrders.find(o => o.packageId === String(itemId));
     if (exists) return;
     const persons = adults + children3to11;
-    setCateringOrders(prev => [...prev, { partner_id: partnerId, menu_item_id: itemId, menu_item_name: itemName, price_per_person: pricePerPerson, persons }]);
+    setCateringOrders((prev: any[]) => [...prev, { packageId: String(itemId), packageName: itemName, pricePerPerson, persons, notes: '' }]);
   };
 
   const updateCateringPersons = (idx: number, val: number) => {
-    setCateringOrders(prev => prev.map((o, i) => i === idx ? { ...o, persons: val } : o));
+    setCateringOrders((prev: any[]) => prev.map((o, i) => i === idx ? { ...o, persons: val } : o));
   };
 
   const catLabels: Record<string,string> = { thai:'🇹🇭 Тайская', western:'🍝 Западная', vegetarian:'🥗 Вег.', kids:'👶 Детская', seafood:'🦐 Морепродукты', bbq:'🍖 BBQ', other:'🍽️ Другое' };
@@ -134,7 +134,7 @@ export default function FoodSection() {
             const order = orderIndex>=0 ? cateringOrders[orderIndex] : null;
             return (
               <div key={item.id} style={row(isAdded,'var(--os-gold)')}
-                onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!=='menu_'+String(item.id)));} else{addMenuItem(item);} }}>
+                onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!=='menu_'+String(item.id)));} else{addMenuItem(0, item.id, item.name_en || item.name_ru || '', item.price || 0);} }}>
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>
@@ -168,7 +168,7 @@ export default function FoodSection() {
           {boatOptions.filter(o=>o.category_code==='food'&&o.status==='paid_optional').map(opt=>{
             const isAdded = selectedExtras.some(e=>e.optionId===opt.id);
             return (
-              <div key={opt.id} style={row(isAdded,'var(--os-gold)')} onClick={()=>toggleExtra(opt)}>
+              <div key={opt.id} style={row(isAdded,'var(--os-gold)')} onClick={()=>toggleExtra(opt.id, opt.option_name, opt.price || 0)}>
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>

@@ -54,7 +54,7 @@ export function useBoatAvailability(boatId: number, searchDate?: string) {
         const status = !hasCalendar ? 'unknown' : isBusy ? 'busy' : 'free';
         const isSearchDate = searchDate ? dateStr === searchDate : i === 0;
 
-        result.push({ date: d, status, isSearchDate });
+        result.push({ date: d, status: status as 'free' | 'busy' | 'unknown', isSearchDate });
       }
       setDays(result);
     }

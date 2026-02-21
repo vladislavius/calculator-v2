@@ -101,19 +101,19 @@ export default function OfferPage() {
         {(() => {
           const boatOptions = snap.boatOptions || [];
           const boatDrinks = snap.boatDrinks || [];
-          const includedOptions = boatOptions.filter((o) => o.status === 'included');
-          const includedDrinks = boatDrinks.filter((d) => d.included);
+          const includedOptions = boatOptions.filter((o: any) => o.status === 'included');
+          const includedDrinks = boatDrinks.filter((d: any) => d.included);
           if (includedOptions.length === 0 && includedDrinks.length === 0) return null;
           return (
             <div style={sec}>
               <div style={{fontSize:13,fontWeight:700,color:'#22c55e',marginBottom:10}}>✅ Включено в стоимость</div>
               <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                {includedOptions.map((opt, i) => (
+                {includedOptions.map((opt: any, i: number) => (
                   <span key={'o'+i} style={{fontSize:12,padding:'4px 10px',borderRadius:20,background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac'}}>
                     {opt.option_name_ru || opt.option_name || opt.name_en || opt.name}
                   </span>
                 ))}
-                {includedDrinks.map((d, i) => (
+                {includedDrinks.map((d: any, i: number) => (
                   <span key={'d'+i} style={{fontSize:12,padding:'4px 10px',borderRadius:20,background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac'}}>
                     {d.name_ru || d.name_en}
                   </span>

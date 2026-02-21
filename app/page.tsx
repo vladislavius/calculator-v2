@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder, TransferOrder, CateringPartner, CateringMenuItem, WatersportsPartner, WatersportsCatalogItem, TransferOptionDB, StaffService, BoatMenuSet, BoatDrink, RouteFee, Partner, SimpleBoat, SimpleRoute } from './lib/types';
+import { SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder, TransferOrder, CateringPartner, CateringMenuItem, WatersportsPartner, WatersportsCatalogItem, TransferOptionDB, StaffService, BoatMenuSet, BoatDrink, RouteFee, Partner, SimpleBoat, SimpleRoute , CalcResult} from './lib/types';
 import { t, Lang } from "./lib/i18n"; import { inputStyle, labelStyle, cardStyle, tabStyle } from './lib/styles';
 import { calculateTotals } from './lib/calculateTotals';
 import { generatePDFContent } from './lib/generatePDF';
@@ -336,7 +336,7 @@ export default function Home() {
       watersportsPartners, watersportsCatalog,
       boatPartners, allBoats, allRoutes,
       showBoatSuggestions, showDestinationSuggestions, boatNameSearch, destination,
-      selectedPartnerFilter, boatType, timeSlot, season, sortBy, searchDate,
+      selectedPartnerFilter, boatType, timeSlot, season, sortBy,
     });
   }, [searchDate, results, loading, showAgentPrice, markupPercent, lang,
     selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks,
@@ -352,7 +352,7 @@ export default function Home() {
     watersportsPartners, watersportsCatalog,
     boatPartners, allBoats, allRoutes,
     showBoatSuggestions, showDestinationSuggestions, boatNameSearch, destination,
-    selectedPartnerFilter, boatType, timeSlot, season, sortBy, searchDate, storeSet]);
+    selectedPartnerFilter, boatType, timeSlot, season, sortBy, storeSet]);
 
   useEffect(() => {
     const loadPartnersData = async () => {
@@ -719,12 +719,35 @@ export default function Home() {
       customPrices: storeState.customPrices || {}});
     const pdfGuests = (storeState.adults ?? adults) + (storeState.extraAdults ?? extraAdults) + (storeState.children3to11 ?? children3to11) + (storeState.childrenUnder3 ?? childrenUnder3);
     const html = generatePDFContent({
-      selectedBoat, totals: pdfTotals, boatOptions, selectedExtras: storeState.selectedExtras || selectedExtras, cateringOrders: storeState.cateringOrders || cateringOrders,
-      drinkOrders: storeState.drinkOrders || boatDrinks, selectedToys: storeState.selectedToys || selectedToys, selectedServices: storeState.selectedServices || selectedServices, selectedFees: storeState.selectedFees || selectedFees,
-      selectedPartnerWatersports: storeState.selectedPartnerWatersports || selectedPartnerWatersports, transferPickup: storeState.transferPickup || transferPickup, transferDirection, partnerMenus,
-      boatMenu, customPrices: storeState.customPrices || lang, markupMode: storeState.markupMode || markupMode, fixedMarkup: storeState.fixedMarkup ?? fixedMarkup,
-      boatMarkup: storeState.boatMarkup ?? boatMarkup, extraAdults: storeState.extraAdults ?? extraAdults, children3to11: storeState.children3to11 ?? children3to11, childrenUnder3: storeState.childrenUnder3 ?? childrenUnder3, adults: storeState.adults ?? adults, totalGuests: pdfGuests,
-      customAdultPrice: storeState.customAdultPrice ?? customAdultPrice, customChildPrice: storeState.customChildPrice ?? customChildPrice, customNotes: storeState.customNotes || customNotes,
+      selectedBoat,
+      totals: pdfTotals as CalcResult,
+      boatOptions,
+      selectedExtras: storeState.selectedExtras || selectedExtras,
+      cateringOrders: storeState.cateringOrders || cateringOrders,
+      drinkOrders: storeState.drinkOrders || [],
+      boatDrinks: boatDrinks,
+      selectedToys: storeState.selectedToys || selectedToys,
+      selectedServices: storeState.selectedServices || selectedServices,
+      selectedFees: storeState.selectedFees || selectedFees,
+      selectedPartnerWatersports: storeState.selectedPartnerWatersports || selectedPartnerWatersports,
+      transferPickup: storeState.transferPickup || transferPickup,
+      transferDirection,
+      partnerMenus,
+      boatMenu,
+      selectedDishes: storeState.selectedDishes || selectedDishes || {},
+      customPrices: storeState.customPrices || customPrices || {},
+      lang: storeState.lang || lang,
+      markupMode: storeState.markupMode || markupMode,
+      fixedMarkup: storeState.fixedMarkup ?? fixedMarkup,
+      boatMarkup: storeState.boatMarkup ?? boatMarkup,
+      extraAdults: storeState.extraAdults ?? extraAdults,
+      children3to11: storeState.children3to11 ?? children3to11,
+      childrenUnder3: storeState.childrenUnder3 ?? childrenUnder3,
+      adults: storeState.adults ?? adults,
+      totalGuests: pdfGuests,
+      customAdultPrice: storeState.customAdultPrice ?? customAdultPrice,
+      customChildPrice: storeState.customChildPrice ?? customChildPrice,
+      customNotes: storeState.customNotes || customNotes,
     });
     const w = window.open('', '_blank');
     if (w) { w.document.write(html); w.document.close(); w.onload = () => w.print(); }
@@ -769,11 +792,32 @@ export default function Home() {
       customPrices: ss.customPrices || {}});
     const waGuests = (ss.adults ?? adults) + (ss.extraAdults ?? extraAdults) + (ss.children3to11 ?? children3to11) + (ss.childrenUnder3 ?? childrenUnder3);
     const message = generateWhatsAppMessage({
-      selectedBoat, totals: waTotals, selectedExtras: ss.selectedExtras || selectedExtras, cateringOrders: ss.cateringOrders || cateringOrders, drinkOrders: ss.drinkOrders || [],
-      selectedToys: ss.selectedToys || selectedToys, selectedServices: ss.selectedServices || selectedServices, selectedFees: ss.selectedFees || selectedFees, selectedPartnerWatersports: ss.selectedPartnerWatersports || selectedPartnerWatersports,
-      transferPickup: ss.transferPickup || transferPickup, transferDirection, boatMenu, customPrices: ss.customPrices ||
-      lang, markupMode: ss.markupMode || markupMode, fixedMarkup: ss.fixedMarkup ?? fixedMarkup, boatMarkup: ss.boatMarkup ?? boatMarkup, extraAdults: ss.extraAdults ?? extraAdults, children3to11: ss.children3to11 ?? children3to11,
-      childrenUnder3: ss.childrenUnder3 ?? childrenUnder3, adults: ss.adults ?? adults, totalGuests: waGuests, customAdultPrice: ss.customAdultPrice ?? customAdultPrice, customChildPrice: ss.customChildPrice ?? customChildPrice, customNotes: ss.customNotes || customNotes,
+      selectedBoat,
+      totals: waTotals as CalcResult,
+      selectedExtras: ss.selectedExtras || selectedExtras,
+      cateringOrders: ss.cateringOrders || cateringOrders,
+      drinkOrders: ss.drinkOrders || [],
+      selectedToys: ss.selectedToys || selectedToys,
+      selectedServices: ss.selectedServices || selectedServices,
+      selectedFees: ss.selectedFees || selectedFees,
+      selectedPartnerWatersports: ss.selectedPartnerWatersports || selectedPartnerWatersports,
+      transferPickup: ss.transferPickup || transferPickup,
+      transferDirection,
+      boatMenu,
+      selectedDishes: ss.selectedDishes || selectedDishes || {},
+      customPrices: ss.customPrices || customPrices || {},
+      lang: ss.lang || lang,
+      markupMode: ss.markupMode || markupMode,
+      fixedMarkup: ss.fixedMarkup ?? fixedMarkup,
+      boatMarkup: ss.boatMarkup ?? boatMarkup,
+      extraAdults: ss.extraAdults ?? extraAdults,
+      children3to11: ss.children3to11 ?? children3to11,
+      childrenUnder3: ss.childrenUnder3 ?? childrenUnder3,
+      adults: ss.adults ?? adults,
+      totalGuests: waGuests,
+      customAdultPrice: ss.customAdultPrice ?? customAdultPrice,
+      customChildPrice: ss.customChildPrice ?? customChildPrice,
+      customNotes: ss.customNotes || customNotes,
     });
     window.open('https://wa.me/?text=' + encodeURIComponent(message), '_blank');
   };

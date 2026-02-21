@@ -29,7 +29,7 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
         boatMarkup: s.boatMarkup,
         markupMode: s.markupMode,
         fixedMarkup: s.fixedMarkup,
-        partnerMarkups: s.partnerMarkups,
+        markupPercent: s.markupPercent,
         customPrices: s.customPrices,
         landingFee: s.landingFee,
         landingEnabled: s.landingEnabled,
@@ -50,7 +50,7 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
 
       // Строим lines для отображения
       const lines = [
-        { label: '⛵ Аренда лодки', val: totals.boatBase || 0 },
+        { label: '⛵ Аренда лодки', val: totals.agent || 0 },
         { label: '🎫 Сборы', val: totals.fees || 0 },
         { label: '🍽️ Питание', val: totals.catering || 0 },
         { label: '🍹 Напитки', val: totals.drinks || 0 },
