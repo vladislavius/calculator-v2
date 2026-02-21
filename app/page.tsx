@@ -744,22 +744,6 @@ export default function Home() {
     window.open('https://wa.me/?text=' + encodeURIComponent(message), '_blank');
   };
   // ==================== TOGGLE FUNCTIONS ====================
-  const toggleExtra = (option: BoatOption) => {
-    const exists = selectedExtras.find(e => e.optionId === option.id);
-    if (exists) {
-      setSelectedExtras(selectedExtras.filter(e => e.optionId !== option.id));
-    } else {
-      setSelectedExtras([...selectedExtras, {
-        optionId: option.id,
-        name: option.option_name,
-        nameRu: option.option_name_ru,
-        quantity: 1,
-        price: option.price || 0,
-        pricePer: option.price_per || 'day',
-        category: option.category_code
-      }]);
-    }
-  };
 
   const updateExtraQuantity = (optionId: number, delta: number) => {
     setSelectedExtras(selectedExtras.map(e =>
@@ -781,26 +765,10 @@ export default function Home() {
     setCateringOrders(cateringOrders.filter((_, i) => i !== index));
   };
   // Add menu item from boat_menu
-  const addMenuItem = (item: { id: string | number; name_en: string; price: number; description?: string; included?: boolean }) => {
-    if (item.included) return; // Don't add included items
-    setCateringOrders([...cateringOrders, {
-      packageId: 'menu_' + item.id,
-      packageName: item.name_en + ' (с яхты)',
-      pricePerPerson: item.price || 0,
-      persons: adults,
-      minPersons: 1,
-      notes: item.description || ''
-    }]);
-  };
 
 
 
   // Update catering persons count
-  const updateCateringPersons = (index: number, persons: number) => {
-    setCateringOrders(cateringOrders.map((order, i) =>
-      i === index ? { ...order, persons: Math.max(order.minPersons || 1, persons) } : order
-    ));
-  };
 
   // Add catering from DB partner
   const addCateringFromDB = (item: CateringMenuItem, partner: CateringPartner) => {
@@ -829,53 +797,10 @@ export default function Home() {
     }]);
   };
 
-  const removePartnerWatersport = (id: number) => {
-    setSelectedPartnerWatersports(selectedPartnerWatersports.filter(w => w.id !== id));
-  };
 
-  const updatePartnerWatersport = (id: number, field: string, value: number) => {
-    setSelectedPartnerWatersports(selectedPartnerWatersports.map(w =>
-      w.id === id ? { ...w, [field]: value } : w
-    ));
-  };
 
-  const addDrink = (drink: BoatDrink) => {
-    const exists = drinkOrders.find(d => d.drinkId === drink.id);
-    if (exists) {
-      setDrinkOrders(drinkOrders.map(d =>
-        d.drinkId === drink.id ? { ...d, quantity: d.quantity + 1 } : d
-      ));
-    } else {
-      setDrinkOrders([...drinkOrders, {
-        drinkId: drink.id,
-        name: drink.name_en || drink.name || '',
-        nameRu: drink.name_ru || drink.name || '',
-        price: drink.price || 0,
-        quantity: 1,
-        unit: drink.unit || 'piece',
-        included: drink.included || false
-      }]);
-    }
-  };
 
-  const removeDrink = (drinkId: string | number) => {
-    setDrinkOrders(drinkOrders.filter(d => d.drinkId !== Number(drinkId)));
-  };
 
-  const toggleService = (service: any) => { // TODO: Fix strict type here. Using any to unblock lint.
-    const exists = selectedServices.find(s => s.id === service.id);
-    if (exists) {
-      setSelectedServices(selectedServices.filter(s => s.id !== service.id));
-    } else {
-      setSelectedServices([...selectedServices, {
-        id: service.id,
-        name: service.name_en || service.name,
-        nameRu: service.name_ru,
-        quantity: 1,
-        price: service.price
-      }]);
-    }
-  };
 
   const toggleToy = (toy: WatersportsCatalogItem) => {
     const exists = selectedToys.find(t => t.id === toy.id);
@@ -895,22 +820,6 @@ export default function Home() {
     }
   };
 
-  const toggleFee = (fee: RouteFee) => {
-    const exists = selectedFees.find(f => f.id === fee.id);
-    if (exists) {
-      setSelectedFees(selectedFees.filter(f => f.id !== fee.id));
-    } else {
-      setSelectedFees([...selectedFees, {
-        id: fee.id,
-        name: fee.name_en,
-        nameRu: fee.name_ru, // Optional
-        adults: adults + extraAdults,
-        children: children3to11 + childrenUnder3,
-        pricePerPerson: fee.price_per_person,
-        mandatory: fee.mandatory
-      }]);
-    }
-  };
 
   // ==================== RENDER ====================
   return (
