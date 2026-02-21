@@ -39,19 +39,19 @@ export default function ToysSection() {
     set, getPrice, setPrice, toggleSection,
   } = useCharterStore();
 
-  const toggleExtra = (opt) => {
+  const toggleExtra = (opt: any) => {
     const exists = selectedExtras.find(e => e.id === opt.id);
     if (exists) set({ selectedExtras: selectedExtras.filter(e => e.id !== opt.id) });
     else set({ selectedExtras: [...selectedExtras, { id: opt.id, name: opt.name_en || opt.name, price: opt.price || 0 }] });
   };
 
-  const setSelectedPartnerWatersports = (v) => set({ selectedPartnerWatersports: typeof v === 'function' ? v(selectedPartnerWatersports) : v });
+  const setSelectedPartnerWatersports = (v: any) => set({ selectedPartnerWatersports: typeof v === 'function' ? v(selectedPartnerWatersports) : v });
 
-  const removePartnerWatersport = (id) => {
+  const removePartnerWatersport = (id: number) => {
     set({ selectedPartnerWatersports: selectedPartnerWatersports.filter(w => w.id !== id) });
   };
 
-  const updatePartnerWatersport = (id, field, value) => {
+  const updatePartnerWatersport = (id: number, field: string, value: number) => {
     set({ selectedPartnerWatersports: selectedPartnerWatersports.map(w => w.id === id ? {...w, [field]: value} : w) });
   };
   return (

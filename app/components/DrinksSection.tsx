@@ -34,11 +34,11 @@ const ctrBtn: React.CSSProperties = {
 };
 
 export default function DrinksSection() {
-  const addDrink = (drink) => {
+  const addDrink = (drink: any) => {
     const exists = drinkOrders.find(o => String(o.drinkId) === String(drink.id));
     if (!exists) set({ drinkOrders: [...drinkOrders, { drinkId: String(drink.id), name: drink.name_en, quantity: 1, price: drink.price }] });
   };
-  const removeDrink = (drinkId) => {
+  const removeDrink = (drinkId: any) => {
     set({ drinkOrders: drinkOrders.filter(o => String(o.drinkId) !== String(drinkId)) });
   };
   const boatDrinks    = useCharterStore(s => s.boatDrinks);

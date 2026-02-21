@@ -24,7 +24,7 @@ const CAT: Record<string, { icon: string; color: string; label: string }> = {
 export default function ServicesSection() {
   const set = useCharterStore(s => s.set);
 
-  const toggleService = (service) => {
+  const toggleService = (service: any) => {
     const exists = selectedServices.find(s => s.id === service.id);
     if (exists) {
       set({ selectedServices: selectedServices.filter(s => s.id !== service.id) });

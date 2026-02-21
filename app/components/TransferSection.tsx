@@ -43,15 +43,15 @@ export default function TransferSection() {
     set, setPrice,
   } = useCharterStore();
 
-  const setTransferDirection = (v) => set({ transferDirection: v });
-  const setTransferPickup = (v) => set({ transferPickup: v });
-  const setUseOwnTransfer = (v) => set({ useOwnTransfer: v });
-  const setUseOwnTransferVip = (v) => set({ useOwnTransferVip: v });
-  const setOwnTransferPriceRoundTrip = (v) => set({ ownTransferPriceRoundTrip: v });
-  const setOwnTransferPriceOneWay = (v) => set({ ownTransferPriceOneWay: v });
-  const setOwnTransferVipPriceRoundTrip = (v) => set({ ownTransferVipPriceRoundTrip: v });
-  const setOwnTransferVipPriceOneWay = (v) => set({ ownTransferVipPriceOneWay: v });
-  const setCustomTransferPrice = (v) => set({ customTransferPrice: v });
+  const setTransferDirection = (v: any) => set({ transferDirection: v });
+  const setTransferPickup = (v: any) => set({ transferPickup: v });
+  const setUseOwnTransfer = (v: any) => set({ useOwnTransfer: v });
+  const setUseOwnTransferVip = (v: any) => set({ useOwnTransferVip: v });
+  const setOwnTransferPriceRoundTrip = (v: any) => set({ ownTransferPriceRoundTrip: v });
+  const setOwnTransferPriceOneWay = (v: any) => set({ ownTransferPriceOneWay: v });
+  const setOwnTransferVipPriceRoundTrip = (v: any) => set({ ownTransferVipPriceRoundTrip: v });
+  const setOwnTransferVipPriceOneWay = (v: any) => set({ ownTransferVipPriceOneWay: v });
+  const setCustomTransferPrice = (v: any) => set({ customTransferPrice: v });
 
   const isNone = transferPickup.type === 'none';
   const isOwn  = String(transferPickup.type) === 'own';
