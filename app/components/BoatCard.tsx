@@ -1,6 +1,5 @@
 'use client';
 import { SearchResult } from '../lib/types';
-import { useIsMobile } from '../hooks/useIsMobile';
 import { useBoatAvailability } from '../hooks/useBoatAvailability';
 import { useUserRole } from '../hooks/useUserRole';
 
@@ -12,7 +11,6 @@ const typeIcon    = (t: string) => ({ catamaran:'⛵', sailing_catamaran:'⛵', 
 const DAY_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 
 export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect, searchDate }: Props) {
-  const isMobile    = useIsMobile();
   const clientPrice = Math.round((boat.calculated_total || 0) * (1 + markupPercent / 100));
   const agentPrice  = boat.calculated_agent_total || boat.base_price || 0;
   const availDays   = useBoatAvailability(boat.boat_id, searchDate);
