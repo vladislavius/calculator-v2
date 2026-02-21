@@ -40,9 +40,9 @@ export default function ToysSection() {
   } = useCharterStore();
 
   const toggleExtra = (opt: any) => {
-    const exists = selectedExtras.find(e => e.id === opt.id);
-    if (exists) set({ selectedExtras: selectedExtras.filter(e => e.id !== opt.id) });
-    else set({ selectedExtras: [...selectedExtras, { id: opt.id, name: opt.name_en || opt.name, price: opt.price || 0 }] });
+    const exists = selectedExtras.find(e => e.optionId === opt.id);
+    if (exists) set({ selectedExtras: selectedExtras.filter(e => e.optionId !== opt.id) });
+    else set({ selectedExtras: [...selectedExtras, { optionId: opt.id, name: opt.name_en || opt.name, nameRu: opt.name_ru || '', quantity: 1, price: opt.price || 0, pricePer: opt.price_per || 'fix', category: opt.option_category || 'other' }] });
   };
 
   const setSelectedPartnerWatersports = (v: any) => set({ selectedPartnerWatersports: typeof v === 'function' ? v(selectedPartnerWatersports) : v });

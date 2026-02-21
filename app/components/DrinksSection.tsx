@@ -35,11 +35,11 @@ const ctrBtn: React.CSSProperties = {
 
 export default function DrinksSection() {
   const addDrink = (drink: any) => {
-    const exists = drinkOrders.find(o => String(o.drinkId) === String(drink.id));
-    if (!exists) set({ drinkOrders: [...drinkOrders, { drinkId: String(drink.id), name: drink.name_en, quantity: 1, price: drink.price, unit: 'pcs' }] });
+    const exists = drinkOrders.find(o => o.drinkId === Number(drink.id));
+    if (!exists) set({ drinkOrders: [...drinkOrders, { drinkId: Number(drink.id), name: drink.name_en, quantity: 1, price: drink.price, unit: 'pcs' }] });
   };
   const removeDrink = (drinkId: any) => {
-    set({ drinkOrders: drinkOrders.filter(o => String(o.drinkId) !== String(drinkId)) });
+    set({ drinkOrders: drinkOrders.filter(o => o.drinkId !== Number(drinkId)) });
   };
   const boatDrinks    = useCharterStore(s => s.boatDrinks);
   const drinkOrders   = useCharterStore(s => s.drinkOrders);
@@ -70,7 +70,7 @@ export default function DrinksSection() {
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--os-purple)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>➕ Добавить напитки:</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
             {paid.map(drink => {
-              const order = drinkOrders.find(o => String(o.drinkId) === String(drink.id));
+              const order = drinkOrders.find(o => o.drinkId === Number(drink.id));
               return (
                 <div key={drink.id} style={drinkRow(!!order)}
                   onClick={() => { if (order) { removeDrink(String(drink.id)); } else { addDrink(drink); } }}>
@@ -92,9 +92,9 @@ export default function DrinksSection() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>
                     {order && (
                       <>
-                        <button style={ctrBtn} onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: Math.max(1, d.quantity - 1)} : d) })}>−</button>
+                        <button style={ctrBtn} onClick={() => set({ drinkOrders: drinkOrders.map(d => d.drinkId === Number(drink.id) ? {...d, quantity: Math.max(1, d.quantity - 1)} : d) })}>−</button>
                         <span style={{ minWidth: 24, textAlign: 'center', fontSize: 13, fontWeight: 700, color: 'var(--os-text-1)' }}>{order.quantity}</span>
-                        <button style={ctrBtn} onClick={() => set({ drinkOrders: drinkOrders.map(d => String(d.drinkId) === String(drink.id) ? {...d, quantity: d.quantity + 1} : d) })}>+</button>
+                        <button style={ctrBtn} onClick={() => set({ drinkOrders: drinkOrders.map(d => d.drinkId === Number(drink.id) ? {...d, quantity: d.quantity + 1} : d) })}>+</button>
                       </>
                     )}
                     <input
