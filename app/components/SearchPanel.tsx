@@ -1,48 +1,35 @@
 'use client';
 
-import { SearchResult } from '../lib/types';
+import { useCharterStore } from '../store/useCharterStore';
 
-interface SearchPanelProps {
-  searchDate: string;
-  setSearchDate: (v: string) => void;
-  destination: string;
-  setDestination: (v: string) => void;
-  showDestinationSuggestions: boolean;
-  setShowDestinationSuggestions: (v: boolean) => void;
-  allRoutes: any[];
-  allBoats: any[];
-  boatPartners: any[];
-  selectedPartnerFilter: string;
-  setSelectedPartnerFilter: (v: string) => void;
-  boatNameSearch: string;
-  setBoatNameSearch: (v: string) => void;
-  showBoatSuggestions: boolean;
-  setShowBoatSuggestions: (v: boolean) => void;
-  timeSlot: string;
-  setTimeSlot: (v: string) => void;
-  boatType: string;
-  setBoatType: (v: string) => void;
-  season: string;
-  setSeason: (v: string) => void;
-  sortBy: string;
-  setSortBy: (v: string) => void;
-  adults: number;
-  setAdults: (v: number) => void;
-  showAgentPrice: boolean;
-  markupPercent: number;
-  handleSearch: () => void;
-  loading: boolean;
-}
-
-export default function SearchPanel({
-  searchDate, setSearchDate, destination, setDestination,
-  showDestinationSuggestions, setShowDestinationSuggestions, allRoutes, allBoats,
-  boatPartners, selectedPartnerFilter, setSelectedPartnerFilter,
-  boatNameSearch, setBoatNameSearch, showBoatSuggestions, setShowBoatSuggestions,
-  timeSlot, setTimeSlot, boatType, setBoatType, season, setSeason,
-  sortBy, setSortBy, adults, setAdults, showAgentPrice, markupPercent,
-  handleSearch, loading
-}: SearchPanelProps) {
+export default function SearchPanel({ handleSearch }: { handleSearch: () => void }) {
+  const s = useCharterStore();
+  const searchDate = s.searchDate;
+  const setSearchDate = (v: string) => s.set({ searchDate: v });
+  const destination = s.destination;
+  const setDestination = (v: string) => s.set({ destination: v });
+  const showDestinationSuggestions = s.showDestinationSuggestions;
+  const setShowDestinationSuggestions = (v: boolean) => s.set({ showDestinationSuggestions: v });
+  const allRoutes = s.allRoutes;
+  const allBoats = s.allBoats;
+  const boatPartners = s.boatPartners;
+  const selectedPartnerFilter = s.selectedPartnerFilter;
+  const setSelectedPartnerFilter = (v: string) => s.set({ selectedPartnerFilter: v });
+  const boatNameSearch = s.boatNameSearch;
+  const setBoatNameSearch = (v: string) => s.set({ boatNameSearch: v });
+  const showBoatSuggestions = s.showBoatSuggestions;
+  const setShowBoatSuggestions = (v: boolean) => s.set({ showBoatSuggestions: v });
+  const timeSlot = s.timeSlot;
+  const setTimeSlot = (v: string) => s.set({ timeSlot: v });
+  const boatType = s.boatType;
+  const setBoatType = (v: string) => s.set({ boatType: v });
+  const season = s.season;
+  const setSeason = (v: string) => s.set({ season: v });
+  const sortBy = s.sortBy;
+  const setSortBy = (v: string) => s.set({ sortBy: v });
+  const adults = s.adults;
+  const setAdults = (v: number) => s.set({ adults: v });
+  const loading = s.loading;
 
   const seasons = [
     { value: 'auto', label: '📅 Авто (по дате)' },

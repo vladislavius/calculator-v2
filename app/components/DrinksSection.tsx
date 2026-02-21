@@ -11,10 +11,6 @@ interface BoatDrink {
   category?: string;
 }
 
-interface DrinksSectionProps {
-  addDrink: (drink: BoatDrink) => void;
-  removeDrink: (drinkId: string) => void;
-}
 
 const drinkRow = (active: boolean): React.CSSProperties => ({
   display: 'flex', alignItems: 'center', gap: 10,
@@ -37,7 +33,14 @@ const ctrBtn: React.CSSProperties = {
   cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 };
 
-export default function DrinksSection({ addDrink, removeDrink }: DrinksSectionProps) {
+export default function DrinksSection() {
+  const addDrink = (drink) => {
+    const exists = drinkOrders.find(o => String(o.drinkId) === String(drink.id));
+    if (!exists) set({ drinkOrders: [...drinkOrders, { drinkId: String(drink.id), name: drink.name_en, quantity: 1, price: drink.price }] });
+  };
+  const removeDrink = (drinkId) => {
+    set({ drinkOrders: drinkOrders.filter(o => String(o.drinkId) !== String(drinkId)) });
+  };
   const boatDrinks    = useCharterStore(s => s.boatDrinks);
   const drinkOrders   = useCharterStore(s => s.drinkOrders);
   const set           = useCharterStore(s => s.set);

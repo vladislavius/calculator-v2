@@ -1,30 +1,8 @@
 'use client';
+import { useCharterStore } from '../store/useCharterStore';
 
 import { TransferOrder } from '../lib/types';
 
-interface TransferSectionProps {
-  transferDirection: 'round_trip' | 'one_way';
-  setTransferDirection: (v: 'round_trip' | 'one_way') => void;
-  transferPickup: TransferOrder;
-  setTransferPickup: (v: TransferOrder) => void;
-  useOwnTransfer: boolean;
-  setUseOwnTransfer: (v: boolean) => void;
-  useOwnTransferVip: boolean;
-  setUseOwnTransferVip: (v: boolean) => void;
-  ownTransferPriceRoundTrip: number;
-  setOwnTransferPriceRoundTrip: (v: number) => void;
-  ownTransferPriceOneWay: number;
-  setOwnTransferPriceOneWay: (v: number) => void;
-  ownTransferVipPriceRoundTrip: number;
-  setOwnTransferVipPriceRoundTrip: (v: number) => void;
-  ownTransferVipPriceOneWay: number;
-  setOwnTransferVipPriceOneWay: (v: number) => void;
-  transferOptionsDB: any[];
-  customTransferPrice: number | null;
-  setCustomTransferPrice: (v: number | null) => void;
-  customPrices: Record<string, number>;
-  setPrice: (key: string, value: number) => void;
-}
 
 const tRow = (active: boolean, color = 'var(--os-green)'): React.CSSProperties => ({
   display: 'flex', alignItems: 'center', gap: 10,
@@ -49,18 +27,31 @@ const dirBtn = (active: boolean): React.CSSProperties => ({
   cursor: 'pointer', fontWeight: 600, fontSize: 13, transition: 'all 0.15s',
 });
 
-export default function TransferSection({
-  transferDirection, setTransferDirection,
-  transferPickup, setTransferPickup,
-  useOwnTransfer, setUseOwnTransfer,
-  useOwnTransferVip, setUseOwnTransferVip,
-  ownTransferPriceRoundTrip, setOwnTransferPriceRoundTrip,
-  ownTransferPriceOneWay, setOwnTransferPriceOneWay,
-  ownTransferVipPriceRoundTrip, setOwnTransferVipPriceRoundTrip,
-  ownTransferVipPriceOneWay, setOwnTransferVipPriceOneWay,
-  transferOptionsDB, customTransferPrice, setCustomTransferPrice,
-  customPrices, setPrice
-}: TransferSectionProps) {
+export default function TransferSection() {
+  const {
+    transferDirection = 'round_trip',
+    transferPickup = { type: 'none', pickup: '', dropoff: 'Marina', price: 0, notes: '' },
+    useOwnTransfer = false,
+    useOwnTransferVip = false,
+    ownTransferPriceRoundTrip = 0,
+    ownTransferPriceOneWay = 0,
+    ownTransferVipPriceRoundTrip = 0,
+    ownTransferVipPriceOneWay = 0,
+    transferOptionsDB = [],
+    customTransferPrice = null,
+    customPrices = {},
+    set, setPrice,
+  } = useCharterStore();
+
+  const setTransferDirection = (v) => set({ transferDirection: v });
+  const setTransferPickup = (v) => set({ transferPickup: v });
+  const setUseOwnTransfer = (v) => set({ useOwnTransfer: v });
+  const setUseOwnTransferVip = (v) => set({ useOwnTransferVip: v });
+  const setOwnTransferPriceRoundTrip = (v) => set({ ownTransferPriceRoundTrip: v });
+  const setOwnTransferPriceOneWay = (v) => set({ ownTransferPriceOneWay: v });
+  const setOwnTransferVipPriceRoundTrip = (v) => set({ ownTransferVipPriceRoundTrip: v });
+  const setOwnTransferVipPriceOneWay = (v) => set({ ownTransferVipPriceOneWay: v });
+  const setCustomTransferPrice = (v) => set({ customTransferPrice: v });
 
   const isNone = transferPickup.type === 'none';
   const isOwn  = String(transferPickup.type) === 'own';
