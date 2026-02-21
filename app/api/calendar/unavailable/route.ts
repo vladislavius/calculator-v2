@@ -44,7 +44,18 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   if (!await checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { id } = await req.json();
-  await sb.from('boat_unavailable_dates').delete().eq('id', id);
-  return NextResponse.json({ ok: true });
+  const body = await req.json();
+  
+  if (body.boat_id && body.source === 'all_synced') {
+    // Delete all synced dates for this boat
+    await sb.from('boat_unavailable_dates').delete().eq('boat_id', body.boat_id).in('source', ['ical', 'teamup', 'url_import']);
+    return NextResponse.json({ ok: true, deleted: 'all_synced' });
+  }
+  
+  if (body.id) {
+    await sb.from('boat_unavailable_dates').delete().eq('id', body.id);
+    return NextResponse.json({ ok: true });
+  }
+  
+  return NextResponse.json({ error: 'id or boat_id+source required' }, { status: 400 });
 }

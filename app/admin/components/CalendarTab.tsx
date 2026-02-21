@@ -27,6 +27,12 @@ export default function CalendarTab() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [unavailDates, setUnavailDates] = useState<any[]>([]);
   const [selectedBoatForDates, setSelectedBoatForDates] = useState<{id: number, name: string} | null>(null);
+  const [showTeamup, setShowTeamup] = useState(false);
+  const [teamupUrl, setTeamupUrl] = useState('');
+  const [teamupPartnerId, setTeamupPartnerId] = useState<number>(0);
+  const [teamupSyncing, setTeamupSyncing] = useState(false);
+  const [teamupResult, setTeamupResult] = useState<any>(null);
+  const [partners, setPartners] = useState<Array<{id: number, name: string}>>([]);
   const [boatSearchDates, setBoatSearchDates] = useState('');
   const [showDateSuggestions, setShowDateSuggestions] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
@@ -45,6 +51,9 @@ export default function CalendarTab() {
   });
 
   useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    sb.from('partners').select('id, name').order('name').then(({ data }) => { if (data) setPartners(data); });
+  }, []);
 
   async function loadUnavailDates(boatId: number) {
     const { data } = await sb.from('boat_unavailable_dates')
@@ -189,6 +198,34 @@ export default function CalendarTab() {
         b.partner_name.toLowerCase().includes(boatSearch.toLowerCase())).slice(0, 8)
     : [];
 
+  
+  // Teamup sync
+  const syncTeamup = async () => {
+    if (!teamupPartnerId || !teamupUrl) return;
+    setTeamupSyncing(true);
+    setTeamupResult(null);
+    try {
+      const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
+      const res = await fetch('/api/calendar/sync-teamup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+        body: JSON.stringify({ partner_id: teamupPartnerId, teamup_url: teamupUrl }),
+      });
+      const data = await res.json();
+      setTeamupResult(data);
+      if (data.success) {
+        setMsg('\u2705 Teamup: ' + data.matched + ' событий для ' + data.boats_synced + ' лодок');
+        loadData();
+      } else {
+        setMsg('\u274C ' + (data.error || 'Ошибка'));
+      }
+    } catch (e: any) {
+      setTeamupResult({ error: e.message });
+      setMsg('\u274C ' + e.message);
+    }
+    setTeamupSyncing(false);
+  };
+
   const calBoatIds = new Set(calendars.map(c => c.boat_id));
   const boatsWithoutCalendar = boats.filter(b => !calBoatIds.has(b.id));
 
@@ -210,6 +247,10 @@ export default function CalendarTab() {
           <button onClick={syncAll} disabled={syncing}
             style={{ padding: '8px 16px', borderRadius: 8, border: 'none', backgroundColor: syncing ? 'var(--os-surface)' : 'var(--os-aqua)', color: syncing ? 'var(--os-text-3)' : '#000', cursor: syncing ? 'default' : 'pointer', fontWeight: 600, fontSize: 13 }}>
             {syncing ? '⏳ Синхронизация...' : '🔄 Синхронизировать все'}
+          </button>
+          <button onClick={() => setShowTeamup(!showTeamup)}
+            style={{ padding: '8px 16px', borderRadius: 8, border: 'none', backgroundColor: '#7c3aed', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+            📅 Teamup
           </button>
           <button onClick={() => setShowAdd(!showAdd)}
             style={{ padding: '8px 16px', borderRadius: 8, border: 'none', backgroundColor: 'var(--os-green)', color: '#000', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
@@ -239,6 +280,55 @@ export default function CalendarTab() {
       )}
 
       {/* Форма добавления */}
+      {showTeamup && (
+        <div style={{ backgroundColor: 'var(--os-card)', borderRadius: 12, padding: 20, marginBottom: 20, border: '1px solid #7c3aed' }}>
+          <h3 style={{ color: '#a78bfa', marginTop: 0, fontSize: 16 }}>📅 Teamup синхронизация</h3>
+          <p style={{ color: 'var(--os-text-3)', fontSize: 12, marginBottom: 12 }}>Синхронизирует общий iCal фид Teamup — автоматически распознаёт лодки по названию из событий</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: 'var(--os-text-3)', marginBottom: 4 }}>Партнёр *</label>
+              <select value={teamupPartnerId} onChange={e => setTeamupPartnerId(Number(e.target.value))}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--os-border)', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: 13 }}>
+                <option value={0}>Выберите партнёра</option>
+                {partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: 'var(--os-text-3)', marginBottom: 4 }}>Teamup iCal URL *</label>
+              <input value={teamupUrl} onChange={e => setTeamupUrl(e.target.value)}
+                placeholder="https://ics.teamup.com/feed/.../0.ics"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--os-border)', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button onClick={syncTeamup} disabled={teamupSyncing || !teamupPartnerId || !teamupUrl}
+              style={{ padding: '8px 20px', borderRadius: 8, border: 'none', backgroundColor: teamupSyncing ? 'var(--os-surface)' : '#7c3aed', color: '#fff', cursor: teamupSyncing ? 'default' : 'pointer', fontWeight: 600, fontSize: 13 }}>
+              {teamupSyncing ? '⏳ Синхронизация...' : '🔄 Синхронизировать'}
+            </button>
+            <button onClick={() => { setShowTeamup(false); setTeamupResult(null); }}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--os-border)', backgroundColor: 'transparent', color: 'var(--os-text-2)', cursor: 'pointer', fontSize: 13 }}>
+              Закрыть
+            </button>
+          </div>
+          {teamupResult && (
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 8, fontSize: 12, backgroundColor: teamupResult.success ? 'rgba(0,212,180,0.08)' : 'rgba(239,68,68,0.08)', border: '1px solid ' + (teamupResult.success ? 'var(--os-aqua)' : '#ef4444') }}>
+              {teamupResult.success ? (
+                <div>
+                  <div style={{ color: 'var(--os-aqua)', fontWeight: 600, marginBottom: 4 }}>✅ Синхронизация завершена</div>
+                  <div style={{ color: 'var(--os-text-2)' }}>Всего событий: {teamupResult.total_events} · Распознано: {teamupResult.matched} · Не распознано: {teamupResult.unmatched}</div>
+                  <div style={{ color: 'var(--os-text-2)' }}>Лодок обновлено: {teamupResult.boats_synced} из {teamupResult.boats_in_db?.length}</div>
+                  {teamupResult.unmatched_names?.length > 0 && (
+                    <div style={{ marginTop: 6, color: '#f59e0b' }}>⚠️ Не распознаны: {teamupResult.unmatched_names.join(', ')}</div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ color: '#f87171' }}>❌ {teamupResult.error}</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {showAdd && (
         <div style={{ backgroundColor: 'var(--os-card)', borderRadius: 12, padding: 20, marginBottom: 20, border: '1px solid var(--os-border)' }}>
           <h3 style={{ color: 'var(--os-text-1)', marginTop: 0, fontSize: 16 }}>Добавить календарь лодки</h3>
