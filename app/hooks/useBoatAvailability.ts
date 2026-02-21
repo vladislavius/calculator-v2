@@ -13,22 +13,24 @@ export async function preloadAvailability() {
   const today = new Date().toISOString().split('T')[0];
   const in14days = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
 
-  const [{ data: unavail }, { data: cals }] = await Promise.all([
+  const [unavailRes, calsRes] = await Promise.all([
     sb.from('boat_unavailable_dates')
       .select('boat_id, date_from, date_to')
       .gte('date_to', today)
       .lte('date_from', in14days),
     sb.from('boat_calendars').select('boat_id').eq('active', true)
   ]);
+  const unavail = unavailRes.data;
+  const cals = calsRes.data;
 
   cachedUnavailable = {};
+  cacheTime = Date.now();
   (unavail || []).forEach((u: any) => {
     if (!cachedUnavailable![u.boat_id]) cachedUnavailable![u.boat_id] = [];
     cachedUnavailable![u.boat_id].push({ date_from: u.date_from, date_to: u.date_to });
   });
 
   cachedCalendarBoats = new Set((cals || []).map((c: any) => c.boat_id));
-  cacheTime = Date.now();
 }
 
 export function useBoatAvailability(boatId: number, searchDate?: string) {
