@@ -1,12 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { useCharterStore } from '../store/useCharterStore';
-import { useUserRole } from '../hooks/useUserRole';
 import { calculateTotals } from '../lib/calculateTotals';
 
 export default function SummarySection({ generatePDF, generateWhatsApp }: { generatePDF:()=>void; generateWhatsApp:()=>void }) {
-  const { isAdmin } = useUserRole();
   const s    = useCharterStore();
+  const isAdmin = s.isAdmin;
   const boat = s.selectedBoat;
   const [offerLoading, setOfferLoading] = useState(false);
   const [offerUrl, setOfferUrl] = useState('');
@@ -74,7 +73,7 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
           total_agent: totals.totalAgent || 0,
           lang: s.lang,
           notes: s.customNotes,
-          snapshot: { boat, items: totals.items, lines },
+          snapshot: { boat, items: totals.items, lines, boatOptions: s.boatOptions || [], boatDrinks: s.boatDrinks || [] },
         }),
       });
       const data = await res.json();

@@ -73,7 +73,7 @@ export default function OfferPage() {
         {/* Фото + заголовок в одном блоке */}
         <div style={{...sec, padding:0, overflow:'hidden', marginBottom:10}}>
           {boat.main_photo_url && (
-            <img src={boat.main_photo_url} alt={offer.boat_name} style={{width:'100%',height:isMobile?140:200,objectFit:'cover',display:'block'}} />
+            <img src={boat.main_photo_url} alt={offer.boat_name} style={{width:'100%',height:isMobile?180:280,objectFit:'cover',display:'block',borderRadius:'12px 12px 0 0'}} />
           )}
           <div style={{padding:'12px 16px'}}>
             <div style={{fontSize:22,fontWeight:800}}>{offer.boat_name}</div>
@@ -96,6 +96,32 @@ export default function OfferPage() {
             </div>
           </div>
         </div>
+
+        {/* Включено в стоимость */}
+        {(() => {
+          const boatOptions = snap.boatOptions || [];
+          const boatDrinks = snap.boatDrinks || [];
+          const includedOptions = boatOptions.filter((o) => o.status === 'included');
+          const includedDrinks = boatDrinks.filter((d) => d.included);
+          if (includedOptions.length === 0 && includedDrinks.length === 0) return null;
+          return (
+            <div style={sec}>
+              <div style={{fontSize:13,fontWeight:700,color:'#22c55e',marginBottom:10}}>✅ Включено в стоимость</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                {includedOptions.map((opt, i) => (
+                  <span key={'o'+i} style={{fontSize:12,padding:'4px 10px',borderRadius:20,background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac'}}>
+                    {opt.option_name_ru || opt.option_name || opt.name_en || opt.name}
+                  </span>
+                ))}
+                {includedDrinks.map((d, i) => (
+                  <span key={'d'+i} style={{fontSize:12,padding:'4px 10px',borderRadius:20,background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac'}}>
+                    {d.name_ru || d.name_en}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Позиции по категориям */}
         {cats.map(cat => {
