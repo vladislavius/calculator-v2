@@ -1,7 +1,6 @@
 'use client';
 import { useCharterStore } from '../store/useCharterStore';
 import { calculateTotals } from '../lib/calculateTotals';
-import { useIsMobile } from '../hooks/useIsMobile';
 
 type TabKey = 'included'|'food'|'drinks'|'toys'|'services'|'transfer'|'fees'|'summary';
 const TABS: { key:TabKey; icon:string; label:string }[] = [
@@ -18,7 +17,6 @@ const TABS: { key:TabKey; icon:string; label:string }[] = [
 export default function ModalHeader({ closeModal }: { closeModal:()=>void }) {
   const s    = useCharterStore();
   const boat = s.selectedBoat;
-  const isMobile = useIsMobile();
   if (!boat) return null;
 
   const totals = calculateTotals({
@@ -70,7 +68,7 @@ export default function ModalHeader({ closeModal }: { closeModal:()=>void }) {
             }}
           >
             <span>{tab.icon}</span>
-            {!isMobile && <span>{tab.label}</span>}
+            <span className="hidden md:inline">{tab.label}</span>
             {counts[tab.key] > 0 && <span className="os-tab-count">{counts[tab.key]}</span>}
           </button>
         ))}
