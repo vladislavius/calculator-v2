@@ -474,7 +474,7 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
               {/* Ручной ввод */}
               <div style={card}>
                 <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, color: 'var(--os-aqua)' }}>✏️ Добавить занятые даты вручную</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr auto', gap: 10, alignItems: 'flex-end' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, alignItems: 'flex-end' }}>
                   <div>
                     {label('Дата от')}
                     <input type="date" value={manualForm.date_from} onChange={e => setManualForm({ ...manualForm, date_from: e.target.value })} style={inp} />

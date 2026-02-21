@@ -15,7 +15,7 @@ const ROLE_ICONS: Record<UserRole, string> = {
   admin: '👑', manager: '🧑‍💼', agent: '🧑‍💻',
 };
 const ROLE_PERMS: Record<UserRole, string[]> = {
-  admin:   ['Полный доступ к админке', 'Управление пользователями', 'Редактирование БД', 'Все секции калькулятора', 'Наценка менеджера'],
+  admin:   ['Полный доступ к админке', 'Управление пользователями', 'Редактирование БД', 'Все секции калькулятора', 'Без наценки'],
   manager: ['Калькулятор (все секции)', 'PDF генерация', 'Наценка менеджера', 'Без доступа к партнёрам'],
   agent:   ['Калькулятор (просмотр)', 'PDF генерация', 'Без наценки', 'Без доступа к партнёрам'],
 };
@@ -85,7 +85,7 @@ export default function UsersTab() {
   return (
     <div>
       {/* Role matrix */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14, marginBottom: 24 }}>
         {(Object.entries(ROLE_PERMS) as [UserRole, string[]][]).map(([role, perms]) => (
           <div key={role} style={{ backgroundColor: 'var(--os-card)', border: `1px solid var(--os-border)`, borderRadius: 10, padding: 16 }}>
             <div style={{ fontWeight: 700, fontSize: 13, color: ROLE_COLORS[role], marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -108,7 +108,7 @@ export default function UsersTab() {
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: 'var(--os-aqua)' }}>
             {editing.id ? `✏️ ${editing.name}` : '➕ Новый пользователь'}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
             <div>
               <div style={{ fontSize: 11, color: 'var(--os-text-3)', marginBottom: 4 }}>Имя</div>
               <input value={editing.name || ''} onChange={e => setEditing({ ...editing, name: e.target.value })} style={inp} />
@@ -146,7 +146,7 @@ export default function UsersTab() {
           <div key={u.id} style={{
             backgroundColor: 'var(--os-card)', border: '1px solid var(--os-border)',
             borderRadius: 8, padding: '12px 16px',
-            display: 'flex', alignItems: 'center', gap: 14,
+            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as any,
             opacity: u.active ? 1 : 0.6,
           }}>
             <div style={{

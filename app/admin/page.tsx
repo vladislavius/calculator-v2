@@ -22,9 +22,9 @@ export default function AdminPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--os-bg)', color: 'var(--os-text-1)', fontFamily: 'var(--font-sans, sans-serif)' }}>
       {/* Header */}
-      <div style={{ backgroundColor: 'var(--os-card)', borderBottom: '1px solid var(--os-border)', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
-        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--os-aqua)', letterSpacing: '0.3px' }}>⚙️ ONLYSEA ADMIN</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div style={{ backgroundColor: 'var(--os-card)', borderBottom: '1px solid var(--os-border)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--os-aqua)', whiteSpace: 'nowrap', letterSpacing: '0.3px' }}>⚙️ ONLYSEA ADMIN</span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <a href="/import" style={{ fontSize: 12, color: 'var(--os-text-3)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--os-border)', borderRadius: 4 }}>🤖 AI-парсер яхт</a>
           <a href="/import-all" style={{ fontSize: 12, color: 'var(--os-text-3)', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--os-border)', borderRadius: 4 }}>📦 Центр импорта</a>
           <a href="/" style={{ fontSize: 12, color: 'var(--os-text-3)', textDecoration: 'none' }}>← На главную</a>
@@ -32,10 +32,10 @@ export default function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ backgroundColor: 'var(--os-card)', borderBottom: '1px solid var(--os-border)', padding: '0 24px', display: 'flex', gap: 4 }}>
+      <div style={{ backgroundColor: 'var(--os-card)', borderBottom: '1px solid var(--os-border)', padding: '0 12px', display: 'flex', gap: 2, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' as any }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
-            padding: '12px 18px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            padding: '10px 12px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' as any, flexShrink: 0,
             backgroundColor: 'transparent',
             color: tab === t.id ? 'var(--os-aqua)' : 'var(--os-text-2)',
             borderBottom: tab === t.id ? '2px solid var(--os-aqua)' : '2px solid transparent',
@@ -47,7 +47,7 @@ export default function AdminPage() {
       </div>
 
       {/* Content */}
-      <div style={{ padding: '24px', maxWidth: 1300, margin: '0 auto' }}>
+      <div style={{ padding: '12px', maxWidth: 1300, margin: '0 auto' }}>
         {tab === 'partners' && <PartnersTab />}
         {tab === 'calendar' && <CalendarTab />}
         {tab === 'boats'    && <BoatsTab />}

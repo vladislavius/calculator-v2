@@ -1389,19 +1389,19 @@ export default function ImportPage() {
     <div style={{minHeight: '100vh', backgroundColor: 'var(--os-bg)', padding: '24px'}}>
       <div style={{maxWidth: '1400px', margin: '0 auto'}}>
         {/* Header */}
-        <div style={{marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+        <div style={{marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px'}}>
           <div>
             <h1 style={{fontSize: '20px', fontWeight: '800', color: 'var(--os-text-1)'}}>🤖 AI Contract Import</h1>
-            <p style={{color: 'var(--os-text-3)', marginTop: '4px'}}>Полный импорт данных о партнёрах, лодках и ценах</p>
+            <p className="os-hide-mobile" style={{color: 'var(--os-text-3)', marginTop: '4px'}}>Полный импорт данных о партнёрах, лодках и ценах</p>
           </div>
-          <div style={{display: 'flex', gap: '12px'}}>
+          <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
             <button 
               onClick={() => { fetchImportHistory(); setShowHistory(!showHistory); }}
               style={{padding: '8px 16px', backgroundColor: '#1a0a2a', borderRadius: '6px', color: '#a78bfa', border: 'none', cursor: 'pointer', fontWeight: '500'}}
             >
               📜 История ({importHistory.length || '...'})
             </button>
-            <div style={{display:'flex',gap:'8px'}}>
+            <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
               <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#0d2137',borderRadius:'8px',color:'#60a5fa',textDecoration:'none',fontWeight:'500',border:'1px solid rgba(0,201,255,0.2)'}}>📦 Центр импорта</a>
               <a href="/partners" style={{padding:'8px 16px',backgroundColor:'#f0fdf4',borderRadius:'8px',color:'#059669',textDecoration:'none',fontWeight:'500',border:'1px solid #bbf7d0'}}>👥 Партнёры</a>
               <a href="/" style={{padding:'8px 16px',backgroundColor:'#2563eb',borderRadius:'8px',color:'white',textDecoration:'none',fontWeight:'500'}}>← Калькулятор</a>
@@ -1467,7 +1467,7 @@ export default function ImportPage() {
             {!importMode ? (
               <div>
                 <h2 style={{fontSize: '16px', fontWeight: '700', marginBottom: '24px', textAlign: 'center', color: 'var(--os-text-1)'}}>Выберите режим импорта</h2>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', maxWidth: '800px', margin: '0 auto'}}>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', maxWidth: '800px', margin: '0 auto'}}>
                   
                   {/* Full Contract Mode */}
                   <div 
@@ -1482,7 +1482,7 @@ export default function ImportPage() {
                   >
                     <div style={{fontSize: '48px', marginBottom: '16px'}}>📄</div>
                     <h3 style={{fontSize: '14px', fontWeight: '700', marginBottom: '8px', color: 'var(--os-text-1)'}}>Полный контракт</h3>
-                    <p style={{color: 'var(--os-text-3)', fontSize: '14px'}}>Новый партнёр + все его лодки, маршруты и цены из контракта</p>
+                    <p className="os-hide-mobile" style={{color: 'var(--os-text-3)', fontSize: '14px'}}>Новый партнёр + все его лодки, маршруты и цены из контракта</p>
                   </div>
                   
                   {/* Single Boat Mode */}
@@ -1498,7 +1498,7 @@ export default function ImportPage() {
                   >
                     <div style={{fontSize: '48px', marginBottom: '16px'}}>🚤</div>
                     <h3 style={{fontSize: '14px', fontWeight: '700', marginBottom: '8px', color: 'var(--os-text-1)'}}>Одна лодка</h3>
-                    <p style={{color: 'var(--os-text-3)', fontSize: '14px'}}>Добавить лодку к существующему партнёру (PDF одной лодки)</p>
+                    <p className="os-hide-mobile" style={{color: 'var(--os-text-3)', fontSize: '14px'}}>Добавить лодку к существующему партнёру (PDF одной лодки)</p>
                   </div>
                 </div>
               </div>
@@ -1510,7 +1510,7 @@ export default function ImportPage() {
                 </div>
                 
                 {/* Partner List */}
-                <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px'}}>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px', marginBottom: '24px'}}>
                   {existingPartnersList.map(p => (
                     <div 
                       key={p.id}
@@ -1622,7 +1622,7 @@ export default function ImportPage() {
             {activeTab === 'partner' && (
                 <div>
                   <h3 style={{fontSize: '18px', fontWeight: '600', marginBottom: '20px'}}>Информация о партнёре</h3>
-                  <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px'}}>
+                  <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px'}}>
                     <div>
                       <label style={labelStyle}>Название компании *</label>
                       <input value={extractedData.partner_name} onChange={(e) => setExtractedData({...extractedData, partner_name: e.target.value})} style={inputStyle} />
@@ -1681,7 +1681,7 @@ export default function ImportPage() {
                       {/* Basic Info */}
                       <div style={{marginBottom: '20px'}}>
                         <h5 style={{fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '12px'}}>Основная информация</h5>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px'}}>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px'}}>
                           <div><label style={labelStyle}>Название *</label><input value={boat.name} onChange={(e) => updateBoat(bi, 'name', e.target.value)} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Тип *</label>
                             <select value={boat.type} onChange={(e) => updateBoat(bi, 'type', e.target.value)} style={inputStyle}>
@@ -1701,7 +1701,7 @@ export default function ImportPage() {
                       {/* Capacity */}
                       <div style={{marginBottom: '20px'}}>
                         <h5 style={{fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '12px'}}>Вместимость и цены за доп. гостей</h5>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '12px'}}>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px'}}>
                           <div><label style={labelStyle}>Max Day</label><input type="number" value={boat.max_pax_day || ''} onChange={(e) => updateBoat(bi, 'max_pax_day', Number(e.target.value))} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Max Overnight</label><input type="number" value={boat.max_pax_overnight || ''} onChange={(e) => updateBoat(bi, 'max_pax_overnight', Number(e.target.value))} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Включено (чел)</label><input type="number" value={boat.base_pax || ''} onChange={(e) => updateBoat(bi, 'base_pax', Number(e.target.value))} style={inputStyle} placeholder="12" /></div>
@@ -1716,7 +1716,7 @@ export default function ImportPage() {
                       {/* Technical */}
                       <div style={{marginBottom: '20px'}}>
                         <h5 style={{fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '12px'}}>Технические характеристики</h5>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px'}}>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px'}}>
                           <div><label style={labelStyle}>Скорость (узлы)</label><input type="number" value={boat.speed_cruise || ''} onChange={(e) => updateBoat(bi, 'speed_cruise', Number(e.target.value))} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Max скорость</label><input type="number" value={boat.speed_max || ''} onChange={(e) => updateBoat(bi, 'speed_max', Number(e.target.value))} style={inputStyle} /></div>
                           <div style={{display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '20px'}}>
@@ -1733,7 +1733,7 @@ export default function ImportPage() {
                       {/* Included Features */}
                       <div style={{marginBottom: '20px'}}>
                         <h5 style={{fontSize: '14px', fontWeight: '600', color: 'var(--os-green)', marginBottom: '12px'}}>✅ Включено в стоимость</h5>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px'}}>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px'}}>
                           {boat.features.included.map((f, fi) => (
                             <div key={fi} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: f.included ? 'rgba(0,212,180,0.12)' : 'var(--os-surface)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)'}}>
                               <input type="checkbox" checked={f.included} onChange={(e) => toggleFeature(bi, 'included', fi, 'included', e.target.checked)} />
@@ -1746,7 +1746,7 @@ export default function ImportPage() {
                       {/* Paid Features */}
                       <div>
                         <h5 style={{fontSize: '14px', fontWeight: '600', color: 'var(--os-purple)', marginBottom: '12px'}}>💰 Платные опции</h5>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px'}}>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px'}}>
                           {boat.features.paid.map((f, fi) => (
                             <div key={fi} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: f.paid ? 'rgba(139,92,246,0.12)' : 'var(--os-surface)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)'}}>
                               <input type="checkbox" checked={f.paid} onChange={(e) => toggleFeature(bi, 'paid', fi, 'paid', e.target.checked)} />
@@ -1818,7 +1818,7 @@ export default function ImportPage() {
                                     style={{color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px'}}
                                   >🗑️</button>
                                 </div>
-                                <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px'}}>
+                                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '10px'}}>
                                   <div>
                                     <label style={{fontSize: '11px', color: '#64748b'}}>Направление *</label>
                                     <input 
@@ -1972,7 +1972,7 @@ export default function ImportPage() {
                         <span style={{fontWeight: '600'}}>Маршрут #{ri + 1}</span>
                         <button onClick={() => removeRoute(ri)} style={{color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer'}}>🗑️</button>
                       </div>
-                      <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px'}}>
+                      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px'}}>
                         <div><label style={labelStyle}>Направление *</label><input value={route.destination} onChange={(e) => updateRoute(ri, 'destination', e.target.value)} style={inputStyle} /></div>
                         <div><label style={labelStyle}>Пирс отправления</label><input value={route.departure_pier} onChange={(e) => updateRoute(ri, 'departure_pier', e.target.value)} style={inputStyle} /></div>
                         <div><label style={labelStyle}>Тип</label>
@@ -1991,7 +1991,7 @@ export default function ImportPage() {
                         <div><label style={labelStyle}>Длительность (ч)</label><input type="number" value={route.duration_hours || ''} onChange={(e) => updateRoute(ri, 'duration_hours', Number(e.target.value))} style={inputStyle} /></div>
                         <div><label style={labelStyle}>Расстояние (nm)</label><input type="number" value={route.distance_nm || ''} onChange={(e) => updateRoute(ri, 'distance_nm', Number(e.target.value))} style={inputStyle} /></div>
                       </div>
-                      <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px', marginTop: '12px'}}>
+                      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginTop: '12px'}}>
                         <div><label style={labelStyle}>Базовая цена (THB) *</label><input type="number" value={route.base_price || ''} onChange={(e) => updateRoute(ri, 'base_price', Number(e.target.value))} style={inputStyle} /></div>
                         <div><label style={labelStyle}>Агент. цена</label><input type="number" value={route.agent_price || ''} onChange={(e) => updateRoute(ri, 'agent_price', Number(e.target.value))} style={inputStyle} /></div>
                         <div><label style={labelStyle}>Топливный сбор</label><input type="number" value={route.fuel_surcharge || ''} onChange={(e) => updateRoute(ri, 'fuel_surcharge', Number(e.target.value))} style={inputStyle} /></div>
@@ -2014,7 +2014,7 @@ export default function ImportPage() {
                   </div>
                   
                   {extractedData.extras.map((extra, ei) => (
-                    <div key={ei} style={{display: 'grid', gridTemplateColumns: '1fr 2fr 2fr 1fr 1fr 1fr auto', gap: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '8px', backgroundColor: 'var(--os-surface)', alignItems: 'end'}}>
+                    <div key={ei} style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '8px', backgroundColor: 'var(--os-surface)', alignItems: 'end'}}>
                       <div>
                         <label style={labelStyle}>Категория</label>
                         <select value={extra.category} onChange={(e) => updateExtra(ei, 'category', e.target.value)} style={inputStyle}>
@@ -2045,7 +2045,7 @@ export default function ImportPage() {
                 <div>
                   <h3 style={{fontSize: '18px', fontWeight: '600', marginBottom: '20px'}}>Условия и политики</h3>
                   
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px'}}>
+                  <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px'}}>
                     <div>
                       <label style={{...labelStyle, fontSize: '14px', fontWeight: '600', color: '#16a34a'}}>✅ Включено в стоимость</label>
                       <textarea

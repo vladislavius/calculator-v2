@@ -38,7 +38,7 @@ export default function StatsTab() {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 28 }}>
         {statCard('Всего лодок', counts.boats, 'var(--os-aqua)', '⛵')}
         {statCard('Активных лодок', counts.activeBoats, 'var(--os-green)', '✅')}
         {statCard('Партнёров', counts.partners, 'var(--os-purple)', '🤝')}
@@ -47,7 +47,7 @@ export default function StatsTab() {
 
       <div style={{ backgroundColor: 'var(--os-card)', border: '1px solid var(--os-border)', borderRadius: 10, padding: 20 }}>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: 'var(--os-text-1)' }}>📊 Информация о базе данных</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
           {[
             ['Supabase Project', 'jcidlaaqyehcohwzmwnz'],
             ['Таблицы', 'boats, partners, routes, route_prices, boat_options, options_catalog'],
