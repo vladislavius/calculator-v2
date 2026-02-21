@@ -59,7 +59,7 @@ export default function DrinksSection() {
         <div style={{ marginBottom: 10, padding: '8px 12px', backgroundColor: 'rgba(34,197,94,0.07)', borderRadius: 'var(--r-sm)', border: '1px solid rgba(34,197,94,0.2)', fontSize: 13 }}>
           <span style={{ fontWeight: 700, color: 'var(--os-green)' }}>✅ Включено: </span>
           {included.map((d, i) => (
-            <span key={d.id} style={{ color: 'var(--os-text-1)' }}>{i > 0 ? ', ' : ''}{d.name_en}{d.name_ru && <span style={{ color: 'var(--os-text-3)', fontSize: 11 }}> ({d.name_ru})</span>}</span>
+            <span key={d.id} style={{ color: 'var(--os-text-1)' }}>{i > 0 ? ', ' : ''}{d.name_en}{d.name_ru && <span className="os-hide-mobile" style={{ color: 'var(--os-text-3)', fontSize: 11 }}> ({d.name_ru})</span>}</span>
           ))}
         </div>
       )}
@@ -86,7 +86,7 @@ export default function DrinksSection() {
                   {/* Название */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--os-text-1)' }}>{drink.name_en}</div>
-                    {drink.name_ru && <div style={{ fontSize: 11, color: 'var(--os-text-3)' }}>{drink.name_ru}</div>}
+                    {drink.name_ru && <div className="os-hide-mobile" style={{ fontSize: 11, color: 'var(--os-text-3)' }}>{drink.name_ru}</div>}
                   </div>
                   {/* Счётчик + цена */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>

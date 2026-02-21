@@ -77,19 +77,19 @@ export default function TransferSection() {
             if (useOwnTransfer) { setTransferPickup({...transferPickup, price: ownTransferPriceOneWay}); setCustomTransferPrice(ownTransferPriceOneWay); }
             else if (useOwnTransferVip) { setTransferPickup({...transferPickup, price: ownTransferVipPriceOneWay}); setCustomTransferPrice(ownTransferVipPriceOneWay); }
           }}>
-          ➡️ Только в одну сторону
+          ➡️ В одну сторону
         </button>
       </div>
 
       {/* Варианты трансфера: 2 колонки */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8, marginBottom: 10 }}>
 
         {/* Не нужен */}
         <div style={tRow(isNone)} onClick={() => { setTransferPickup({...transferPickup, type: 'none', price: 0}); setUseOwnTransfer(false); setUseOwnTransferVip(false); setCustomTransferPrice(null); }}>
           <div style={{ width: 15, height: 15, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isNone ? 'var(--os-green)' : 'var(--os-border)'}`, backgroundColor: isNone ? 'var(--os-green)' : 'transparent' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--os-text-1)' }}>Не нужен</div>
-            <div style={{ fontSize: 11, color: 'var(--os-text-3)' }}>Клиент доберётся сам</div>
+            <div className="os-hide-mobile" style={{ fontSize: 11, color: 'var(--os-text-3)' }}>Клиент доберётся сам</div>
           </div>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--os-green)', flexShrink: 0 }}>0 ฿</span>
         </div>
@@ -99,7 +99,7 @@ export default function TransferSection() {
           <div style={{ width: 15, height: 15, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isOwn ? 'var(--os-green)' : 'var(--os-border)'}`, backgroundColor: isOwn ? 'var(--os-green)' : 'transparent' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--os-text-1)' }}>🚐 Наш трансфер</div>
-            <div style={{ fontSize: 11, color: 'var(--os-text-3)' }}>Стандартный минивэн</div>
+            <div className="os-hide-mobile" style={{ fontSize: 11, color: 'var(--os-text-3)' }}>Стандартный минивэн</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
             <input type="number"
@@ -115,7 +115,7 @@ export default function TransferSection() {
           <div style={{ width: 15, height: 15, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isVip ? 'var(--os-gold)' : 'var(--os-border)'}`, backgroundColor: isVip ? 'var(--os-gold)' : 'transparent' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--os-text-1)' }}>👑 Наш трансфер VIP</div>
-            <div style={{ fontSize: 11, color: 'var(--os-text-3)' }}>Премиум минивэн</div>
+            <div className="os-hide-mobile" style={{ fontSize: 11, color: 'var(--os-text-3)' }}>Премиум минивэн</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
             <input type="number"

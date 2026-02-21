@@ -23,13 +23,13 @@ interface FoodSectionProps {
 // ── общие стили строк ──────────────────────────────────────────
 const rowGrid: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
   gap: '6px',
   marginBottom: 14,
 };
 
 const row = (active:boolean, activeColor='var(--os-green)'): React.CSSProperties => ({
-  display:'flex', alignItems:'center', gap:10,
+  display:'flex', alignItems:'center', gap:10, flexWrap:'wrap',
   padding:'8px 12px', borderRadius:'var(--r-sm)',
   backgroundColor: active ? `${activeColor}12` : 'var(--os-surface)',
   border:`1.5px solid ${active ? activeColor : 'var(--os-border)'}`,
@@ -107,7 +107,7 @@ export default function FoodSection() {
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isSelected?'var(--os-green)':'var(--os-border)'}`,backgroundColor:isSelected?'var(--os-green)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isSelected&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>
-                <span style={{flex:1,fontSize:13,fontWeight:600,color:isSelected?'var(--os-text-1)':'var(--os-text-2)'}}>{set.name_en}{set.name_ru&&<span style={{fontWeight:400,color:'var(--os-text-3)',fontSize:12}}> ({set.name_ru})</span>}</span>
+                <span style={{flex:1,fontSize:13,fontWeight:600,color:isSelected?'var(--os-text-1)':'var(--os-text-2)',minWidth:'150px'}}>{set.name_en}{set.name_ru&&<span className="os-hide-mobile" style={{fontWeight:400,color:'var(--os-text-3)',fontSize:12}}> ({set.name_ru})</span>}</span>
                 <span style={{fontSize:10,padding:'1px 6px',borderRadius:3,backgroundColor:'rgba(34,197,94,0.15)',color:'var(--os-green)',fontWeight:600,flexShrink:0}}>{catLabels[set.category||'other']||set.category}</span>
                 {isSelected&&order&&(
                   <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
@@ -138,7 +138,7 @@ export default function FoodSection() {
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>
-                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)'}}>{item.name_en}{item.name_ru&&<span style={{color:'var(--os-text-3)',fontSize:12}}> ({item.name_ru})</span>}</span>
+                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)',minWidth:'150px'}}>{item.name_en}{item.name_ru&&<span className="os-hide-mobile" style={{color:'var(--os-text-3)',fontSize:12}}> ({item.name_ru})</span>}</span>
                 {isAdded&&order&&(
                   <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
                     <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons-1)}>−</button>
@@ -172,7 +172,7 @@ export default function FoodSection() {
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>
-                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)'}}>{opt.option_name}</span>
+                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)',minWidth:'150px'}}>{opt.option_name}</span>
                 <span style={{fontSize:12,fontWeight:700,color:'var(--os-gold)',flexShrink:0}}>+{opt.price} THB{opt.price_per==='person'?'/чел':''}</span>
               </div>
             );
@@ -209,8 +209,8 @@ export default function FoodSection() {
                           {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                         </div>
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:13,fontWeight:500,color:'var(--os-text-1)'}}>{item.name_en}{item.name_ru&&<span style={{color:'var(--os-text-3)',fontSize:11}}> ({item.name_ru})</span>}</div>
-                          <div style={{fontSize:10,color:'var(--os-text-3)'}}>мин. {item.min_persons} чел</div>
+                          <div style={{fontSize:13,fontWeight:500,color:'var(--os-text-1)'}}>{item.name_en}{item.name_ru&&<span className="os-hide-mobile" style={{color:'var(--os-text-3)',fontSize:11}}> ({item.name_ru})</span>}</div>
+                          <div className="os-hide-mobile" style={{fontSize:10,color:'var(--os-text-3)'}}>мин. {item.min_persons} чел</div>
                         </div>
                         {isAdded&&order&&(
                           <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
