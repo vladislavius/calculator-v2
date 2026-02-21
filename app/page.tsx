@@ -460,6 +460,7 @@ export default function Home() {
       if (error) throw error;
 
       let filtered = data || [];
+      console.log('🔍 First result:', filtered[0]);
 
       if (minBudget) {
         filtered = filtered.filter((r: SearchResult) => r.calculated_total >= Number(minBudget));
