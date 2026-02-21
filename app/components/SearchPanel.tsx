@@ -95,9 +95,9 @@ export default function SearchPanel({ handleSearch }: { handleSearch: () => void
   });
   const filterBoats = (boats: any[]) => boats.filter(b => b.name.toLowerCase().includes(boatNameSearch.toLowerCase()));
 
-  const doSearch = () => { handleSearch(); setCollapsed(true); };
+  const doSearch = () => { handleSearch(); if (isMob) setCollapsed(true); };
 
-  if (collapsed) {
+  if (collapsed && isMob) {
     return (
       <div style={{
         padding: isMob ? '8px 12px' : '10px 16px',
