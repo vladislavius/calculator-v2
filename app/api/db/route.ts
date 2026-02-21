@@ -106,8 +106,8 @@ export async function POST(req: NextRequest) {
     if (action === 'insert' && table === 'boats' && result.data) {
       const inserted = Array.isArray(result.data) ? result.data : [result.data];
       for (const boat of inserted) {
-        if (boat?.id && boat?.name) {
-          autoSyncBoatPhoto(boat.name, boat.id, supabaseAdmin);
+        if ((boat as any)?.id && (boat as any)?.name) {
+          autoSyncBoatPhoto((boat as any).name, (boat as any).id, supabaseAdmin);
         }
       }
     }
