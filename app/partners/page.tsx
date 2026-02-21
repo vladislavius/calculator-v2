@@ -170,7 +170,7 @@ function UniversalServiceTab({ category, supabase }: { category: string; supabas
   );
 }
 
-export default function PartnersPage() {
+export default function PartnersPage({ embedded = false }: { embedded?: boolean } = {}) {
   const [activeTab, setActiveTab] = useState<'catering' | 'watersports' | 'boats' | 'transfer' | 'diving' | 'photo' | 'guide' | 'other'>('boats');
   const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
   const [showOtherDropdown, setShowOtherDropdown] = useState(false);
@@ -1573,9 +1573,11 @@ export default function PartnersPage() {
       <div style={styles.header}>
         <h1 style={styles.title}>👥 Управление партнёрами</h1>
         <div style={{display:'flex',gap:'8px'}}>
+          {!embedded && <>
           <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#1e3a5f',borderRadius:'8px',color:'#93c5fd',textDecoration:'none',fontWeight:'500',border:'1px solid #3b82f6'}}>📦 Центр импорта</a>
           <a href="/import" style={{padding:'8px 16px',backgroundColor:'#1e1a3a',borderRadius:'8px',color:'#a78bfa',textDecoration:'none',fontWeight:'500',border:'1px solid #7c3aed'}}>🤖 AI-парсер яхт</a>
           <a href="/" style={{padding:'8px 16px',backgroundColor:'#2563eb',borderRadius:'8px',color:'white',textDecoration:'none',fontWeight:'500'}}>← Калькулятор</a>
+          </>}
         </div>
       </div>
 
