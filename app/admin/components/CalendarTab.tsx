@@ -195,7 +195,7 @@ export default function CalendarTab() {
   return (
     <div style={{ padding: 20 }}>
       {/* Заголовок */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h2 style={{ color: 'var(--os-text-1)', margin: 0, fontSize: 20 }}>📅 Управление календарями</h2>
           <p style={{ color: 'var(--os-text-3)', fontSize: 13, marginTop: 4 }}>
@@ -242,7 +242,7 @@ export default function CalendarTab() {
       {showAdd && (
         <div style={{ backgroundColor: 'var(--os-card)', borderRadius: 12, padding: 20, marginBottom: 20, border: '1px solid var(--os-border)' }}>
           <h3 style={{ color: 'var(--os-text-1)', marginTop: 0, fontSize: 16 }}>Добавить календарь лодки</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
             {/* Поиск лодки */}
             <div style={{ position: 'relative' }}>
               <label style={{ display: 'block', fontSize: 12, color: 'var(--os-text-3)', marginBottom: 4 }}>Лодка *</label>
@@ -320,7 +320,7 @@ export default function CalendarTab() {
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--os-text-3)' }}>Загрузка...</div>
       ) : (
         <div style={{ backgroundColor: 'var(--os-card)', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--os-border)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 700 }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--os-surface)' }}>
                 <th style={{ textAlign: 'left', padding: '10px 16px', color: 'var(--os-text-2)', fontWeight: 600 }}>Лодка</th>
@@ -344,7 +344,7 @@ export default function CalendarTab() {
                   <td style={{ padding: '10px 16px', color: 'var(--os-text-2)' }}>
                     {cal.calendar_type === 'ical' ? '📅 iCal' : cal.calendar_type === 'manual' ? '✏️ Ручной' : '📊 Sheets'}
                   </td>
-                  <td style={{ padding: '10px 16px', maxWidth: 300 }}>
+                  <td style={{ padding: '10px 16px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {cal.ical_url ? (
                       <a href={cal.ical_url} target="_blank" rel="noopener noreferrer"
                         style={{ color: 'var(--os-aqua)', textDecoration: 'none', fontSize: 11, wordBreak: 'break-all' }}>
@@ -382,7 +382,7 @@ export default function CalendarTab() {
                 </tr>
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
@@ -428,7 +428,7 @@ export default function CalendarTab() {
         {/* Выбор лодки для дат */}
         {(showManualForm || showUrlImport) && (
           <div style={{ backgroundColor: 'var(--os-card)', borderRadius: 12, padding: 20, marginBottom: 16, border: '1px solid var(--os-border)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
               {/* Поиск лодки */}
               <div style={{ position: 'relative' }}>
                 <label style={{ display: 'block', fontSize: 12, color: 'var(--os-text-3)', marginBottom: 4 }}>Лодка *</label>
@@ -473,7 +473,7 @@ export default function CalendarTab() {
             </div>
 
             {showManualForm && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, marginTop: 12, alignItems: 'end' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 12, alignItems: 'end' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 12, color: 'var(--os-text-3)', marginBottom: 4 }}>Дата от *</label>
                   <input type="date" value={manualForm.date_from} onChange={e => setManualForm(f => ({ ...f, date_from: e.target.value }))}

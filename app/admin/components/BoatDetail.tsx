@@ -149,7 +149,7 @@ export default function BoatDetail({ boatId, boatName, onBack }: {
               <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: 'var(--os-aqua)' }}>
                 {editingPrice.id ? '✏️ Редактировать' : '➕ Новый маршрут'}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
                 <div>
                   <div style={{ fontSize: 11, color: 'var(--os-text-3)', marginBottom: 4 }}>Маршрут</div>
                   <select value={editingPrice.route_id || ''} onChange={e => setEditingPrice({ ...editingPrice, route_id: +e.target.value })} style={inp}>
@@ -290,7 +290,7 @@ export default function BoatDetail({ boatId, boatName, onBack }: {
       {/* INFO */}
       {activeTab === 'info' && boat && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
             {([
               ['Название', 'name', 'text'], ['Тип', 'boat_type', 'text'], ['Модель', 'model', 'text'],
               ['Длина (ft)', 'length_ft', 'number'], ['Год постройки', 'year_built', 'number'], ['Каюты', 'cabins', 'number'],
