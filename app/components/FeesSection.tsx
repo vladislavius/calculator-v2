@@ -42,15 +42,15 @@ export default function FeesSection() {
 
   const routeName = selectedBoat?.route_name || '';
 
-  const setLandingEnabled = (v) => set({ landingEnabled: v });
-  const setLandingFee = (v) => set({ landingFee: v });
-  const setDefaultParkFeeEnabled = (v) => set({ defaultParkFeeEnabled: v });
-  const setDefaultParkFee = (v) => set({ defaultParkFee: v });
-  const setDefaultParkFeeAdults = (v) => set({ defaultParkFeeAdults: v });
-  const setDefaultParkFeeChildren = (v) => set({ defaultParkFeeChildren: v });
-  const setSelectedFees = (v) => set({ selectedFees: v });
+  const setLandingEnabled = (v: boolean) => set({ landingEnabled: v });
+  const setLandingFee = (v: number) => set({ landingFee: v });
+  const setDefaultParkFeeEnabled = (v: boolean) => set({ defaultParkFeeEnabled: v });
+  const setDefaultParkFee = (v: number) => set({ defaultParkFee: v });
+  const setDefaultParkFeeAdults = (v: number) => set({ defaultParkFeeAdults: v });
+  const setDefaultParkFeeChildren = (v: number) => set({ defaultParkFeeChildren: v });
+  const setSelectedFees = (v: any) => set({ selectedFees: v });
 
-  const toggleFee = (fee) => {
+  const toggleFee = (fee: any) => {
     const exists = selectedFees.find(f => f.id === fee.id);
     if (exists) {
       set({ selectedFees: selectedFees.filter(f => f.id !== fee.id) });

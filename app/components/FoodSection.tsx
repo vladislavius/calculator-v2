@@ -55,23 +55,23 @@ export default function FoodSection() {
     set, getPrice, setPrice, toggleSection,
   } = useCharterStore();
 
-  const setCateringOrders = (v) => set({ cateringOrders: typeof v === 'function' ? v(cateringOrders) : v });
-  const setSelectedDishes = (v) => set({ selectedDishes: typeof v === 'function' ? v(selectedDishes) : v });
+  const setCateringOrders = (v: any) => set({ cateringOrders: typeof v === 'function' ? v(cateringOrders) : v });
+  const setSelectedDishes = (v: any) => set({ selectedDishes: typeof v === 'function' ? v(selectedDishes) : v });
 
-  const toggleExtra = (id, name, price) => {
+  const toggleExtra = (id: any, name: any, price: any) => {
     const exists = selectedExtras.find(e => e.id === id);
     if (exists) set({ selectedExtras: selectedExtras.filter(e => e.id !== id) });
     else set({ selectedExtras: [...selectedExtras, { id, name, price }] });
   };
 
-  const addMenuItem = (partnerId, itemId, itemName, pricePerPerson) => {
+  const addMenuItem = (partnerId: any, itemId: any, itemName: any, pricePerPerson: any) => {
     const exists = cateringOrders.find(o => o.partner_id === partnerId && o.menu_item_id === itemId);
     if (exists) return;
     const persons = adults + children3to11;
     setCateringOrders(prev => [...prev, { partner_id: partnerId, menu_item_id: itemId, menu_item_name: itemName, price_per_person: pricePerPerson, persons }]);
   };
 
-  const updateCateringPersons = (idx, val) => {
+  const updateCateringPersons = (idx: number, val: number) => {
     setCateringOrders(prev => prev.map((o, i) => i === idx ? { ...o, persons: val } : o));
   };
 
