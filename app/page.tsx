@@ -445,15 +445,23 @@ export default function Home() {
   }, []);
 
   const handleSearch = async () => {
+    const st = useCharterStore.getState();
+    const _boatType = st.boatType || '';
+    const _destination = st.destination || '';
+    const _boatNameSearch = st.boatNameSearch || '';
+    const _selectedPartnerFilter = st.selectedPartnerFilter || '';
+    const _minBudget = st.minBudget || '';
+    const _maxBudget = st.maxBudget || '';
+    const _sortBy = st.sortBy || 'price_asc';
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc('search_available_boats', {
         p_date: searchDate,
         p_guests: totalGuests,
         p_time_slot: timeSlot,
-        p_boat_type: boatType || '',
-        p_destination: destination || '',
-        p_max_budget: maxBudget ? Number(maxBudget) : 999999,
+        p_boat_type: _boatType,
+        p_destination: _destination,
+        p_max_budget: _maxBudget ? Number(_maxBudget) : 999999,
         p_season: season === 'auto' ? '' : season,
       });
 
@@ -462,22 +470,22 @@ export default function Home() {
       let filtered = data || [];
       console.log('🔍 First result:', filtered[0]);
 
-      if (minBudget) {
-        filtered = filtered.filter((r: SearchResult) => r.calculated_total >= Number(minBudget));
+      if (_minBudget) {
+        filtered = filtered.filter((r: SearchResult) => r.calculated_total >= Number(_minBudget));
       }
 
       // Filter by boat name
-      if (boatNameSearch) {
-        const searchLower = boatNameSearch.toLowerCase();
+      if (_boatNameSearch) {
+        const searchLower = _boatNameSearch.toLowerCase();
         filtered = filtered.filter((r: SearchResult) =>
           r.boat_name.toLowerCase().includes(searchLower)
         );
       }
 
       // Filter by partner
-      if (selectedPartnerFilter) {
+      if (_selectedPartnerFilter) {
         filtered = filtered.filter((r: SearchResult) =>
-          r.partner_id === Number(selectedPartnerFilter)
+          r.partner_id === Number(_selectedPartnerFilter)
         );
       }
 
@@ -506,13 +514,13 @@ export default function Home() {
         setBoatCalSet(availCalSet);
       }
 
-      if (sortBy === 'price_asc') {
+      if (_sortBy === 'price_asc') {
         filtered.sort((a: SearchResult, b: SearchResult) => a.calculated_total - b.calculated_total);
-      } else if (sortBy === 'price_desc') {
+      } else if (_sortBy === 'price_desc') {
         filtered.sort((a: SearchResult, b: SearchResult) => b.calculated_total - a.calculated_total);
-      } else if (sortBy === 'size') {
+      } else if (_sortBy === 'size') {
         filtered.sort((a: SearchResult, b: SearchResult) => b.length_ft - a.length_ft);
-      } else if (sortBy === 'capacity') {
+      } else if (_sortBy === 'capacity') {
         filtered.sort((a: SearchResult, b: SearchResult) => b.max_guests - a.max_guests);
       }
 
