@@ -1397,14 +1397,14 @@ export default function ImportPage() {
           <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
             <button 
               onClick={() => { fetchImportHistory(); setShowHistory(!showHistory); }}
-              style={{padding: '8px 16px', backgroundColor: '#1a0a2a', borderRadius: '6px', color: '#a78bfa', border: 'none', cursor: 'pointer', fontWeight: '500'}}
+              style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',textDecoration:'none',fontWeight:'500',border:'1px solid var(--os-border)',fontSize:'13px',cursor:'pointer'}}
             >
               📜 История ({importHistory.length || '...'})
             </button>
             <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-              <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'#0d2137',borderRadius:'8px',color:'#60a5fa',textDecoration:'none',fontWeight:'500',border:'1px solid rgba(0,201,255,0.2)'}}>📦 Центр импорта</a>
-              <a href="/partners" style={{padding:'8px 16px',backgroundColor:'#f0fdf4',borderRadius:'8px',color:'#059669',textDecoration:'none',fontWeight:'500',border:'1px solid #bbf7d0'}}>👥 Партнёры</a>
-              <a href="/" style={{padding:'8px 16px',backgroundColor:'#2563eb',borderRadius:'8px',color:'white',textDecoration:'none',fontWeight:'500'}}>← Калькулятор</a>
+              <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',textDecoration:'none',fontWeight:'500',border:'1px solid var(--os-border)',fontSize:'13px'}}>📦 Центр импорта</a>
+              <a href="/partners" style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',textDecoration:'none',fontWeight:'500',border:'1px solid var(--os-border)',fontSize:'13px'}}>👥 Партнёры</a>
+              <a href="/" style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',textDecoration:'none',fontWeight:'500',border:'1px solid var(--os-border)',fontSize:'13px'}}>← Калькулятор</a>
             </div>
           </div>
         </div>
