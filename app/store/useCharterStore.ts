@@ -3,6 +3,7 @@ import { SearchResult, BoatOption, SelectedExtra, CateringOrder, DrinkOrder, Tra
 
 interface CharterState {
   // Search
+  isAdmin: boolean;
   searchDate: string;
   adults: number;
   extraAdults: number;
@@ -132,6 +133,7 @@ const defaultTransferOrder: TransferOrder = {
 
 export const useCharterStore = create<CharterState>((set, get) => ({
   // Search
+  isAdmin: false,
   searchDate: '',
   adults: 2,
   extraAdults: 0,

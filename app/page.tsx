@@ -308,38 +308,49 @@ export default function Home() {
     return () => unsub();
   }, []);
 
+  // Load user role once
+  useEffect(() => {
+    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
+    if (token) {
+      fetch('/api/auth/me', { headers: { 'x-session-token': token } })
+        .then(r => r.json())
+        .then(data => { if (data.user?.role === 'admin') storeSet({ isAdmin: true }); })
+        .catch(() => {});
+    }
+  }, []);
+
   // Sync local state → store for components that read from store
   useEffect(() => {
     storeSet({
       searchDate, results, loading, showAgentPrice, markupPercent, lang,
-      selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks, drinkOrders,
-      selectedExtras, cateringOrders,
-      selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-      transferPickup, transferDropoff, transferPrice, transferMarkup, transferDirection, useOwnTransfer, useOwnTransferVip, ownTransferPriceRoundTrip, ownTransferPriceOneWay, ownTransferVipPriceRoundTrip, ownTransferVipPriceOneWay, transferOptionsDB, customTransferPrice,
-      landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
-      defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
+      selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks,
+      
+      
+      transferPickup, transferDropoff, transferPrice, transferMarkup,
+      
+      
       extraAdults, children3to11, childrenUnder3, adults,
       customAdultPrice, customChildPrice, boatMarkup, fixedMarkup,
-      markupMode, customPrices, customNotes,
-      boatMenu, selectedDishes, cateringPartners, cateringMenu, partnerMenus, partnerMenuSets,
+      markupMode, customNotes,
+      boatMenu, cateringPartners, cateringMenu, partnerMenus, partnerMenuSets,
       watersportsPartners, watersportsCatalog,
-      expandedSections, boatPartners, allBoats, allRoutes,
+      boatPartners, allBoats, allRoutes,
       showBoatSuggestions, showDestinationSuggestions, boatNameSearch, destination,
       selectedPartnerFilter, boatType, timeSlot, season, sortBy, searchDate,
     });
   }, [searchDate, results, loading, showAgentPrice, markupPercent, lang,
-    selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks, drinkOrders,
-    selectedExtras, cateringOrders,
-    selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-    transferPickup, transferDropoff, transferPrice, transferMarkup, transferDirection, useOwnTransfer, useOwnTransferVip, ownTransferPriceRoundTrip, ownTransferPriceOneWay, ownTransferVipPriceRoundTrip, ownTransferVipPriceOneWay, transferOptionsDB, customTransferPrice,
-    landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
-    defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
+    selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks,
+    
+    
+    transferPickup, transferDropoff, transferPrice, transferMarkup,
+    
+    
     extraAdults, children3to11, childrenUnder3, adults,
     customAdultPrice, customChildPrice, boatMarkup, fixedMarkup,
-    markupMode, customPrices, customNotes,
-    boatMenu, selectedDishes, cateringPartners, cateringMenu, partnerMenus, partnerMenuSets,
+    markupMode, customNotes,
+    boatMenu, cateringPartners, cateringMenu, partnerMenus, partnerMenuSets,
     watersportsPartners, watersportsCatalog,
-    expandedSections, boatPartners, allBoats, allRoutes,
+    boatPartners, allBoats, allRoutes,
     showBoatSuggestions, showDestinationSuggestions, boatNameSearch, destination,
     selectedPartnerFilter, boatType, timeSlot, season, sortBy, searchDate, storeSet]);
 
@@ -631,16 +642,41 @@ export default function Home() {
   };
 
   // ==================== CALCULATIONS ====================
-  const calcTotals = () => calculateTotals({
-    selectedBoat, selectedExtras, cateringOrders, drinkOrders,
-    selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-    transferPickup, transferDropoff, transferPrice, transferMarkup, transferDirection, useOwnTransfer, useOwnTransferVip, ownTransferPriceRoundTrip, ownTransferPriceOneWay, ownTransferVipPriceRoundTrip, ownTransferVipPriceOneWay, transferOptionsDB, customTransferPrice,
-    landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
-    defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
-    extraAdults, children3to11, childrenUnder3, adults,
-    customAdultPrice, customChildPrice, boatMarkup, fixedMarkup,
-    markupMode, markupPercent, customPrices,
-  });
+  const calcTotals = () => {
+    const ss = useCharterStore.getState();
+    return calculateTotals({
+      selectedBoat: ss.selectedBoat || selectedBoat,
+      selectedExtras: ss.selectedExtras || [],
+      cateringOrders: ss.cateringOrders || [],
+      drinkOrders: ss.drinkOrders || [],
+      selectedToys: ss.selectedToys || [],
+      selectedServices: ss.selectedServices || [],
+      selectedFees: ss.selectedFees || [],
+      selectedPartnerWatersports: ss.selectedPartnerWatersports || [],
+      transferPickup: ss.transferPickup || transferPickup,
+      transferDropoff: ss.transferDropoff || transferDropoff,
+      transferPrice: ss.transferPrice ?? transferPrice,
+      transferMarkup: ss.transferMarkup ?? transferMarkup,
+      landingEnabled: ss.landingEnabled ?? landingEnabled,
+      landingFee: ss.landingFee ?? landingFee,
+      defaultParkFeeEnabled: ss.defaultParkFeeEnabled ?? defaultParkFeeEnabled,
+      defaultParkFee: ss.defaultParkFee ?? defaultParkFee,
+      defaultParkFeeAdults: ss.defaultParkFeeAdults ?? defaultParkFeeAdults,
+      defaultParkFeeChildren: ss.defaultParkFeeChildren ?? defaultParkFeeChildren,
+      corkageFee: ss.corkageFee ?? corkageFee,
+      extraAdults: ss.extraAdults ?? extraAdults,
+      children3to11: ss.children3to11 ?? children3to11,
+      childrenUnder3: ss.childrenUnder3 ?? childrenUnder3,
+      adults: ss.adults ?? adults,
+      customAdultPrice: ss.customAdultPrice ?? customAdultPrice,
+      customChildPrice: ss.customChildPrice ?? customChildPrice,
+      boatMarkup: ss.boatMarkup ?? boatMarkup,
+      fixedMarkup: ss.fixedMarkup ?? fixedMarkup,
+      markupMode: ss.markupMode || markupMode,
+      markupPercent: ss.markupPercent ?? markupPercent,
+      customPrices: ss.customPrices || {},
+    });
+  };
 
   const totals = calcTotals();
 
@@ -654,7 +690,7 @@ export default function Home() {
       selectedBoat: storeState.selectedBoat || selectedBoat,
       selectedExtras: storeState.selectedExtras || selectedExtras,
       cateringOrders: storeState.cateringOrders || cateringOrders,
-      drinkOrders: storeState.drinkOrders || drinkOrders,
+      drinkOrders: storeState.drinkOrders || [],
       selectedToys: storeState.selectedToys || selectedToys,
       selectedServices: storeState.selectedServices || selectedServices,
       selectedFees: storeState.selectedFees || selectedFees,
@@ -680,14 +716,13 @@ export default function Home() {
       fixedMarkup: storeState.fixedMarkup ?? fixedMarkup,
       markupMode: storeState.markupMode || markupMode,
       markupPercent: storeState.markupPercent ?? markupPercent,
-      customPrices: storeState.customPrices || customPrices,
-    });
+      customPrices: storeState.customPrices || {}});
     const pdfGuests = (storeState.adults ?? adults) + (storeState.extraAdults ?? extraAdults) + (storeState.children3to11 ?? children3to11) + (storeState.childrenUnder3 ?? childrenUnder3);
     const html = generatePDFContent({
       selectedBoat, totals: pdfTotals, boatOptions, selectedExtras: storeState.selectedExtras || selectedExtras, cateringOrders: storeState.cateringOrders || cateringOrders,
-      drinkOrders: storeState.drinkOrders || drinkOrders, boatDrinks, selectedToys: storeState.selectedToys || selectedToys, selectedServices: storeState.selectedServices || selectedServices, selectedFees: storeState.selectedFees || selectedFees,
+      drinkOrders: storeState.drinkOrders || boatDrinks, selectedToys: storeState.selectedToys || selectedToys, selectedServices: storeState.selectedServices || selectedServices, selectedFees: storeState.selectedFees || selectedFees,
       selectedPartnerWatersports: storeState.selectedPartnerWatersports || selectedPartnerWatersports, transferPickup: storeState.transferPickup || transferPickup, transferDirection, partnerMenus,
-      boatMenu, selectedDishes, customPrices: storeState.customPrices || customPrices, lang, markupMode: storeState.markupMode || markupMode, fixedMarkup: storeState.fixedMarkup ?? fixedMarkup,
+      boatMenu, customPrices: storeState.customPrices || lang, markupMode: storeState.markupMode || markupMode, fixedMarkup: storeState.fixedMarkup ?? fixedMarkup,
       boatMarkup: storeState.boatMarkup ?? boatMarkup, extraAdults: storeState.extraAdults ?? extraAdults, children3to11: storeState.children3to11 ?? children3to11, childrenUnder3: storeState.childrenUnder3 ?? childrenUnder3, adults: storeState.adults ?? adults, totalGuests: pdfGuests,
       customAdultPrice: storeState.customAdultPrice ?? customAdultPrice, customChildPrice: storeState.customChildPrice ?? customChildPrice, customNotes: storeState.customNotes || customNotes,
     });
@@ -705,7 +740,7 @@ export default function Home() {
       selectedBoat: ss.selectedBoat || selectedBoat,
       selectedExtras: ss.selectedExtras || selectedExtras,
       cateringOrders: ss.cateringOrders || cateringOrders,
-      drinkOrders: ss.drinkOrders || drinkOrders,
+      drinkOrders: ss.drinkOrders || [],
       selectedToys: ss.selectedToys || selectedToys,
       selectedServices: ss.selectedServices || selectedServices,
       selectedFees: ss.selectedFees || selectedFees,
@@ -731,13 +766,12 @@ export default function Home() {
       fixedMarkup: ss.fixedMarkup ?? fixedMarkup,
       markupMode: ss.markupMode || markupMode,
       markupPercent: ss.markupPercent ?? markupPercent,
-      customPrices: ss.customPrices || customPrices,
-    });
+      customPrices: ss.customPrices || {}});
     const waGuests = (ss.adults ?? adults) + (ss.extraAdults ?? extraAdults) + (ss.children3to11 ?? children3to11) + (ss.childrenUnder3 ?? childrenUnder3);
     const message = generateWhatsAppMessage({
-      selectedBoat, totals: waTotals, selectedExtras: ss.selectedExtras || selectedExtras, cateringOrders: ss.cateringOrders || cateringOrders, drinkOrders: ss.drinkOrders || drinkOrders,
+      selectedBoat, totals: waTotals, selectedExtras: ss.selectedExtras || selectedExtras, cateringOrders: ss.cateringOrders || cateringOrders, drinkOrders: ss.drinkOrders || [],
       selectedToys: ss.selectedToys || selectedToys, selectedServices: ss.selectedServices || selectedServices, selectedFees: ss.selectedFees || selectedFees, selectedPartnerWatersports: ss.selectedPartnerWatersports || selectedPartnerWatersports,
-      transferPickup: ss.transferPickup || transferPickup, transferDirection, boatMenu, selectedDishes, customPrices: ss.customPrices || customPrices,
+      transferPickup: ss.transferPickup || transferPickup, transferDirection, boatMenu, customPrices: ss.customPrices ||
       lang, markupMode: ss.markupMode || markupMode, fixedMarkup: ss.fixedMarkup ?? fixedMarkup, boatMarkup: ss.boatMarkup ?? boatMarkup, extraAdults: ss.extraAdults ?? extraAdults, children3to11: ss.children3to11 ?? children3to11,
       childrenUnder3: ss.childrenUnder3 ?? childrenUnder3, adults: ss.adults ?? adults, totalGuests: waGuests, customAdultPrice: ss.customAdultPrice ?? customAdultPrice, customChildPrice: ss.customChildPrice ?? customChildPrice, customNotes: ss.customNotes || customNotes,
     });
