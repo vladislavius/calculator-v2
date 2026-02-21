@@ -105,8 +105,11 @@ export async function POST(req: NextRequest) {
   try {
     const token = req.headers.get('x-session-token');
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const isCron = token === 'cron-internal' && (req.headers.get('authorization') === 'Bearer ' + (process.env.CRON_SECRET || ''));
+    if (!isCron) {
+      const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
+      if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const { partner_id, teamup_url } = await req.json();
     if (!partner_id || !teamup_url) {
