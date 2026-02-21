@@ -18,12 +18,12 @@ function getNextNDays(fromDate?: Date, n: number = 7): Date[] {
 }
 
 function isDateUnavailable(date: Date, unavailable: UnavailableDate[]): boolean {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalDateStr(date);
   return unavailable.some(u => dateStr >= u.date_from && dateStr <= u.date_to);
 }
 
 function getUnavailableTitle(date: Date, unavailable: UnavailableDate[]): string {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalDateStr(date);
   const found = unavailable.find(u => dateStr >= u.date_from && dateStr <= u.date_to);
   return found?.title || '';
 }
@@ -31,15 +31,22 @@ function getUnavailableTitle(date: Date, unavailable: UnavailableDate[]): string
 const DAY_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
+function toLocalDateStr(d: Date): string {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function todayLocal(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 export default function CalendarPage() {
   const [boats, setBoats] = useState<BoatAvailability[]>([]);
   const [loading, setLoading] = useState(true);
   const [weekStart, setWeekStart] = useState(() => {
-    const d = new Date();
-    const day = d.getDay(); // 0=Вс, 1=Пн...
-    const diff = day === 0 ? -6 : 1 - day; // сдвиг до понедельника
+    const d = todayLocal();
+    const wd = d.getDay();
+    const diff = wd === 0 ? -6 : 1 - wd;
     d.setDate(d.getDate() + diff);
-    d.setHours(0, 0, 0, 0);
     return d;
   });
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,14 +68,14 @@ export default function CalendarPage() {
         .order('name');
 
       // Загружаем все занятые даты
-      const today = new Date();
-      const monthLater = new Date(today);
+      const loadToday = new Date();
+      const monthLater = new Date(loadToday);
       monthLater.setMonth(monthLater.getMonth() + 3);
 
       const { data: unavailData } = await sb.from('boat_unavailable_dates')
         .select('boat_id, date_from, date_to, title, source')
-        .gte('date_to', today.toISOString().split('T')[0])
-        .lte('date_from', monthLater.toISOString().split('T')[0]);
+        .gte('date_to', toLocalDateStr(loadToday))
+        .lte('date_from', toLocalDateStr(monthLater));
 
       // Загружаем какие лодки имеют календарь
       const { data: calData } = await sb.from('boat_calendars')
@@ -112,12 +119,12 @@ export default function CalendarPage() {
   }
 
   function renderMonthCalendar(boat: BoatAvailability) {
+    const today = toLocalDateStr(new Date());
     const year = monthDate.getFullYear();
     const month = monthDate.getMonth();
     const daysInMonth = getDaysInMonth(year, month);
     const firstDayRaw = new Date(year, month, 1).getDay();
     const firstDay = firstDayRaw === 0 ? 6 : firstDayRaw - 1; // Пн=0, Вс=6
-    const today = new Date().toISOString().split('T')[0];
 
     const cells = [];
     // Пустые ячейки до первого дня
@@ -132,6 +139,8 @@ export default function CalendarPage() {
           <span style={{ fontWeight: 600, color: 'var(--os-text-1)' }}>{MONTH_NAMES[month]} {year}</span>
           <button onClick={() => { const d = new Date(monthDate); d.setMonth(d.getMonth()+1); setMonthDate(d); }}
             style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-1)', padding: '4px 12px', cursor: 'pointer' }}>›</button>
+          <button onClick={() => setMonthDate(new Date())}
+            style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-aqua)', padding: '4px 10px', cursor: 'pointer', fontSize: 11 }}>Сегодня</button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
           {DAY_NAMES.map(d => (
@@ -151,7 +160,15 @@ export default function CalendarPage() {
                   color: isPast ? 'var(--os-text-3)' : unavail ? '#f87171' : boat.has_calendar ? '#4ade80' : 'rgba(255,255,255,0.2)',
                   border: isToday ? '1px solid var(--os-aqua)' : '1px solid transparent',
                   fontWeight: isToday ? 700 : 400,
-                  cursor: 'default'
+                  cursor: isPast ? 'default' : 'pointer'
+                }}
+                onClick={() => {
+                  if (!isPast) {
+                    const clickedDate = new Date(year, month, day);
+                    clickedDate.setHours(0,0,0,0);
+                    setWeekStart(clickedDate);
+                    setViewMode('day');
+                  }
                 }}>
                 {day}
               </div>
@@ -194,7 +211,18 @@ export default function CalendarPage() {
               {(['day','week','month','quarter'] as const).map(mode => {
                 const labels = { day: '1 день', week: '7 дней', month: 'Месяц', quarter: '3 месяца' };
                 return (
-                  <button key={mode} onClick={() => setViewMode(mode)}
+                  <button key={mode} onClick={() => {
+                    setViewMode(mode);
+                    if (mode === 'day') {
+                      setWeekStart(todayLocal());
+                    } else if (mode === 'week') {
+                      const d = todayLocal();
+                      const wd = d.getDay();
+                      const diff = wd === 0 ? -6 : 1 - wd;
+                      d.setDate(d.getDate() + diff);
+                      setWeekStart(d);
+                    }
+                  }}
                     style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--os-border)', background: viewMode === mode ? 'var(--os-aqua)' : 'var(--os-surface)', color: viewMode === mode ? '#000' : 'var(--os-text-1)', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                     {labels[mode]}
                   </button>
@@ -203,25 +231,45 @@ export default function CalendarPage() {
             </div>
           </div>
 
+          {/* Навигация по дню */}
+          {viewMode === 'day' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <button onClick={() => { const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() - 1); setWeekStart(d); }}
+                style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-1)', padding: '4px 14px', cursor: 'pointer', fontSize: 16 }}>‹</button>
+              <span style={{ color: 'var(--os-text-2)', fontSize: 13, fontWeight: 600 }}>
+                {weekStart.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+              <button onClick={() => { const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 1); setWeekStart(d); }}
+                style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-1)', padding: '4px 14px', cursor: 'pointer', fontSize: 16 }}>›</button>
+              <button onClick={() => { setWeekStart(todayLocal()); }}
+                style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-aqua)', padding: '4px 10px', cursor: 'pointer', fontSize: 12 }}>Сегодня</button>
+              <input type="date" value={toLocalDateStr(weekStart)}
+                onChange={e => { const [y,m,dd] = e.target.value.split('-').map(Number); const d = new Date(y, m-1, dd); if (!isNaN(d.getTime())) setWeekStart(d); }}
+                style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid var(--os-border)', background: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: 12, colorScheme: 'dark' }} />
+            </div>
+          )}
+
           {/* Навигация по неделе */}
           {viewMode === 'week' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - viewDays); setWeekStart(d); }}
+              <button onClick={() => { const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() - viewDays); setWeekStart(d); }}
                 style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-1)', padding: '4px 14px', cursor: 'pointer', fontSize: 16 }}>‹</button>
               <span style={{ color: 'var(--os-text-2)', fontSize: 13 }}>
                 {days[0].toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} — {days[days.length-1].toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
-              <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + viewDays); setWeekStart(d); }}
+              <button onClick={() => { const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + viewDays); setWeekStart(d); }}
                 style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-text-1)', padding: '4px 14px', cursor: 'pointer', fontSize: 16 }}>›</button>
               <button onClick={() => {
-                  const d = new Date();
-                  const day = d.getDay();
-                  const diff = day === 0 ? -6 : 1 - day;
+                  const d = todayLocal();
+                  const wd = d.getDay();
+                  const diff = wd === 0 ? -6 : 1 - wd;
                   d.setDate(d.getDate() + diff);
-                  d.setHours(0,0,0,0);
                   setWeekStart(d);
                 }}
                 style={{ background: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 6, color: 'var(--os-aqua)', padding: '4px 10px', cursor: 'pointer', fontSize: 12 }}>Сегодня</button>
+              <input type="date" value={toLocalDateStr(weekStart)}
+                onChange={e => { const [y,m,dd] = e.target.value.split('-').map(Number); const d = new Date(y, m-1, dd); if (!isNaN(d.getTime())) setWeekStart(d); }}
+                style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid var(--os-border)', background: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: 12, colorScheme: 'dark' }} />
             </div>
           )}
 
