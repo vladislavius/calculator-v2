@@ -1,4 +1,5 @@
 'use client';
+import { useCharterStore } from '../store/useCharterStore';
 import { SearchResult, BoatOption, SelectedExtra, CateringOrder } from '../lib/types';
 import { t, Lang } from '../lib/i18n';
 
@@ -45,13 +46,34 @@ const priceInput = (color='var(--os-gold)'): React.CSSProperties => ({
   backgroundColor:'var(--os-card)', color, fontSize:12, fontWeight:700, outline:'none', flexShrink:0,
 });
 
-export default function FoodSection({
-  selectedBoat, boatMenu, boatOptions, cateringOrders, setCateringOrders,
-  cateringPartners, cateringMenu, partnerMenus, selectedExtras, toggleExtra,
-  expandedSections, toggleSection, customPrices, getPrice, setPrice,
-  addMenuItem, updateCateringPersons, adults, children3to11,
-  selectedDishes, setSelectedDishes, lang
-}: FoodSectionProps) {
+export default function FoodSection() {
+  const {
+    selectedBoat, boatMenu = [], boatOptions = [], cateringOrders = [], cateringPartners = [],
+    cateringMenu = [], partnerMenus = [], selectedExtras = [], expandedSections = {},
+    customPrices = {}, adults = 2, children3to11 = 0, selectedDishes = {},
+    lang = 'ru',
+    set, getPrice, setPrice, toggleSection,
+  } = useCharterStore();
+
+  const setCateringOrders = (v) => set({ cateringOrders: typeof v === 'function' ? v(cateringOrders) : v });
+  const setSelectedDishes = (v) => set({ selectedDishes: typeof v === 'function' ? v(selectedDishes) : v });
+
+  const toggleExtra = (id, name, price) => {
+    const exists = selectedExtras.find(e => e.id === id);
+    if (exists) set({ selectedExtras: selectedExtras.filter(e => e.id !== id) });
+    else set({ selectedExtras: [...selectedExtras, { id, name, price }] });
+  };
+
+  const addMenuItem = (partnerId, itemId, itemName, pricePerPerson) => {
+    const exists = cateringOrders.find(o => o.partner_id === partnerId && o.menu_item_id === itemId);
+    if (exists) return;
+    const persons = adults + children3to11;
+    setCateringOrders(prev => [...prev, { partner_id: partnerId, menu_item_id: itemId, menu_item_name: itemName, price_per_person: pricePerPerson, persons }]);
+  };
+
+  const updateCateringPersons = (idx, val) => {
+    setCateringOrders(prev => prev.map((o, i) => i === idx ? { ...o, persons: val } : o));
+  };
 
   const catLabels: Record<string,string> = { thai:'🇹🇭 Тайская', western:'🍝 Западная', vegetarian:'🥗 Вег.', kids:'👶 Детская', seafood:'🦐 Морепродукты', bbq:'🍖 BBQ', other:'🍽️ Другое' };
 

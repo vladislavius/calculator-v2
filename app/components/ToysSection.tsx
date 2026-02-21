@@ -1,4 +1,5 @@
 'use client';
+import { useCharterStore } from '../store/useCharterStore';
 
 import { BoatOption, SelectedExtra } from '../lib/types';
 
@@ -28,29 +29,31 @@ interface SelectedPartnerWatersport {
   days: number;
 }
 
-interface ToysSectionProps {
-  boatOptions: BoatOption[];
-  selectedExtras: SelectedExtra[];
-  toggleExtra: (opt: BoatOption) => void;
-  watersportsPartners: WatersportsPartner[];
-  watersportsCatalog: WatersportsCatalogItem[];
-  selectedPartnerWatersports: SelectedPartnerWatersport[];
-  setSelectedPartnerWatersports: (items: SelectedPartnerWatersport[]) => void;
-  removePartnerWatersport: (id: number) => void;
-  updatePartnerWatersport: (id: number, field: string, value: number) => void;
-  expandedSections: Record<string, boolean>;
-  toggleSection: (section: string) => void;
-  customPrices: Record<string, number>;
-  getPrice: (key: string, defaultPrice: number) => number;
-  setPrice: (key: string, value: number) => void;
-}
 
-export default function ToysSection({
-  boatOptions, selectedExtras, toggleExtra,
-  watersportsPartners, watersportsCatalog, selectedPartnerWatersports,
-  setSelectedPartnerWatersports, removePartnerWatersport, updatePartnerWatersport,
-  expandedSections, toggleSection, customPrices, getPrice, setPrice
-}: ToysSectionProps) {
+export default function ToysSection() {
+  const {
+    boatOptions = [], selectedExtras = [],
+    watersportsPartners = [], watersportsCatalog = [],
+    selectedPartnerWatersports = [], expandedSections = {},
+    customPrices = {},
+    set, getPrice, setPrice, toggleSection,
+  } = useCharterStore();
+
+  const toggleExtra = (opt) => {
+    const exists = selectedExtras.find(e => e.id === opt.id);
+    if (exists) set({ selectedExtras: selectedExtras.filter(e => e.id !== opt.id) });
+    else set({ selectedExtras: [...selectedExtras, { id: opt.id, name: opt.name_en || opt.name, price: opt.price || 0 }] });
+  };
+
+  const setSelectedPartnerWatersports = (v) => set({ selectedPartnerWatersports: typeof v === 'function' ? v(selectedPartnerWatersports) : v });
+
+  const removePartnerWatersport = (id) => {
+    set({ selectedPartnerWatersports: selectedPartnerWatersports.filter(w => w.id !== id) });
+  };
+
+  const updatePartnerWatersport = (id, field, value) => {
+    set({ selectedPartnerWatersports: selectedPartnerWatersports.map(w => w.id === id ? {...w, [field]: value} : w) });
+  };
   return (
     <div id="toys" className="os-section">
       <h3 style={{ margin: '0 0 16px', fontSize: '15px', fontWeight: '700', color: 'var(--os-aqua)' }}>🎿 ВОДНЫЕ РАЗВЛЕЧЕНИЯ</h3>

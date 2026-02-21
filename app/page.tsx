@@ -294,6 +294,20 @@ export default function Home() {
     tomorrow.setDate(tomorrow.getDate() + 1);
     setSearchDate(tomorrow.toISOString().split('T')[0]);
   }, []);
+  // Reverse sync: store → local for FeesSection (reads/writes store directly)
+  useEffect(() => {
+    const unsub = useCharterStore.subscribe((state) => {
+      setSelectedFees(state.selectedFees || []);
+      setLandingEnabled(state.landingEnabled ?? false);
+      setLandingFee(state.landingFee ?? 0);
+      setDefaultParkFeeEnabled(state.defaultParkFeeEnabled ?? false);
+      setDefaultParkFee(state.defaultParkFee ?? 0);
+      setDefaultParkFeeAdults(state.defaultParkFeeAdults ?? 0);
+      setDefaultParkFeeChildren(state.defaultParkFeeChildren ?? 0);
+    });
+    return () => unsub();
+  }, []);
+
   // Sync local state → store for components that read from store
   useEffect(() => {
     storeSet({
@@ -301,23 +315,33 @@ export default function Home() {
       selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks, drinkOrders,
       selectedExtras, cateringOrders,
       selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-      transferPickup, transferDropoff, transferPrice, transferMarkup,
+      transferPickup, transferDropoff, transferPrice, transferMarkup, transferDirection, useOwnTransfer, useOwnTransferVip, ownTransferPriceRoundTrip, ownTransferPriceOneWay, ownTransferVipPriceRoundTrip, ownTransferVipPriceOneWay, transferOptionsDB, customTransferPrice,
       landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
       defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
       extraAdults, children3to11, childrenUnder3, adults,
       customAdultPrice, customChildPrice, boatMarkup, fixedMarkup,
       markupMode, customPrices, customNotes,
+      boatMenu, selectedDishes, cateringPartners, cateringMenu, partnerMenus, partnerMenuSets,
+      watersportsPartners, watersportsCatalog,
+      expandedSections, boatPartners, allBoats, allRoutes,
+      showBoatSuggestions, showDestinationSuggestions, boatNameSearch, destination,
+      selectedPartnerFilter, boatType, timeSlot, season, sortBy, searchDate,
     });
   }, [searchDate, results, loading, showAgentPrice, markupPercent, lang,
     selectedBoat, boatOptions, loadingOptions, routeFees, staffServices, boatDrinks, drinkOrders,
     selectedExtras, cateringOrders,
     selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-    transferPickup, transferDropoff, transferPrice, transferMarkup,
+    transferPickup, transferDropoff, transferPrice, transferMarkup, transferDirection, useOwnTransfer, useOwnTransferVip, ownTransferPriceRoundTrip, ownTransferPriceOneWay, ownTransferVipPriceRoundTrip, ownTransferVipPriceOneWay, transferOptionsDB, customTransferPrice,
     landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
     defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
     extraAdults, children3to11, childrenUnder3, adults,
     customAdultPrice, customChildPrice, boatMarkup, fixedMarkup,
-    markupMode, customPrices, customNotes, storeSet]);
+    markupMode, customPrices, customNotes,
+    boatMenu, selectedDishes, cateringPartners, cateringMenu, partnerMenus, partnerMenuSets,
+    watersportsPartners, watersportsCatalog,
+    expandedSections, boatPartners, allBoats, allRoutes,
+    showBoatSuggestions, showDestinationSuggestions, boatNameSearch, destination,
+    selectedPartnerFilter, boatType, timeSlot, season, sortBy, searchDate, storeSet]);
 
   useEffect(() => {
     const loadPartnersData = async () => {
@@ -610,7 +634,7 @@ export default function Home() {
   const calcTotals = () => calculateTotals({
     selectedBoat, selectedExtras, cateringOrders, drinkOrders,
     selectedToys, selectedServices, selectedFees, selectedPartnerWatersports,
-    transferPickup, transferDropoff, transferPrice, transferMarkup,
+    transferPickup, transferDropoff, transferPrice, transferMarkup, transferDirection, useOwnTransfer, useOwnTransferVip, ownTransferPriceRoundTrip, ownTransferPriceOneWay, ownTransferVipPriceRoundTrip, ownTransferVipPriceOneWay, transferOptionsDB, customTransferPrice,
     landingEnabled, landingFee, defaultParkFeeEnabled, defaultParkFee,
     defaultParkFeeAdults, defaultParkFeeChildren, corkageFee,
     extraAdults, children3to11, childrenUnder3, adults,
@@ -896,37 +920,7 @@ export default function Home() {
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '8px' : '24px' }}>
         {/* Search Panel — sticky */}
         <div style={{ position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', background: 'rgba(12,24,37,0.92)', marginLeft: isMobile ? -8 : -24, marginRight: isMobile ? -8 : -24, paddingLeft: isMobile ? 8 : 24, paddingRight: isMobile ? 8 : 24, paddingTop: 8, paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <SearchPanel
-          searchDate={searchDate}
-          setSearchDate={setSearchDate}
-          destination={destination}
-          setDestination={setDestination}
-          showDestinationSuggestions={showDestinationSuggestions}
-          setShowDestinationSuggestions={setShowDestinationSuggestions}
-          allRoutes={allRoutes}
-          allBoats={allBoats}
-          boatPartners={boatPartners}
-          selectedPartnerFilter={selectedPartnerFilter}
-          setSelectedPartnerFilter={setSelectedPartnerFilter}
-          boatNameSearch={boatNameSearch}
-          setBoatNameSearch={setBoatNameSearch}
-          showBoatSuggestions={showBoatSuggestions}
-          setShowBoatSuggestions={setShowBoatSuggestions}
-          timeSlot={timeSlot}
-          setTimeSlot={setTimeSlot}
-          boatType={boatType}
-          setBoatType={setBoatType}
-          season={season}
-          setSeason={setSeason}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          adults={adults}
-          setAdults={setAdults}
-          showAgentPrice={showAgentPrice}
-          markupPercent={markupPercent}
-          handleSearch={handleSearch}
-          loading={loading}
-        />
+        <SearchPanel handleSearch={handleSearch} />
         </div>
 
         <SearchResults onSelectBoat={openBoatDetails} />
@@ -943,98 +937,18 @@ export default function Home() {
               <div className="os-modal-content">
               <IncludedSection />
 
-              <FoodSection
-                selectedBoat={selectedBoat}
-                boatMenu={boatMenu}
-                boatOptions={boatOptions}
-                cateringOrders={cateringOrders}
-                setCateringOrders={setCateringOrders}
-                cateringPartners={cateringPartners}
-                cateringMenu={cateringMenu}
-                partnerMenus={partnerMenus}
-                selectedExtras={selectedExtras}
-                toggleExtra={toggleExtra}
-                expandedSections={expandedSections}
-                toggleSection={toggleSection}
-                customPrices={customPrices}
-                getPrice={getPrice}
-                setPrice={setPrice}
-                addMenuItem={addMenuItem}
-                updateCateringPersons={updateCateringPersons}
-                adults={adults}
-                children3to11={children3to11}
-                selectedDishes={selectedDishes}
-                setSelectedDishes={setSelectedDishes}
-                lang={lang}
-              />
+              <FoodSection />
 
-              <DrinksSection addDrink={addDrink} removeDrink={removeDrink} />
+              <DrinksSection />
 
-              <FeesSection
-                routeName={selectedBoat?.route_name || ''}
-                routeFees={routeFees}
-                selectedFees={selectedFees}
-                toggleFee={toggleFee}
-                setSelectedFees={setSelectedFees}
-                landingEnabled={landingEnabled}
-                setLandingEnabled={setLandingEnabled}
-                landingFee={landingFee}
-                setLandingFee={setLandingFee}
-                defaultParkFeeEnabled={defaultParkFeeEnabled}
-                setDefaultParkFeeEnabled={setDefaultParkFeeEnabled}
-                defaultParkFee={defaultParkFee}
-                setDefaultParkFee={setDefaultParkFee}
-                defaultParkFeeAdults={defaultParkFeeAdults}
-                setDefaultParkFeeAdults={setDefaultParkFeeAdults}
-                defaultParkFeeChildren={defaultParkFeeChildren}
-                setDefaultParkFeeChildren={setDefaultParkFeeChildren}
-                getPrice={getPrice}
-                setPrice={setPrice}
-              />
+              <FeesSection />
 
-              <ToysSection
-                boatOptions={boatOptions}
-                selectedExtras={selectedExtras}
-                toggleExtra={toggleExtra}
-                watersportsPartners={watersportsPartners}
-                watersportsCatalog={watersportsCatalog}
-                selectedPartnerWatersports={selectedPartnerWatersports}
-                setSelectedPartnerWatersports={setSelectedPartnerWatersports}
-                removePartnerWatersport={removePartnerWatersport}
-                updatePartnerWatersport={updatePartnerWatersport}
-                expandedSections={expandedSections}
-                toggleSection={toggleSection}
-                customPrices={customPrices}
-                getPrice={getPrice}
-                setPrice={setPrice}
-              />
+              <ToysSection />
 
               {/* ==================== STAFF SERVICES SECTION ==================== */}
-              <ServicesSection toggleService={toggleService} />
+              <ServicesSection />
 
-              <TransferSection
-                transferDirection={transferDirection}
-                setTransferDirection={setTransferDirection}
-                transferPickup={transferPickup}
-                setTransferPickup={setTransferPickup}
-                useOwnTransfer={useOwnTransfer}
-                setUseOwnTransfer={setUseOwnTransfer}
-                useOwnTransferVip={useOwnTransferVip}
-                setUseOwnTransferVip={setUseOwnTransferVip}
-                ownTransferPriceRoundTrip={ownTransferPriceRoundTrip}
-                setOwnTransferPriceRoundTrip={setOwnTransferPriceRoundTrip}
-                ownTransferPriceOneWay={ownTransferPriceOneWay}
-                setOwnTransferPriceOneWay={setOwnTransferPriceOneWay}
-                ownTransferVipPriceRoundTrip={ownTransferVipPriceRoundTrip}
-                setOwnTransferVipPriceRoundTrip={setOwnTransferVipPriceRoundTrip}
-                ownTransferVipPriceOneWay={ownTransferVipPriceOneWay}
-                setOwnTransferVipPriceOneWay={setOwnTransferVipPriceOneWay}
-                transferOptionsDB={transferOptionsDB}
-                customTransferPrice={customTransferPrice}
-                setCustomTransferPrice={setCustomTransferPrice}
-                customPrices={customPrices}
-                setPrice={setPrice}
-              />
+              <TransferSection />
 
               <SummarySection generatePDF={generatePDF} generateWhatsApp={generateWhatsApp} />
 

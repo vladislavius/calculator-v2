@@ -1,18 +1,8 @@
 'use client';
+import { useCharterStore } from '../store/useCharterStore';
 
 interface RouteFee { id:number; name_en:string; name_ru?:string; price_per_person:number; mandatory:boolean; }
 interface SelectedFee { id:number; name:string; pricePerPerson:number; adults:number; children:number; }
-interface FeesSectionProps {
-  routeName:string; routeFees:RouteFee[]; selectedFees:SelectedFee[];
-  toggleFee:(f:RouteFee)=>void; setSelectedFees:(f:SelectedFee[])=>void;
-  landingEnabled:boolean; setLandingEnabled:(v:boolean)=>void;
-  landingFee:number; setLandingFee:(v:number)=>void;
-  defaultParkFeeEnabled:boolean; setDefaultParkFeeEnabled:(v:boolean)=>void;
-  defaultParkFee:number; setDefaultParkFee:(v:number)=>void;
-  defaultParkFeeAdults:number; setDefaultParkFeeAdults:(v:number)=>void;
-  defaultParkFeeChildren:number; setDefaultParkFeeChildren:(v:number)=>void;
-  getPrice:(k:string,d:number)=>number; setPrice:(k:string,v:number)=>void;
-}
 
 const feeRow: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 10,
@@ -41,13 +31,33 @@ const counterBtn: React.CSSProperties = {
   cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 };
 
-export default function FeesSection({
-  routeName, routeFees, selectedFees, toggleFee, setSelectedFees,
-  landingEnabled, setLandingEnabled, landingFee, setLandingFee,
-  defaultParkFeeEnabled, setDefaultParkFeeEnabled, defaultParkFee, setDefaultParkFee,
-  defaultParkFeeAdults, setDefaultParkFeeAdults, defaultParkFeeChildren, setDefaultParkFeeChildren,
-  getPrice, setPrice,
-}: FeesSectionProps) {
+export default function FeesSection() {
+  const {
+    selectedBoat, routeFees = [], selectedFees = [],
+    landingEnabled = false, landingFee = 0,
+    defaultParkFeeEnabled = false, defaultParkFee = 0,
+    defaultParkFeeAdults = 0, defaultParkFeeChildren = 0,
+    set, getPrice, setPrice,
+  } = useCharterStore();
+
+  const routeName = selectedBoat?.route_name || '';
+
+  const setLandingEnabled = (v) => set({ landingEnabled: v });
+  const setLandingFee = (v) => set({ landingFee: v });
+  const setDefaultParkFeeEnabled = (v) => set({ defaultParkFeeEnabled: v });
+  const setDefaultParkFee = (v) => set({ defaultParkFee: v });
+  const setDefaultParkFeeAdults = (v) => set({ defaultParkFeeAdults: v });
+  const setDefaultParkFeeChildren = (v) => set({ defaultParkFeeChildren: v });
+  const setSelectedFees = (v) => set({ selectedFees: v });
+
+  const toggleFee = (fee) => {
+    const exists = selectedFees.find(f => f.id === fee.id);
+    if (exists) {
+      set({ selectedFees: selectedFees.filter(f => f.id !== fee.id) });
+    } else {
+      set({ selectedFees: [...selectedFees, { id: fee.id, name: fee.name_en, pricePerPerson: fee.price_per_person, adults: defaultParkFeeAdults, children: defaultParkFeeChildren }] });
+    }
+  };
   return (
     <div className="os-section" id="fees">
       <div className="os-section__title" style={{ color: 'var(--os-red)', marginBottom: 12 }}>🏝️ ПАРКОВЫЕ СБОРЫ И ВЫСАДКА</div>
@@ -121,6 +131,28 @@ export default function FeesSection({
                   {fee.price_per_person.toLocaleString()}
                 </span>
                 <span style={unitLabel}>THB/чел</span>
+                {/* Счётчики людей для выбранного сбора */}
+                {sel && (
+                  <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(239,68,68,0.15)' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 11, color: 'var(--os-text-3)', width: 30 }}>Взр:</span>
+                      <button style={counterBtn} onClick={() => { const updated = selectedFees.map(f => f.id === fee.id ? {...f, adults: Math.max(0, (f.adults||0)-1)} : f); set({ selectedFees: updated }); }}>−</button>
+                      <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13, fontWeight: 700 }}>{sel.adults||0}</span>
+                      <button style={counterBtn} onClick={() => { const updated = selectedFees.map(f => f.id === fee.id ? {...f, adults: (f.adults||0)+1} : f); set({ selectedFees: updated }); }}>+</button>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 11, color: 'var(--os-text-3)', width: 30 }}>Дет:</span>
+                      <button style={counterBtn} onClick={() => { const updated = selectedFees.map(f => f.id === fee.id ? {...f, children: Math.max(0, (f.children||0)-1)} : f); set({ selectedFees: updated }); }}>−</button>
+                      <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13, fontWeight: 700 }}>{sel.children||0}</span>
+                      <button style={counterBtn} onClick={() => { const updated = selectedFees.map(f => f.id === fee.id ? {...f, children: (f.children||0)+1} : f); set({ selectedFees: updated }); }}>+</button>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <span style={{ fontWeight: 800, color: 'var(--os-red)', fontSize: 13 }}>
+                        = {(fee.price_per_person * ((sel.adults||0) + (sel.children||0))).toLocaleString()} THB
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

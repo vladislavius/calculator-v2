@@ -21,7 +21,17 @@ const CAT: Record<string, { icon: string; color: string; label: string }> = {
   other:         { icon: '📦', color: 'var(--os-text-2)', label: 'Прочее' },
 };
 
-export default function ServicesSection({ toggleService }: { toggleService: (s: StaffService) => void }) {
+export default function ServicesSection() {
+  const set = useCharterStore(s => s.set);
+
+  const toggleService = (service) => {
+    const exists = selectedServices.find(s => s.id === service.id);
+    if (exists) {
+      set({ selectedServices: selectedServices.filter(s => s.id !== service.id) });
+    } else {
+      set({ selectedServices: [...selectedServices, { id: service.id, name: service.name_en, nameRu: service.name_ru, price: service.price || 0 }] });
+    }
+  };
   const staffServices    = useCharterStore(s => s.staffServices);
   const selectedServices = useCharterStore(s => s.selectedServices);
   const getPrice         = useCharterStore(s => s.getPrice);
