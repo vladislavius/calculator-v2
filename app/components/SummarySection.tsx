@@ -80,9 +80,22 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
       if (data.id) {
         const url = `${window.location.origin}/offer/${data.id}`;
         setOfferUrl(url);
-        await navigator.clipboard.writeText(url);
-        setOfferCopied(true);
+        try {
+          await navigator.clipboard.writeText(url);
+          setOfferCopied(true);
+        } catch {
+          // Fallback for mobile: use share API or manual copy
+          if (navigator.share) {
+            try { await navigator.share({ title: 'OnlySea Offer', url }); setOfferCopied(true); } catch {}
+          } else {
+            // Fallback: prompt user
+            window.prompt('Скопируйте ссылку:', url);
+            setOfferCopied(true);
+          }
+        }
         setTimeout(() => setOfferCopied(false), 3000);
+      } else {
+        console.error('Offer API error:', data);
       }
     } catch(e) {
       console.error('Ошибка создания предложения:', e);
@@ -199,7 +212,7 @@ export default function SummarySection({ generatePDF, generateWhatsApp }: { gene
           <div style={{ width: '100%', marginTop: 8, padding: '8px 12px', borderRadius: 6,
             backgroundColor: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)',
             fontSize: 11, color: '#a78bfa', wordBreak: 'break-all', cursor: 'pointer' }}
-            onClick={() => { navigator.clipboard.writeText(offerUrl); setOfferCopied(true); setTimeout(()=>setOfferCopied(false),2000); }}>
+            onClick={async () => { try { await navigator.clipboard.writeText(offerUrl); } catch { if (navigator.share) { try { await navigator.share({ url: offerUrl }); } catch {} } else { window.prompt('Скопируйте ссылку:', offerUrl); } } setOfferCopied(true); setTimeout(()=>setOfferCopied(false),2000); }}>
             🔗 {offerUrl}
           </div>
         )}
