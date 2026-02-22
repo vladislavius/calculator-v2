@@ -324,11 +324,11 @@ function MenuTab({ boatId, partnerId, boatMenus, setBoatMenus, menuText, setMenu
               /* Read-only view */
               mData.menu_type === 'sets' && sets.length > 0 ? (
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  {sets.map((setName: string) => {
-                    const setItems = items.filter((i: any) => i.set_name === setName);
+                  {sets.map((setName: unknown) => {
+                    const setItems = items.filter((i: any) => i.set_name === String(setName));
                     return (
-                      <div key={setName} style={{ flex: '1 1 180px', padding: 8, borderRadius: 6, backgroundColor: 'var(--os-card)', border: '1px solid rgba(139,92,246,0.15)' }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa', marginBottom: 4 }}>{setName} {setItems[0]?.set_name_ru && <span style={{fontWeight:400,color:'var(--os-text-3)'}}>({setItems[0].set_name_ru})</span>}</div>
+                      <div key={String(setName)} style={{ flex: '1 1 180px', padding: 8, borderRadius: 6, backgroundColor: 'var(--os-card)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa', marginBottom: 4 }}>{String(setName)} {setItems[0]?.set_name_ru && <span style={{fontWeight:400,color:'var(--os-text-3)'}}>({setItems[0].set_name_ru})</span>}</div>
                         {setItems.map((item: any, i: number) => (
                           <div key={i} style={{ fontSize: 11, color: 'var(--os-text-2)', padding: '1px 0' }}>
                             {item.name_en} {item.name_ru && <span style={{ color: 'var(--os-text-3)' }}>({item.name_ru})</span>}

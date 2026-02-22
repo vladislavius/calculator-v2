@@ -31,7 +31,7 @@ export default function BoatMenuImportPage() {
   const [partners, setPartners] = useState<any[]>([]);
   const [boats, setBoats] = useState<any[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
-  const [selectedBoatIdss, setSelectedBoatIdss] = useState<number[]>([]);
+  const [selectedBoatIds, setSelectedBoatIds] = useState<number[]>([]);
   const [menuText, setMenuText] = useState('');
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -64,7 +64,7 @@ export default function BoatMenuImportPage() {
   const loadBoats = async (partnerId: number) => {
     const { data } = await supabase.from('boats').select('id, name').eq('partner_id', partnerId).eq('active', true).order('name');
     setBoats(data || []);
-    setSelectedBoatIds(null);
+    setSelectedBoatIds([]);
   };
 
   const loadExistingMenus = async () => {
