@@ -109,10 +109,15 @@ export default function FoodSection() {
                 </div>
                 <span style={{flex:1,fontSize:13,fontWeight:600,color:isSelected?'var(--os-text-1)':'var(--os-text-2)',minWidth:'150px'}}>{set.name_en}{set.name_ru&&<span className="os-hide-mobile" style={{fontWeight:400,color:'var(--os-text-3)',fontSize:12}}> ({set.name_ru})</span>}</span>
                 <span style={{fontSize:10,padding:'1px 6px',borderRadius:3,backgroundColor:'rgba(34,197,94,0.15)',color:'var(--os-green)',fontWeight:600,flexShrink:0}}>{catLabels[set.category||'other']||set.category}</span>
+                {set.dishes_ru && set.dishes_ru.length > 0 && (
+                  <div style={{width:'100%',fontSize:11,color:'var(--os-text-3)',marginTop:4,lineHeight:'1.5'}}>
+                    {set.dishes_ru.join(' · ')}
+                  </div>
+                )}
                 {isSelected&&order&&(
                   <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
-                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons-1)}>−</button>
-                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700,color:'var(--os-green)'}}>{order.persons}чел</span>
+                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,Math.max(1,order.persons-1))}>−</button>
+                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700,color:'var(--os-green)'}}>{order.persons} шт</span>
                     <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons+1)}>+</button>
                   </div>
                 )}
@@ -129,20 +134,24 @@ export default function FoodSection() {
           <div style={{fontSize:11,fontWeight:700,color:'var(--os-gold)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8}}>🍽️ Меню с яхты:</div>
           <div style={rowGrid}>
           {boatMenu.filter(m=>!m.included).map(item=>{
-            const isAdded = cateringOrders.some(c=>c.packageId==='menu_'+String(item.id));
-            const orderIndex = cateringOrders.findIndex(c=>c.packageId==='menu_'+String(item.id));
+            const isAdded = cateringOrders.some(c=>c.packageId===String(item.id));
+            const orderIndex = cateringOrders.findIndex(c=>c.packageId===String(item.id));
             const order = orderIndex>=0 ? cateringOrders[orderIndex] : null;
             return (
               <div key={item.id} style={row(isAdded,'var(--os-gold)')}
-                onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!=='menu_'+String(item.id)));} else{addMenuItem(0, item.id, item.name_en || item.name_ru || '', item.price || 0);} }}>
+                onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!==String(item.id)));} else{addMenuItem(0, item.id, item.name_en || item.name_ru || '', item.price || 0);} }}>
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>
-                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)',minWidth:'150px'}}>{item.name_en}{item.name_ru&&<span className="os-hide-mobile" style={{color:'var(--os-text-3)',fontSize:12}}> ({item.name_ru})</span>}</span>
+                <span style={{flex:1,fontSize:13,fontWeight:500,color:'var(--os-text-1)',minWidth:'150px'}}>{item.name_en}{item.name_ru&&<span className="os-hide-mobile" style={{color:'var(--os-text-3)',fontSize:12}}> ({item.name_ru})</span>}
+                  {item.dishes_ru && item.dishes_ru.length > 0 && (
+                    <div style={{fontSize:11,color:'var(--os-text-3)',marginTop:2,lineHeight:'1.4'}}>{item.dishes_ru.join(' · ')}</div>
+                  )}
+                </span>
                 {isAdded&&order&&(
                   <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
-                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons-1)}>−</button>
-                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700}}>{order.persons}чел</span>
+                    <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,Math.max(1,order.persons-1))}>−</button>
+                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700}}>{order.persons} {item.price_unit==='person'?'чел':'шт'}</span>
                     <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons+1)}>+</button>
                   </div>
                 )}

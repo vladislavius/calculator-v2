@@ -159,7 +159,7 @@ export default function ImportPage() {
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [saveStatus, setSaveStatus] = useState('');
   const [activeTab, setActiveTab] = useState<'partner' | 'boats' | 'routes' | 'extras' | 'terms'>('partner');
-  const [importMode, setImportMode] = useState<'full' | 'single_boat' | null>(null);
+  const [importMode, setImportMode] = useState<'full' | 'single_boat' | 'menu' | null>(null);
   const [importHistory, setImportHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
       
@@ -186,6 +186,12 @@ export default function ImportPage() {
   const [existingPartnersList, setExistingPartnersList] = useState<any[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
   const [selectedPartnerName, setSelectedPartnerName] = useState<string>('');
+  const [menuText, setMenuText] = useState("");
+  const [parsingMenu, setParsingMenu] = useState(false);
+  const [parsedBoatMenu, setParsedBoatMenu] = useState<any>(null);
+  const [menuBoatIds, setMenuBoatIds] = useState<number[]>([]);
+  const [menuPartnerBoats, setMenuPartnerBoats] = useState<any[]>([]);
+  const [savingMenu, setSavingMenu] = useState(false);
 
   // Fetch existing partners on mount
   const fetchExistingPartners = async () => {
@@ -1500,9 +1506,25 @@ export default function ImportPage() {
                     <h3 style={{fontSize: '14px', fontWeight: '700', marginBottom: '8px', color: 'var(--os-text-1)'}}>Одна лодка</h3>
                     <p className="os-hide-mobile" style={{color: 'var(--os-text-3)', fontSize: '14px'}}>Добавить лодку к существующему партнёру (PDF одной лодки)</p>
                   </div>
+                  
+                  {/* Menu Import Mode */}
+                  <div 
+                    onClick={() => { setImportMode('menu'); fetchExistingPartners(); }}
+                    style={{
+                      border: '2px solid var(--os-border)', borderRadius: '12px', padding: '24px',
+                      cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
+                      backgroundColor: 'var(--os-surface)'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.backgroundColor = 'rgba(245,158,11,0.08)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--os-border)'; e.currentTarget.style.backgroundColor = 'var(--os-surface)'; }}
+                  >
+                    <div style={{fontSize: '48px', marginBottom: '16px'}}>🍽️</div>
+                    <h3 style={{fontSize: '14px', fontWeight: '700', marginBottom: '8px', color: 'var(--os-text-1)'}}>Меню лодки</h3>
+                    <p className="os-hide-mobile" style={{color: 'var(--os-text-3)', fontSize: '14px'}}>Парсинг меню (сеты или а ля карт) для лодок партнёра</p>
+                  </div>
                 </div>
               </div>
-            ) : (importMode === 'full' || importMode === 'single_boat') && !selectedPartnerId ? (
+            ) : (importMode === 'full' || importMode === 'single_boat' || importMode === 'menu') && !selectedPartnerId ? (
               <div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px'}}>
                   <button onClick={() => setImportMode(null)} style={{padding: '8px 16px', backgroundColor: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: '6px', cursor: 'pointer'}}>← Назад</button>
@@ -1514,7 +1536,7 @@ export default function ImportPage() {
                   {existingPartnersList.map(p => (
                     <div 
                       key={p.id}
-                      onClick={() => { setSelectedPartnerId(p.id); setSelectedPartnerName(p.name); }}
+                      onClick={() => { setSelectedPartnerId(p.id); setSelectedPartnerName(p.name); if(importMode==='menu'){supabase.from('boats').select('id,name').eq('partner_id',p.id).eq('active',true).order('name').then(r=>setMenuPartnerBoats(r.data||[]));} }}
                       style={{
                         border: '2px solid #e5e7eb', borderRadius: '12px', padding: '16px',
                         cursor: 'pointer', transition: 'all 0.2s'
@@ -1542,6 +1564,168 @@ export default function ImportPage() {
                     >
                       🤖 Пропустить — AI определит партнёра из контракта
                     </button>
+                  </div>
+                )}
+              </div>
+            ) : importMode === 'menu' && selectedPartnerId ? (
+              <div>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+                  <button onClick={() => { setImportMode(null); setSelectedPartnerId(null); }} style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',border:'1px solid var(--os-border)',borderRadius:'6px',cursor:'pointer',color:'var(--os-text-1)',fontSize:13}}>← Назад</button>
+                  <span style={{fontSize:14,fontWeight:600,color:'var(--os-text-1)'}}>🍽️ Импорт меню для: {selectedPartnerName}</span>
+                </div>
+
+                {/* Boat selection */}
+                <div style={{marginBottom:16,border:'1px solid var(--os-border)',borderRadius:8,padding:12,backgroundColor:'var(--os-surface)'}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'var(--os-text-2)',marginBottom:8}}>Выберите лодки:</div>
+                  <div style={{maxHeight:150,overflowY:'auto'}}>
+                    <label style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,cursor:'pointer',fontSize:13,fontWeight:600,color:'var(--os-aqua)'}}>
+                      <input type="checkbox" checked={menuBoatIds.length === menuPartnerBoats.length && menuPartnerBoats.length > 0}
+                        onChange={e => setMenuBoatIds(e.target.checked ? menuPartnerBoats.map((b:any) => b.id) : [])} /> Все лодки ({menuPartnerBoats.length})
+                    </label>
+                    {menuPartnerBoats.map((b:any) => (
+                      <label key={b.id} style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,cursor:'pointer',fontSize:13,color:'var(--os-text-1)'}}>
+                        <input type="checkbox" checked={menuBoatIds.includes(b.id)}
+                          onChange={e => setMenuBoatIds(e.target.checked ? [...menuBoatIds, b.id] : menuBoatIds.filter(id => id !== b.id))} /> {b.name}
+                      </label>
+                    ))}
+                    {menuPartnerBoats.length === 0 && <span style={{fontSize:12,color:'var(--os-text-3)'}}>У партнёра нет лодок</span>}
+                  </div>
+                </div>
+
+                {/* Text input */}
+                <div style={{marginBottom:16}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'var(--os-text-2)',marginBottom:6}}>Текст меню:</div>
+                  <textarea value={menuText} onChange={e => setMenuText(e.target.value)}
+                    placeholder="Вставьте текст меню...&#10;&#10;Примеры:&#10;SET 1: Tom Yum, Fried Chicken...&#10;Shrimp - 850 baht/kg&#10;Chicken BBQ - 35 baht/piece"
+                    style={{width:'100%',height:180,padding:12,border:'1px solid var(--os-border)',borderRadius:8,backgroundColor:'var(--os-surface)',color:'var(--os-text-1)',fontSize:13,resize:'vertical',fontFamily:'inherit'}} />
+                  <button onClick={async () => {
+                    if (!menuText.trim()) return;
+                    setParsingMenu(true); setSaveStatus('');
+                    try {
+                      const res = await fetch('/api/parse-boat-menu', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:menuText}) });
+                      const result = await res.json();
+                      if (result.success) { setParsedBoatMenu(result.data); setSaveStatus('✅ Меню распознано!'); }
+                      else { setSaveStatus('❌ ' + result.error); }
+                    } catch(e:any) { setSaveStatus('❌ ' + e.message); }
+                    setParsingMenu(false);
+                  }} disabled={parsingMenu || !menuText.trim()}
+                    style={{marginTop:8,padding:'8px 20px',backgroundColor:'var(--os-aqua)',color:'#0C1825',border:'none',borderRadius:6,fontWeight:600,cursor:'pointer',fontSize:13,opacity:parsingMenu?0.6:1}}>
+                    {parsingMenu ? '⏳ Парсинг...' : '🤖 Распознать меню'}
+                  </button>
+                </div>
+
+                {/* Parsed result */}
+                {parsedBoatMenu && (
+                  <div style={{border:'1px solid var(--os-aqua)',borderRadius:10,padding:16,marginBottom:20,backgroundColor:'rgba(0,201,255,0.04)'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                        <strong style={{fontSize:15}}>{parsedBoatMenu.menu_name}</strong>
+                        <span style={{padding:'3px 10px',borderRadius:14,fontSize:11,fontWeight:600,
+                          backgroundColor:parsedBoatMenu.menu_type==='sets'?'rgba(139,92,246,0.2)':'rgba(0,212,180,0.2)',
+                          color:parsedBoatMenu.menu_type==='sets'?'#a78bfa':'var(--os-aqua)'}}>
+                          {parsedBoatMenu.menu_type==='sets'?'Сеты':'А ля карт'}
+                        </span>
+                        {parsedBoatMenu.selection_rule==='pick_one'&&<span style={{padding:'3px 10px',borderRadius:14,fontSize:11,backgroundColor:'rgba(251,191,36,0.15)',color:'#fbbf24'}}>Выбор 1 сета</span>}
+                        {parsedBoatMenu.price_per_person>0&&<span style={{fontSize:12,color:'var(--os-gold)',fontWeight:600}}>{parsedBoatMenu.price_per_person} THB/чел</span>}
+                        {parsedBoatMenu.min_persons>0&&<span style={{fontSize:12,color:'var(--os-text-2)'}}>мин. {parsedBoatMenu.min_persons} чел</span>}
+                      </div>
+                      <div style={{display:'flex',gap:8}}>
+                        <select value={parsedBoatMenu.menu_type} onChange={e => setParsedBoatMenu({...parsedBoatMenu,menu_type:e.target.value})}
+                          style={{padding:'4px 8px',border:'1px solid var(--os-border)',borderRadius:4,backgroundColor:'var(--os-surface)',color:'var(--os-text-1)',fontSize:12}}>
+                          <option value="sets">Сеты</option><option value="a_la_carte">А ля карт</option>
+                        </select>
+                        <select value={parsedBoatMenu.selection_rule} onChange={e => setParsedBoatMenu({...parsedBoatMenu,selection_rule:e.target.value})}
+                          style={{padding:'4px 8px',border:'1px solid var(--os-border)',borderRadius:4,backgroundColor:'var(--os-surface)',color:'var(--os-text-1)',fontSize:12}}>
+                          <option value="pick_one">Выбор 1</option><option value="pick_many">Несколько</option><option value="any">Любой</option>
+                        </select>
+                      </div>
+                    </div>
+                    {parsedBoatMenu.notes_ru&&<div style={{fontSize:12,color:'#fbbf24',marginBottom:10,padding:'6px 10px',backgroundColor:'rgba(251,191,36,0.06)',borderRadius:4}}>{parsedBoatMenu.notes_ru}</div>}
+
+                    {/* Editable fields */}
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 80px 80px',gap:8,marginBottom:10}}>
+                      <div><label style={{fontSize:10,color:'var(--os-text-3)'}}>Название EN</label><input value={parsedBoatMenu.menu_name} onChange={e=>setParsedBoatMenu({...parsedBoatMenu,menu_name:e.target.value})} style={{width:'100%',padding:'4px 8px',border:'1px solid var(--os-border)',borderRadius:4,backgroundColor:'var(--os-surface)',color:'var(--os-text-1)',fontSize:12}} /></div>
+                      <div><label style={{fontSize:10,color:'var(--os-text-3)'}}>Название RU</label><input value={parsedBoatMenu.menu_name_ru||''} onChange={e=>setParsedBoatMenu({...parsedBoatMenu,menu_name_ru:e.target.value})} style={{width:'100%',padding:'4px 8px',border:'1px solid var(--os-border)',borderRadius:4,backgroundColor:'var(--os-surface)',color:'var(--os-text-1)',fontSize:12}} /></div>
+                      <div><label style={{fontSize:10,color:'var(--os-text-3)'}}>THB/чел</label><input type="number" value={parsedBoatMenu.price_per_person||''} onChange={e=>setParsedBoatMenu({...parsedBoatMenu,price_per_person:Number(e.target.value)||null})} style={{width:'100%',padding:'4px 8px',border:'1px solid var(--os-border)',borderRadius:4,backgroundColor:'var(--os-surface)',color:'var(--os-text-1)',fontSize:12}} /></div>
+                      <div><label style={{fontSize:10,color:'var(--os-text-3)'}}>Мин.чел</label><input type="number" value={parsedBoatMenu.min_persons||''} onChange={e=>setParsedBoatMenu({...parsedBoatMenu,min_persons:Number(e.target.value)||null})} style={{width:'100%',padding:'4px 8px',border:'1px solid var(--os-border)',borderRadius:4,backgroundColor:'var(--os-surface)',color:'var(--os-text-1)',fontSize:12}} /></div>
+                    </div>
+
+                    {/* Items table */}
+                    <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                      <thead>
+                        <tr style={{borderBottom:'1px solid var(--os-border)'}}>
+                          {parsedBoatMenu.menu_type==='sets'&&<th style={{textAlign:'left',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>Сет</th>}
+                          <th style={{textAlign:'left',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>EN</th>
+                          <th style={{textAlign:'left',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>TH</th>
+                          <th style={{textAlign:'left',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>RU</th>
+                          <th style={{textAlign:'left',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>Кат.</th>
+                          {parsedBoatMenu.menu_type!=='sets'&&<th style={{textAlign:'right',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>Цена</th>}
+                          {parsedBoatMenu.menu_type!=='sets'&&<th style={{textAlign:'left',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>Ед.</th>}
+                          {parsedBoatMenu.menu_type!=='sets'&&<th style={{textAlign:'center',padding:'4px 6px',color:'var(--os-text-3)',fontSize:10}}>Free</th>}
+                          <th style={{width:20}}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {parsedBoatMenu.items.map((item:any,idx:number) => (
+                          <tr key={idx} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                            {parsedBoatMenu.menu_type==='sets'&&<td style={{padding:'3px 6px',color:'#a78bfa',fontWeight:600,fontSize:11}}>{item.set_name}</td>}
+                            <td style={{padding:'3px 6px'}}><input value={item.name_en} onChange={e=>{const items=[...parsedBoatMenu.items];items[idx]={...items[idx],name_en:e.target.value};setParsedBoatMenu({...parsedBoatMenu,items});}} style={{background:'none',border:'none',color:'var(--os-text-1)',fontSize:12,width:'100%',outline:'none'}} /></td>
+                            <td style={{padding:'3px 6px'}}><input value={item.name_th||''} onChange={e=>{const items=[...parsedBoatMenu.items];items[idx]={...items[idx],name_th:e.target.value};setParsedBoatMenu({...parsedBoatMenu,items});}} style={{background:'none',border:'none',color:'var(--os-text-2)',fontSize:12,width:'100%',outline:'none'}} /></td>
+                            <td style={{padding:'3px 6px'}}><input value={item.name_ru||''} onChange={e=>{const items=[...parsedBoatMenu.items];items[idx]={...items[idx],name_ru:e.target.value};setParsedBoatMenu({...parsedBoatMenu,items});}} style={{background:'none',border:'none',color:'var(--os-text-1)',fontSize:12,width:'100%',outline:'none'}} /></td>
+                            <td style={{padding:'3px 6px'}}>
+                              <select value={item.category} onChange={e=>{const items=[...parsedBoatMenu.items];items[idx]={...items[idx],category:e.target.value};setParsedBoatMenu({...parsedBoatMenu,items});}}
+                                style={{background:'none',border:'none',color:'var(--os-text-2)',fontSize:11,outline:'none'}}>
+                                {['thai','western','seafood','bbq','kids','drinks','dessert','other'].map(c=><option key={c} value={c}>{c}</option>)}
+                              </select>
+                            </td>
+                            {parsedBoatMenu.menu_type!=='sets'&&<td style={{padding:'3px 6px',textAlign:'right'}}><input type="number" value={item.price||''} onChange={e=>{const items=[...parsedBoatMenu.items];items[idx]={...items[idx],price:Number(e.target.value)||null};setParsedBoatMenu({...parsedBoatMenu,items});}} style={{background:'none',border:'none',color:'var(--os-gold)',fontSize:12,width:60,textAlign:'right',outline:'none'}} /></td>}
+                            {parsedBoatMenu.menu_type!=='sets'&&<td style={{padding:'3px 6px'}}>
+                              <select value={item.price_unit||'piece'} onChange={e=>{const items=[...parsedBoatMenu.items];items[idx]={...items[idx],price_unit:e.target.value};setParsedBoatMenu({...parsedBoatMenu,items});}}
+                                style={{background:'none',border:'none',color:'var(--os-text-2)',fontSize:11,outline:'none'}}>
+                                {['piece','kg','portion','person','set'].map(u=><option key={u} value={u}>{u}</option>)}
+                              </select>
+                            </td>}
+                            {parsedBoatMenu.menu_type!=='sets'&&<td style={{padding:'3px 6px',textAlign:'center'}}><input type="checkbox" checked={item.is_free||false} onChange={e=>{const items=[...parsedBoatMenu.items];items[idx]={...items[idx],is_free:e.target.checked,price:e.target.checked?0:items[idx].price};setParsedBoatMenu({...parsedBoatMenu,items});}} /></td>}
+                            <td style={{padding:'3px 6px'}}><button onClick={()=>{const items=parsedBoatMenu.items.filter((_:any,i:number)=>i!==idx);setParsedBoatMenu({...parsedBoatMenu,items});}} style={{background:'none',border:'none',color:'#f87171',cursor:'pointer',fontSize:14}}>×</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Save button */}
+                    <div style={{display:'flex',gap:12,marginTop:12,alignItems:'center'}}>
+                      <button onClick={async () => {
+                        if (menuBoatIds.length===0) { setSaveStatus('❌ Выберите лодки'); return; }
+                        setSavingMenu(true);
+                        try {
+                          let total = 0;
+                          for (const boatId of menuBoatIds) {
+                            const { data: menu, error: menuErr } = await supabase.from('boat_menus').insert({
+                              boat_id: boatId, partner_id: selectedPartnerId,
+                              menu_type: parsedBoatMenu.menu_type, name: parsedBoatMenu.menu_name, name_ru: parsedBoatMenu.menu_name_ru,
+                              price_per_person: parsedBoatMenu.price_per_person, min_persons: parsedBoatMenu.min_persons,
+                              selection_rule: parsedBoatMenu.selection_rule, notes: parsedBoatMenu.notes, notes_ru: parsedBoatMenu.notes_ru,
+                            }).select().single();
+                            if (menuErr) throw menuErr;
+                            const items = parsedBoatMenu.items.map((item:any,i:number) => ({
+                              menu_id:menu.id, set_name:item.set_name, set_name_ru:item.set_name_ru,
+                              name_en:item.name_en, name_th:item.name_th, name_ru:item.name_ru,
+                              category:item.category, price:item.price, price_unit:item.price_unit,
+                              is_free:item.is_free, sort_order:i,
+                            }));
+                            await supabase.from('boat_menu_items').insert(items);
+                            total += items.length;
+                          }
+                          setSaveStatus('✅ Сохранено для '+menuBoatIds.length+' лодок, '+total+' позиций');
+                          setParsedBoatMenu(null); setMenuText('');
+                        } catch(e:any) { setSaveStatus('❌ ' + e.message); }
+                        setSavingMenu(false);
+                      }} disabled={savingMenu||menuBoatIds.length===0}
+                        style={{padding:'8px 20px',backgroundColor:'var(--os-green)',color:'#000',border:'none',borderRadius:6,fontWeight:600,cursor:'pointer',fontSize:13,opacity:savingMenu||menuBoatIds.length===0?0.5:1}}>
+                        {savingMenu?'⏳ Сохранение...':'💾 Сохранить для '+menuBoatIds.length+' лодок'}
+                      </button>
+                      <button onClick={()=>setParsedBoatMenu(null)} style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',border:'1px solid var(--os-border)',borderRadius:6,cursor:'pointer',color:'var(--os-text-1)',fontSize:13}}>Отмена</button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1757,7 +1941,8 @@ export default function ImportPage() {
                                   <select value={f.pricePer} onChange={(e) => toggleFeature(bi, 'paid', fi, 'pricePer', e.target.value)} style={{padding: '4px', border: '1px solid var(--os-border)', borderRadius: '4px', fontSize: '12px', color: 'var(--os-text-1)', backgroundColor: 'var(--os-card)'}}>
                                     {PRICE_PER_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
                                   </select>
-                                </>
+                            
+    </>
                               )}
                             </div>
                           ))}
@@ -2102,6 +2287,9 @@ export default function ImportPage() {
       </div>
     </div>
     </>
-    </AdminGuard>
+
+
+
+        </AdminGuard>
   );
 }

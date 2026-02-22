@@ -31,15 +31,349 @@ const STATUS_COLOR: Record<string, string> = {
   included: 'var(--os-green)', paid_optional: 'var(--os-gold)', excluded: 'var(--os-red)',
 };
 
+function MenuTab({ boatId, partnerId, boatMenus, setBoatMenus, menuText, setMenuText, parsingMenu, setParsingMenu, parsedMenu, setParsedMenu, savingMenu, setSavingMenu, msg, setMsg }: any) {
+  const [editingMenuId, setEditingMenuId] = useState<number | null>(null);
+  const [editMenu, setEditMenu] = useState<any>(null);
+  const [editItems, setEditItems] = useState<any[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const loadMenus = async () => {
+    const { data } = await sb.from('boat_menus').select('*, boat_menu_items(*)').eq('boat_id', boatId).order('created_at', { ascending: false });
+    setBoatMenus(data || []);
+  };
+
+  useEffect(() => { loadMenus(); }, [boatId]);
+
+  const parseMenu = async () => {
+    if (!menuText.trim()) return;
+    setParsingMenu(true);
+    try {
+      const res = await fetch('/api/parse-boat-menu', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: menuText }) });
+      const result = await res.json();
+      if (result.success) { setParsedMenu(result.data); setMsg('✅ Меню распознано'); }
+      else setMsg('❌ ' + result.error);
+    } catch (e: any) { setMsg('❌ ' + e.message); }
+    setParsingMenu(false);
+  };
+
+  const saveNewMenu = async () => {
+    if (!parsedMenu) return;
+    setSavingMenu(true);
+    try {
+      const { data: menu, error: menuErr } = await sb.from('boat_menus').insert({
+        boat_id: boatId, partner_id: partnerId,
+        menu_type: parsedMenu.menu_type, name: parsedMenu.menu_name, name_ru: parsedMenu.menu_name_ru,
+        price_per_person: parsedMenu.price_per_person, min_persons: parsedMenu.min_persons,
+        selection_rule: parsedMenu.selection_rule, notes: parsedMenu.notes, notes_ru: parsedMenu.notes_ru,
+      }).select().single();
+      if (menuErr) throw menuErr;
+      const items = parsedMenu.items.map((item: any, i: number) => ({
+        menu_id: menu.id, set_name: item.set_name, set_name_ru: item.set_name_ru,
+        name_en: item.name_en, name_th: item.name_th, name_ru: item.name_ru,
+        category: item.category, price: item.price, price_unit: item.price_unit,
+        is_free: item.is_free, sort_order: i,
+      }));
+      await sb.from('boat_menu_items').insert(items);
+      setMsg('✅ Сохранено ' + items.length + ' позиций');
+      setParsedMenu(null); setMenuText(''); loadMenus();
+    } catch (e: any) { setMsg('❌ ' + e.message); }
+    setSavingMenu(false);
+  };
+
+  const deleteMenu = async (menuId: number) => {
+    if (!confirm('Удалить это меню со всеми блюдами?')) return;
+    await sb.from('boat_menu_items').delete().eq('menu_id', menuId);
+    await sb.from('boat_menus').delete().eq('id', menuId);
+    if (editingMenuId === menuId) { setEditingMenuId(null); setEditMenu(null); setEditItems([]); }
+    loadMenus(); setMsg('✅ Меню удалено');
+  };
+
+  const startEdit = (menu: any) => {
+    setEditingMenuId(menu.id);
+    setEditMenu({ name: menu.name || '', name_ru: menu.name_ru || '', menu_type: menu.menu_type, price_per_person: menu.price_per_person, min_persons: menu.min_persons, selection_rule: menu.selection_rule || 'any', notes: menu.notes || '', notes_ru: menu.notes_ru || '' });
+    setEditItems((menu.boat_menu_items || []).map((i: any) => ({ ...i })).sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)));
+  };
+
+  const cancelEdit = () => { setEditingMenuId(null); setEditMenu(null); setEditItems([]); };
+
+  const saveEdit = async () => {
+    if (!editMenu || !editingMenuId) return;
+    setSavingEdit(true);
+    try {
+      await sb.from('boat_menus').update({
+        name: editMenu.name, name_ru: editMenu.name_ru, menu_type: editMenu.menu_type,
+        price_per_person: editMenu.price_per_person, min_persons: editMenu.min_persons,
+        selection_rule: editMenu.selection_rule, notes: editMenu.notes, notes_ru: editMenu.notes_ru,
+      }).eq('id', editingMenuId);
+
+      // Delete all old items and re-insert
+      await sb.from('boat_menu_items').delete().eq('menu_id', editingMenuId);
+      if (editItems.length > 0) {
+        const items = editItems.map((item: any, i: number) => ({
+          menu_id: editingMenuId, set_name: item.set_name || null, set_name_ru: item.set_name_ru || null,
+          name_en: item.name_en, name_th: item.name_th || null, name_ru: item.name_ru || null,
+          category: item.category || 'other', price: item.price || null, price_unit: item.price_unit || 'piece',
+          is_free: item.is_free || false, sort_order: i,
+        }));
+        await sb.from('boat_menu_items').insert(items);
+      }
+      setMsg('✅ Меню обновлено'); cancelEdit(); loadMenus();
+    } catch (e: any) { setMsg('❌ ' + e.message); }
+    setSavingEdit(false);
+  };
+
+  const updateEditItem = (idx: number, field: string, value: any) => {
+    const items = [...editItems];
+    items[idx] = { ...items[idx], [field]: value };
+    setEditItems(items);
+  };
+
+  const removeEditItem = (idx: number) => setEditItems(editItems.filter((_: any, i: number) => i !== idx));
+
+  const addEditItem = () => setEditItems([...editItems, { set_name: '', set_name_ru: '', name_en: '', name_th: '', name_ru: '', category: 'other', price: null, price_unit: 'piece', is_free: false }]);
+
+  const moveItem = (idx: number, dir: number) => {
+    const items = [...editItems];
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= items.length) return;
+    [items[idx], items[newIdx]] = [items[newIdx], items[idx]];
+    setEditItems(items);
+  };
+
+  const inp: React.CSSProperties = { padding: '4px 8px', border: '1px solid var(--os-border)', borderRadius: 4, backgroundColor: 'var(--os-card)', color: 'var(--os-text-1)', fontSize: 12, width: '100%', outline: 'none' };
+  const catOpts = ['thai','western','seafood','bbq','kids','drinks','dessert','other'];
+  const unitOpts = ['piece','kg','portion','person','set'];
+  const catColors: Record<string,string> = { thai:'#f59e0b', western:'#3b82f6', seafood:'#06b6d4', bbq:'#ef4444', kids:'#ec4899', drinks:'#8b5cf6', dessert:'#f472b6', other:'#6b7280' };
+
+  return (
+    <div>
+      {/* ══ Parse new menu ══ */}
+      <div style={{ marginBottom: 20, padding: 16, border: '1px solid var(--os-border)', borderRadius: 8, backgroundColor: 'var(--os-surface)' }}>
+        <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--os-aqua)' }}>🤖 Парсинг нового меню</h4>
+        <textarea value={menuText} onChange={e => setMenuText(e.target.value)} placeholder="Вставьте текст меню..."
+          style={{ width: '100%', height: 100, padding: 10, border: '1px solid var(--os-border)', borderRadius: 6, backgroundColor: 'var(--os-card)', color: 'var(--os-text-1)', fontSize: 13, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <button onClick={parseMenu} disabled={parsingMenu || !menuText.trim()}
+            style={{ padding: '6px 16px', backgroundColor: 'var(--os-aqua)', color: '#0C1825', border: 'none', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 12, opacity: parsingMenu ? 0.5 : 1 }}>
+            {parsingMenu ? '⏳ Парсинг...' : '🤖 Распознать'}
+          </button>
+          {parsedMenu && <button onClick={saveNewMenu} disabled={savingMenu}
+            style={{ padding: '6px 16px', backgroundColor: 'var(--os-green)', color: '#000', border: 'none', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
+            💾 Сохранить новое меню
+          </button>}
+        </div>
+
+        {/* Parsed preview */}
+        {parsedMenu && (
+          <div style={{ marginTop: 12, border: '1px solid var(--os-aqua)', borderRadius: 6, padding: 12, backgroundColor: 'rgba(0,201,255,0.04)' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+              <input value={parsedMenu.menu_name} onChange={e => setParsedMenu({...parsedMenu, menu_name: e.target.value})} style={{...inp, width: 200, fontWeight: 600}} placeholder="Название EN" />
+              <input value={parsedMenu.menu_name_ru || ''} onChange={e => setParsedMenu({...parsedMenu, menu_name_ru: e.target.value})} style={{...inp, width: 200}} placeholder="Название RU" />
+              <select value={parsedMenu.menu_type} onChange={e => setParsedMenu({...parsedMenu, menu_type: e.target.value})} style={{...inp, width: 100}}>
+                <option value="sets">Сеты</option><option value="a_la_carte">А ля карт</option>
+              </select>
+              <select value={parsedMenu.selection_rule || 'any'} onChange={e => setParsedMenu({...parsedMenu, selection_rule: e.target.value})} style={{...inp, width: 100}}>
+                <option value="pick_one">1 сет</option><option value="pick_many">Несколько</option><option value="any">Любой</option>
+              </select>
+              <input type="number" value={parsedMenu.price_per_person || ''} onChange={e => setParsedMenu({...parsedMenu, price_per_person: Number(e.target.value)||null})} style={{...inp, width: 80}} placeholder="THB/чел" />
+              <input type="number" value={parsedMenu.min_persons || ''} onChange={e => setParsedMenu({...parsedMenu, min_persons: Number(e.target.value)||null})} style={{...inp, width: 70}} placeholder="Мин.чел" />
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <input value={parsedMenu.notes || ''} onChange={e => setParsedMenu({...parsedMenu, notes: e.target.value})} style={{...inp, flex: 1}} placeholder="Notes EN" />
+              <input value={parsedMenu.notes_ru || ''} onChange={e => setParsedMenu({...parsedMenu, notes_ru: e.target.value})} style={{...inp, flex: 1}} placeholder="Примечания RU" />
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+              <thead><tr style={{ borderBottom: '1px solid var(--os-border)' }}>
+                {parsedMenu.menu_type === 'sets' && <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Сет</th>}
+                <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>EN</th>
+                <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>TH</th>
+                <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>RU</th>
+                <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Кат</th>
+                {parsedMenu.menu_type !== 'sets' && <th style={{ padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Цена</th>}
+                {parsedMenu.menu_type !== 'sets' && <th style={{ padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Ед</th>}
+                {parsedMenu.menu_type !== 'sets' && <th style={{ padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Free</th>}
+                <th style={{ width: 20 }}></th>
+              </tr></thead>
+              <tbody>
+                {parsedMenu.items.map((item: any, idx: number) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    {parsedMenu.menu_type === 'sets' && <td style={{ padding: '2px 4px' }}><input value={item.set_name||''} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],set_name:e.target.value};setParsedMenu({...parsedMenu,items});}} style={{...inp,width:70,color:'#a78bfa'}} /></td>}
+                    <td style={{ padding: '2px 4px' }}><input value={item.name_en} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],name_en:e.target.value};setParsedMenu({...parsedMenu,items});}} style={inp} /></td>
+                    <td style={{ padding: '2px 4px' }}><input value={item.name_th||''} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],name_th:e.target.value};setParsedMenu({...parsedMenu,items});}} style={{...inp,color:'var(--os-text-3)'}} /></td>
+                    <td style={{ padding: '2px 4px' }}><input value={item.name_ru||''} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],name_ru:e.target.value};setParsedMenu({...parsedMenu,items});}} style={inp} /></td>
+                    <td style={{ padding: '2px 4px' }}><select value={item.category} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],category:e.target.value};setParsedMenu({...parsedMenu,items});}} style={{...inp,width:75}}>{catOpts.map(c=><option key={c} value={c}>{c}</option>)}</select></td>
+                    {parsedMenu.menu_type !== 'sets' && <td style={{padding:'2px 4px'}}><input type="number" value={item.price||''} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],price:Number(e.target.value)||null};setParsedMenu({...parsedMenu,items});}} style={{...inp,width:60,textAlign:'right'}} /></td>}
+                    {parsedMenu.menu_type !== 'sets' && <td style={{padding:'2px 4px'}}><select value={item.price_unit||'piece'} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],price_unit:e.target.value};setParsedMenu({...parsedMenu,items});}} style={{...inp,width:65}}>{unitOpts.map(u=><option key={u} value={u}>{u}</option>)}</select></td>}
+                    {parsedMenu.menu_type !== 'sets' && <td style={{padding:'2px 4px',textAlign:'center'}}><input type="checkbox" checked={item.is_free||false} onChange={e=>{const items=[...parsedMenu.items];items[idx]={...items[idx],is_free:e.target.checked};setParsedMenu({...parsedMenu,items});}} /></td>}
+                    <td style={{padding:'2px 4px'}}><button onClick={()=>{setParsedMenu({...parsedMenu,items:parsedMenu.items.filter((_:any,i:number)=>i!==idx)});}} style={{background:'none',border:'none',color:'#f87171',cursor:'pointer',fontSize:13}}>×</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button onClick={()=>setParsedMenu({...parsedMenu,items:[...parsedMenu.items,{set_name:'',name_en:'',name_th:'',name_ru:'',category:'other',price:null,price_unit:'piece',is_free:false}]})} style={{marginTop:6,fontSize:11,color:'var(--os-aqua)',background:'none',border:'none',cursor:'pointer'}}>+ Добавить блюдо</button>
+          </div>
+        )}
+      </div>
+
+      {/* ══ Existing menus ══ */}
+      <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: 'var(--os-text-1)' }}>Сохранённые меню ({boatMenus.length})</h4>
+      {boatMenus.length === 0 && <p style={{ color: 'var(--os-text-3)', fontSize: 13 }}>Нет меню. Вставьте текст выше и распознайте.</p>}
+
+      {boatMenus.map((menu: any) => {
+        const isEditing = editingMenuId === menu.id;
+        const items = isEditing ? editItems : (menu.boat_menu_items || []).sort((a:any,b:any) => (a.sort_order||0)-(b.sort_order||0));
+        const sets = [...new Set(items.map((i: any) => i.set_name).filter(Boolean))];
+        const mData = isEditing ? editMenu : menu;
+
+        return (
+          <div key={menu.id} style={{ border: '1px solid ' + (isEditing ? 'var(--os-aqua)' : 'var(--os-border)'), borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: isEditing ? 'rgba(0,201,255,0.03)' : 'var(--os-surface)' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+              {isEditing ? (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input value={editMenu.name} onChange={e => setEditMenu({...editMenu, name: e.target.value})} style={{...inp, width: 180, fontWeight: 600}} placeholder="Название EN" />
+                  <input value={editMenu.name_ru} onChange={e => setEditMenu({...editMenu, name_ru: e.target.value})} style={{...inp, width: 180}} placeholder="Название RU" />
+                  <select value={editMenu.menu_type} onChange={e => setEditMenu({...editMenu, menu_type: e.target.value})} style={{...inp, width: 95}}>
+                    <option value="sets">Сеты</option><option value="a_la_carte">А ля карт</option>
+                  </select>
+                  <select value={editMenu.selection_rule} onChange={e => setEditMenu({...editMenu, selection_rule: e.target.value})} style={{...inp, width: 90}}>
+                    <option value="pick_one">1 сет</option><option value="pick_many">Несколько</option><option value="any">Любой</option>
+                  </select>
+                  <input type="number" value={editMenu.price_per_person || ''} onChange={e => setEditMenu({...editMenu, price_per_person: Number(e.target.value)||null})} style={{...inp, width: 75}} placeholder="THB/чел" />
+                  <input type="number" value={editMenu.min_persons || ''} onChange={e => setEditMenu({...editMenu, min_persons: Number(e.target.value)||null})} style={{...inp, width: 65}} placeholder="Мин" />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <strong style={{ fontSize: 13 }}>{menu.name || menu.name_ru || 'Меню'}</strong>
+                  <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 600, backgroundColor: menu.menu_type==='sets'?'rgba(139,92,246,0.2)':'rgba(0,212,180,0.2)', color: menu.menu_type==='sets'?'#a78bfa':'var(--os-aqua)' }}>
+                    {menu.menu_type==='sets'?'Сеты':'А ля карт'}
+                  </span>
+                  {menu.price_per_person > 0 && <span style={{ fontSize: 11, color: 'var(--os-gold)' }}>{menu.price_per_person} THB/чел</span>}
+                  {menu.min_persons > 0 && <span style={{ fontSize: 11, color: 'var(--os-text-2)' }}>мин {menu.min_persons}</span>}
+                  {menu.selection_rule === 'pick_one' && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, backgroundColor: 'rgba(251,191,36,0.15)', color: '#fbbf24' }}>выбор 1</span>}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 6 }}>
+                {isEditing ? (
+                  <>
+                    <button onClick={saveEdit} disabled={savingEdit} style={{ padding: '4px 12px', backgroundColor: 'var(--os-green)', color: '#000', border: 'none', borderRadius: 4, fontWeight: 600, cursor: 'pointer', fontSize: 11 }}>{savingEdit ? '⏳' : '💾 Сохранить'}</button>
+                    <button onClick={cancelEdit} style={{ padding: '4px 12px', backgroundColor: 'var(--os-surface)', border: '1px solid var(--os-border)', borderRadius: 4, cursor: 'pointer', fontSize: 11, color: 'var(--os-text-1)' }}>Отмена</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => startEdit(menu)} style={{ padding: '4px 12px', backgroundColor: 'rgba(0,201,255,0.1)', border: '1px solid rgba(0,201,255,0.3)', color: 'var(--os-aqua)', borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>✏️ Редактировать</button>
+                    <button onClick={() => deleteMenu(menu.id)} style={{ padding: '4px 12px', background: 'none', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>🗑️</button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Notes */}
+            {isEditing ? (
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                <input value={editMenu.notes} onChange={e => setEditMenu({...editMenu, notes: e.target.value})} style={{...inp, flex: 1}} placeholder="Notes EN" />
+                <input value={editMenu.notes_ru} onChange={e => setEditMenu({...editMenu, notes_ru: e.target.value})} style={{...inp, flex: 1}} placeholder="Примечания RU" />
+              </div>
+            ) : (
+              (menu.notes_ru || menu.notes) && <div style={{ fontSize: 11, color: '#fbbf24', marginBottom: 8, padding: '4px 8px', backgroundColor: 'rgba(251,191,36,0.06)', borderRadius: 4 }}>{menu.notes_ru || menu.notes}</div>
+            )}
+
+            {/* Items table */}
+            {isEditing ? (
+              <div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                  <thead><tr style={{ borderBottom: '1px solid var(--os-border)' }}>
+                    <th style={{ width: 30, padding: '3px 2px', color: 'var(--os-text-3)', fontSize: 10 }}>#</th>
+                    {editMenu.menu_type === 'sets' && <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Сет</th>}
+                    {editMenu.menu_type === 'sets' && <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Сет RU</th>}
+                    <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>EN</th>
+                    <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>TH</th>
+                    <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>RU</th>
+                    <th style={{ textAlign: 'left', padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Кат</th>
+                    {editMenu.menu_type !== 'sets' && <th style={{ padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Цена</th>}
+                    {editMenu.menu_type !== 'sets' && <th style={{ padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Ед</th>}
+                    {editMenu.menu_type !== 'sets' && <th style={{ padding: '3px 4px', color: 'var(--os-text-3)', fontSize: 10 }}>Free</th>}
+                    <th style={{ width: 50 }}></th>
+                  </tr></thead>
+                  <tbody>
+                    {editItems.map((item: any, idx: number) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '2px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <button onClick={() => moveItem(idx, -1)} disabled={idx===0} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 9, color: 'var(--os-text-3)', opacity: idx===0?0.3:1 }}>▲</button>
+                            <button onClick={() => moveItem(idx, 1)} disabled={idx===editItems.length-1} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 9, color: 'var(--os-text-3)', opacity: idx===editItems.length-1?0.3:1 }}>▼</button>
+                          </div>
+                        </td>
+                        {editMenu.menu_type === 'sets' && <td style={{ padding: '2px 4px' }}><input value={item.set_name||''} onChange={e => updateEditItem(idx, 'set_name', e.target.value)} style={{...inp, width: 70, color: '#a78bfa'}} /></td>}
+                        {editMenu.menu_type === 'sets' && <td style={{ padding: '2px 4px' }}><input value={item.set_name_ru||''} onChange={e => updateEditItem(idx, 'set_name_ru', e.target.value)} style={{...inp, width: 70}} /></td>}
+                        <td style={{ padding: '2px 4px' }}><input value={item.name_en||''} onChange={e => updateEditItem(idx, 'name_en', e.target.value)} style={inp} /></td>
+                        <td style={{ padding: '2px 4px' }}><input value={item.name_th||''} onChange={e => updateEditItem(idx, 'name_th', e.target.value)} style={{...inp, color: 'var(--os-text-3)'}} /></td>
+                        <td style={{ padding: '2px 4px' }}><input value={item.name_ru||''} onChange={e => updateEditItem(idx, 'name_ru', e.target.value)} style={inp} /></td>
+                        <td style={{ padding: '2px 4px' }}><select value={item.category||'other'} onChange={e => updateEditItem(idx, 'category', e.target.value)} style={{...inp, width: 75}}>{catOpts.map(c => <option key={c} value={c}>{c}</option>)}</select></td>
+                        {editMenu.menu_type !== 'sets' && <td style={{ padding: '2px 4px' }}><input type="number" value={item.price||''} onChange={e => updateEditItem(idx, 'price', Number(e.target.value)||null)} style={{...inp, width: 55, textAlign: 'right'}} /></td>}
+                        {editMenu.menu_type !== 'sets' && <td style={{ padding: '2px 4px' }}><select value={item.price_unit||'piece'} onChange={e => updateEditItem(idx, 'price_unit', e.target.value)} style={{...inp, width: 60}}>{unitOpts.map(u => <option key={u} value={u}>{u}</option>)}</select></td>}
+                        {editMenu.menu_type !== 'sets' && <td style={{ padding: '2px 4px', textAlign: 'center' }}><input type="checkbox" checked={item.is_free||false} onChange={e => updateEditItem(idx, 'is_free', e.target.checked)} /></td>}
+                        <td style={{ padding: '2px 4px' }}><button onClick={() => removeEditItem(idx)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: 13 }}>×</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button onClick={addEditItem} style={{ marginTop: 6, fontSize: 11, color: 'var(--os-aqua)', background: 'none', border: 'none', cursor: 'pointer' }}>+ Добавить блюдо</button>
+              </div>
+            ) : (
+              /* Read-only view */
+              mData.menu_type === 'sets' && sets.length > 0 ? (
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {sets.map((setName: string) => {
+                    const setItems = items.filter((i: any) => i.set_name === setName);
+                    return (
+                      <div key={setName} style={{ flex: '1 1 180px', padding: 8, borderRadius: 6, backgroundColor: 'var(--os-card)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa', marginBottom: 4 }}>{setName} {setItems[0]?.set_name_ru && <span style={{fontWeight:400,color:'var(--os-text-3)'}}>({setItems[0].set_name_ru})</span>}</div>
+                        {setItems.map((item: any, i: number) => (
+                          <div key={i} style={{ fontSize: 11, color: 'var(--os-text-2)', padding: '1px 0' }}>
+                            {item.name_en} {item.name_ru && <span style={{ color: 'var(--os-text-3)' }}>({item.name_ru})</span>}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 4 }}>
+                  {items.map((item: any, i: number) => (
+                    <div key={i} style={{ fontSize: 11, color: 'var(--os-text-2)', padding: '2px 0', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{item.name_en} {item.name_ru && <span style={{ color: 'var(--os-text-3)' }}>({item.name_ru})</span>}</span>
+                      <span style={{ color: item.is_free ? 'var(--os-green)' : 'var(--os-gold)', fontWeight: 600, marginLeft: 8 }}>
+                        {item.is_free ? 'FREE' : (item.price ? item.price + '/' + item.price_unit : '')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
 export default function BoatDetail({ boatId, boatName, onBack }: {
   boatId: number; boatName: string; onBack: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'prices' | 'options' | 'info'>('prices');
+  const [activeTab, setActiveTab] = useState<'prices' | 'options' | 'info' | 'menu'>('prices');
   const [routes, setRoutes] = useState<Route[]>([]);
   const [routePrices, setRoutePrices] = useState<RoutePrice[]>([]);
   const [options, setOptions] = useState<BoatOption[]>([]);
+  const [boatMenus, setBoatMenus] = useState<any[]>([]);
+  const [menuText, setMenuText] = useState('');
+  const [parsingMenu, setParsingMenu] = useState(false);
+  const [parsedMenu, setParsedMenu] = useState<any>(null);
+  const [savingMenu, setSavingMenu] = useState(false);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [boat, setBoat] = useState<any>(null);
+  const partnerId = boat?.partner_id || null;
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [editingPrice, setEditingPrice] = useState<Partial<RoutePrice> | null>(null);
@@ -113,6 +447,7 @@ export default function BoatDetail({ boatId, boatName, onBack }: {
     { id: 'prices', label: '💰 Маршруты & Цены' },
     { id: 'options', label: '⚙️ Опции' },
     { id: 'info', label: '📋 Данные лодки' },
+    { id: 'menu', label: '🍽️ Меню' },
   ];
 
   return (
@@ -332,6 +667,14 @@ export default function BoatDetail({ boatId, boatName, onBack }: {
           )}
           <button onClick={saveBoatInfo} style={btn('var(--os-green)')}>💾 Сохранить данные лодки</button>
         </div>
+      )}
+
+      {/* MENU */}
+      {activeTab === 'menu' && (
+        <MenuTab boatId={boatId} partnerId={partnerId} boatMenus={boatMenus} setBoatMenus={setBoatMenus}
+          menuText={menuText} setMenuText={setMenuText} parsingMenu={parsingMenu} setParsingMenu={setParsingMenu}
+          parsedMenu={parsedMenu} setParsedMenu={setParsedMenu} savingMenu={savingMenu} setSavingMenu={setSavingMenu}
+          msg={msg} setMsg={setMsg} />
       )}
     </div>
   );
