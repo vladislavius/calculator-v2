@@ -309,7 +309,7 @@ export default function PartnersPage({ embedded = false }: { embedded?: boolean 
         has_jacuzzi: selectedBoat.has_jacuzzi || false,
         year_built: selectedBoat.year_built,
         default_pier: selectedBoat.default_pier,
-        main_photo_url: selectedBoat.main_photo_url || null,
+        main_photo_url: selectedBoat.main_photo_url, website_url: selectedBoat.website_url || null,
         notes: selectedBoat.notes
       })
       .eq('id', selectedBoat.id);
@@ -1136,6 +1136,10 @@ export default function PartnersPage({ embedded = false }: { embedded?: boolean 
                     <input value={selectedBoat.main_photo_url || ''} onChange={e => setSelectedBoat({...selectedBoat, main_photo_url: e.target.value})}
                       style={{ width: '100%', padding: '8px', border: '1px solid var(--os-border)', borderRadius: '6px', fontSize: '12px', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', marginBottom: '8px' }}
                       placeholder="https://..." />
+                    <div style={{ fontSize: '11px', color: 'var(--os-text-3)', marginBottom: '4px' }}>Страница на сайте</div>
+                    <input value={selectedBoat.website_url || ''} onChange={e => setSelectedBoat({...selectedBoat, website_url: e.target.value})}
+                      style={{ width: '100%', padding: '8px', border: '1px solid var(--os-border)', borderRadius: '6px', fontSize: '12px', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', marginBottom: '8px' }}
+                      placeholder="https://onlysea.travel/..." />
                     <div style={{ fontSize: '11px', color: 'var(--os-text-3)', marginBottom: '4px' }}>Код лодки</div>
                     <input value={selectedBoat.code || ''} onChange={e => setSelectedBoat({...selectedBoat, code: e.target.value})}
                       style={{ width: '100%', padding: '8px', border: '1px solid var(--os-border)', borderRadius: '6px', fontSize: '12px', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', marginBottom: '8px' }}
@@ -1149,6 +1153,7 @@ export default function PartnersPage({ embedded = false }: { embedded?: boolean 
                   <>
                     <div style={{ fontSize: '13px', color: 'var(--os-text-3)' }}>Код: <span style={{ color: 'var(--os-text-1)', fontWeight: '600' }}>{selectedBoat.code || '-'}</span></div>
                     <div style={{ fontSize: '13px', color: 'var(--os-text-3)', marginTop: '4px' }}>Модель: <span style={{ color: 'var(--os-text-1)' }}>{selectedBoat.model || '-'}</span></div>
+                    {selectedBoat.website_url && <div style={{ fontSize: '13px', color: 'var(--os-text-3)', marginTop: '4px' }}>Сайт: <a href={selectedBoat.website_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--os-aqua)', textDecoration: 'none' }}>{selectedBoat.website_url.split('/').pop() || 'ссылка'} ↗</a></div>}
                     {!selectedBoat.main_photo_url && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>⚠️ Фото не загружено</div>}
                   </>
                 )}

@@ -69,7 +69,7 @@ function LoginForm({ onLogin }: { onLogin: (token: string, user: SessionUser) =>
           <div style={{ fontSize: 11, color: 'var(--os-text-3, #6b7a8d)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</div>
           <input
             type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="admin@onlysea.com" autoFocus required
+            placeholder="Ваш email" autoFocus required
             style={{
               width: '100%', padding: '12px 14px', fontSize: 14,
               backgroundColor: 'var(--os-surface, #0f2235)',
@@ -84,7 +84,7 @@ function LoginForm({ onLogin }: { onLogin: (token: string, user: SessionUser) =>
           <div style={{ fontSize: 11, color: 'var(--os-text-3, #6b7a8d)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>PIN-код</div>
           <input
             type="password" value={pin} onChange={e => setPin(e.target.value)}
-            placeholder="••••" required
+            placeholder="••••••••" required
             style={{
               width: '100%', padding: '12px 14px', fontSize: 18,
               backgroundColor: 'var(--os-surface, #0f2235)',

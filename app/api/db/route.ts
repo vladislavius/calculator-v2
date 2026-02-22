@@ -18,7 +18,7 @@ const ALLOWED_TABLES = [
 
 
 // Auto-sync photo from Google Sheets when boat is inserted
-async function autoSyncBoatPhoto(boatName: string, boatId: number, supabaseAdmin: any) {
+async function autoSyncBoatFromSheet(boatName: string, boatId: number, supabaseAdmin: any) {
   try {
     const SHEETS_URL = "https://docs.google.com/spreadsheets/d/184iVugfmLU0sy3e9B9IEf5P4zHkJdFPiDEKC00xeR5g/export?format=csv&gid=1788852346";
     const res = await fetch(SHEETS_URL);
@@ -27,23 +27,34 @@ async function autoSyncBoatPhoto(boatName: string, boatId: number, supabaseAdmin
     const headers = lines[0].split(',').map((h: string) => h.replace(/"/g, '').trim());
     const nameIdx = headers.indexOf('Real name');
     const photoIdx = headers.indexOf('Photo URL');
-    if (nameIdx === -1 || photoIdx === -1) return;
+    const urlIdx = headers.indexOf('Boat URLs');
+    if (nameIdx === -1) return;
 
     const boatNameUpper = boatName.toUpperCase().trim();
     for (let i = 1; i < lines.length; i++) {
       const cols = lines[i].split(',');
-      if (cols.length <= Math.max(nameIdx, photoIdx)) continue;
+      if (cols.length <= nameIdx) continue;
       const sheetName = cols[nameIdx]?.replace(/"/g, '').trim().toUpperCase();
-      const photoUrl = cols[photoIdx]?.replace(/"/g, '').trim();
-      if (!sheetName || !photoUrl || !photoUrl.startsWith('http')) continue;
+      if (!sheetName) continue;
       if (sheetName === boatNameUpper || boatNameUpper.includes(sheetName) || sheetName.includes(boatNameUpper)) {
-        await supabaseAdmin.from('boats').update({ main_photo_url: photoUrl }).eq('id', boatId);
-        console.log(`Auto-synced photo for boat: ${boatName} (id=${boatId})`);
+        const updates: any = {};
+        if (photoIdx !== -1) {
+          const photoUrl = cols[photoIdx]?.replace(/"/g, '').trim();
+          if (photoUrl && photoUrl.startsWith('http')) updates.main_photo_url = photoUrl;
+        }
+        if (urlIdx !== -1) {
+          const websiteUrl = cols[urlIdx]?.replace(/"/g, '').trim();
+          if (websiteUrl && websiteUrl.startsWith('http')) updates.website_url = websiteUrl;
+        }
+        if (Object.keys(updates).length > 0) {
+          await supabaseAdmin.from('boats').update(updates).eq('id', boatId);
+          console.log(`Auto-synced boat: ${boatName} (id=${boatId}) fields: ${Object.keys(updates).join(', ')}`);
+        }
         return;
       }
     }
   } catch (e) {
-    console.error('Photo auto-sync error:', e);
+    console.error('Boat auto-sync error:', e);
   }
 }
 
@@ -107,7 +118,7 @@ export async function POST(req: NextRequest) {
       const inserted = Array.isArray(result.data) ? result.data : [result.data];
       for (const boat of inserted) {
         if ((boat as any)?.id && (boat as any)?.name) {
-          autoSyncBoatPhoto((boat as any).name, (boat as any).id, supabaseAdmin);
+          autoSyncBoatFromSheet((boat as any).name, (boat as any).id, supabaseAdmin);
         }
       }
     }
