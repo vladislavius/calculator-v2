@@ -31,7 +31,9 @@ export default function BoatCard({ boat, showAgentPrice, markupPercent, onSelect
       <div className="os-boat-card__body">
         <div className="os-boat-card__header">
           <div style={{ minWidth: 0 }}>
-            <div className="os-boat-card__name">{boat.boat_name}</div>
+            {boat.website_url 
+              ? <a href={boat.website_url} target="_blank" rel="noopener noreferrer" className="os-boat-card__name" style={{color:'inherit',textDecoration:'none'}} onClick={e => e.stopPropagation()} onMouseEnter={e => (e.currentTarget.style.color='var(--os-aqua)')} onMouseLeave={e => (e.currentTarget.style.color='inherit')}>{boat.boat_name} <span style={{fontSize:'10px',opacity:0.5}}>↗</span></a>
+              : <div className="os-boat-card__name">{boat.boat_name}</div>}
             {isAdmin && <div className="os-boat-card__partner">{boat.partner_name}</div>}
           </div>
           <div className="os-boat-card__price-wrap">

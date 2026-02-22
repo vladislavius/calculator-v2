@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useAuth } from '../components/AdminGuard';
 import PartnersTab  from './components/PartnersTab';
 import BoatsTab     from './components/BoatsTab';
 import UsersTab     from './components/UsersTab';
@@ -20,6 +21,20 @@ const TABS = [
 
 export default function AdminPage() {
   const [tab, setTab] = useState('partners');
+  const { logout } = useAuth();
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const syncBoats = async () => {
+    setSyncing(true); setSyncMsg('');
+    try {
+      const res = await fetch('/api/sync-boats', { method: 'POST' });
+      const d = await res.json();
+      if (d.success) setSyncMsg('✅ Фото: ' + d.updatedPhoto + ', URL: ' + d.updatedUrl + ', пропущено: ' + d.skipped);
+      else setSyncMsg('❌ ' + d.error);
+    } catch (e: any) { setSyncMsg('❌ ' + e.message); }
+    setSyncing(false);
+    setTimeout(() => setSyncMsg(''), 5000);
+  };
 
   return (
     <div style={{minHeight: '100vh', backgroundColor: 'var(--os-bg)', padding: '24px'}}>
@@ -33,10 +48,13 @@ export default function AdminPage() {
           <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
             <a href="/import" style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',textDecoration:'none',fontWeight:'500',border:'1px solid var(--os-border)',fontSize:'13px'}}>🤖 AI-парсер яхт</a>
             <a href="/import-all" style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',textDecoration:'none',fontWeight:'500',border:'1px solid var(--os-border)',fontSize:'13px'}}>📦 Центр импорта</a>
+            <button onClick={syncBoats} disabled={syncing} style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',border:'1px solid var(--os-border)',fontWeight:'500',fontSize:'13px',cursor:'pointer',opacity:syncing?0.5:1}}>{syncing ? '⏳ Синхронизация...' : '🔄 Синк с Google'}</button>
+            <button onClick={logout} title="Выйти" style={{padding:"8px 16px",backgroundColor:"var(--os-surface)",borderRadius:"8px",color:"var(--os-text-1)",border:"1px solid var(--os-border)",fontWeight:"500",fontSize:"13px",cursor:"pointer"}}>🚪 Выйти</button>
             <a href="/" style={{padding:'8px 16px',backgroundColor:'var(--os-surface)',borderRadius:'8px',color:'var(--os-text-1)',textDecoration:'none',fontWeight:'500',border:'1px solid var(--os-border)',fontSize:'13px'}}>← Калькулятор</a>
           </div>
         </div>
 
+        {syncMsg && <div style={{marginBottom:'12px',padding:'8px 16px',borderRadius:'8px',fontSize:'13px',backgroundColor:'var(--os-surface)',border:'1px solid var(--os-border)',color:'var(--os-text-1)'}}>{syncMsg}</div>}
         {/* Tabs */}
         <div style={{display: 'flex', gap: '6px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '4px'}}>
           {TABS.map(t => (

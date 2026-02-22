@@ -630,7 +630,7 @@ export default function BoatDetail({ boatId, boatName, onBack }: {
               ['Название', 'name', 'text'], ['Тип', 'boat_type', 'text'], ['Модель', 'model', 'text'],
               ['Длина (ft)', 'length_ft', 'number'], ['Год постройки', 'year_built', 'number'], ['Каюты', 'cabins', 'number'],
               ['Туалеты', 'toilets', 'number'], ['Макс/день', 'max_pax_day', 'number'], ['Скорость (узлы)', 'speed_knots', 'number'],
-              ['Причал', 'default_pier', 'text'], ['Фото (URL)', 'main_photo_url', 'text'],
+              ['Причал', 'default_pier', 'text'], ['Фото (URL)', 'main_photo_url', 'text'], ['Сайт (URL)', 'website_url', 'text'],
             ] as [string, string, string][]).map(([label, field, type]) => (
               <div key={field}>
                 <div style={{ fontSize: 11, color: 'var(--os-text-3)', marginBottom: 4 }}>{label}</div>

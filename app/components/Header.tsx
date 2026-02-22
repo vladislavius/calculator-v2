@@ -1,8 +1,10 @@
 'use client';
 import { useCharterStore } from '../store/useCharterStore';
+import { useAuth } from './AdminGuard';
 
 export default function Header() {
   const lang = useCharterStore(s => s.lang);
+  const { user, logout } = useAuth();
   const set  = useCharterStore(s => s.set);
 
   return (
@@ -27,6 +29,9 @@ export default function Header() {
           <button className={`os-lang-btn${lang === 'ru' ? ' active' : ''}`} onClick={() => set({ lang: 'ru' })}>RU</button>
           <button className={`os-lang-btn${lang === 'en' ? ' active' : ''}`} onClick={() => set({ lang: 'en' })}>EN</button>
         </div>
+        {user && (
+          <button onClick={logout} title="Выйти" style={{background:'none',border:'none',cursor:'pointer',fontSize:'15px',color:'var(--os-text-3, #6b7a8d)',opacity:0.8,padding:'6px 10px',marginLeft:'4px'}}>🚪 Выйти</button>
+        )}
       </div>
     </header>
   );

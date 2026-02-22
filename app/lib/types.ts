@@ -8,6 +8,7 @@ export interface SearchResult {
   crew_count: number;
   description: string;
   main_photo_url: string;
+  website_url?: string;
   partner_name: string;
   partner_id: number;
   route_name: string;
