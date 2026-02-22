@@ -557,7 +557,7 @@ export default function Home() {
       const [drinksRes, routeRes, menuRes, optionsRes] = await Promise.all([
         supabase.from('boat_drinks').select('*').eq('partner_id', boat.partner_id),
         supabase.from('routes').select('id').ilike('name', '%' + boat.route_name.split(' ')[0] + '%').limit(1).single(),
-        supabase.from('boat_menu').select('*').or('partner_id.eq.' + boat.partner_id + ',boat_id.eq.' + boat.boat_id),
+        supabase.from('boat_menus').select('*, boat_menu_items(*)').eq('boat_id', boat.boat_id).eq('active', true),
         supabase.from('boat_options').select('id, status, price, price_per, quantity_included, notes, available, options_catalog (name_en, name_ru, code, category_id)').eq('boat_id', boat.boat_id).eq('available', true),
       ]);
 
@@ -573,10 +573,56 @@ export default function Home() {
         setSelectedFees([]);
       }
 
-      // Boat menu (old system)
-      let menuItems = menuRes.data || [];
+      // Boat menus (new system: boat_menus + boat_menu_items)
+      const rawMenus = menuRes.data || [];
+      let menuItems: any[] = [];
+      
+      for (const menu of rawMenus) {
+        const items = menu.boat_menu_items || [];
+        if (menu.menu_type === 'sets') {
+          // Group by set_name
+          const setNames = [...new Set(items.map((i: any) => i.set_name).filter(Boolean))];
+          for (const setName of setNames) {
+            const setItems = items.filter((i: any) => i.set_name === setName);
+            menuItems.push({
+              id: 'bm_set_' + menu.id + '_' + setName,
+              name_en: setName,
+              name_ru: setItems[0]?.set_name_ru || setName,
+              category: setItems[0]?.category || 'thai',
+              price: menu.price_per_person || 0,
+              price_per_person: menu.price_per_person || 0,
+              included: !menu.price_per_person || menu.price_per_person === 0,
+              dishes: setItems.map((i: any) => i.name_en),
+              dishes_ru: setItems.map((i: any) => i.name_ru || i.name_en),
+              from_partner_menu: true,
+              menu_type: 'sets',
+              selection_rule: menu.selection_rule,
+              min_persons: menu.min_persons,
+              menu_notes: menu.notes,
+              menu_notes_ru: menu.notes_ru,
+            });
+          }
+        } else {
+          // A la carte — each item is separate
+          for (const item of items) {
+            menuItems.push({
+              id: 'bm_' + item.id,
+              name_en: item.name_en,
+              name_ru: item.name_ru || item.name_en,
+              name_th: item.name_th,
+              category: item.category || 'other',
+              price: item.price || 0,
+              price_per_person: item.price || 0,
+              price_unit: item.price_unit || 'piece',
+              included: item.is_free || false,
+              from_partner_menu: true,
+              menu_type: 'a_la_carte',
+            });
+          }
+        }
+      }
 
-      // Partner menu sets (new system)
+      // Also add partner menu sets (catering system)
       const partnerMenuIds = partnerMenus
         .filter(pm => pm.partner_id === boat.partner_id && (pm.boat_id === null || pm.boat_id === boat.boat_id))
         .map(pm => pm.id);
