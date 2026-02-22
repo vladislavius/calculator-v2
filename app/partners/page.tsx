@@ -1897,13 +1897,13 @@ export default function PartnersPage({ embedded = false }: { embedded?: boolean 
                             </div>
                             <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
                               <button
-                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "var(--os-surface)", color: "var(--os-text-1)", border: "1px solid var(--os-border)", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
+                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "var(--os-surface)", color: "var(--os-text-1)", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
                                 onClick={(e) => { e.stopPropagation(); startEditPartner(partner); }}
                               >
                                 ✏️ Редактировать
                               </button>
                               <button
-                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "var(--os-surface)", color: "var(--os-red)", border: "1px solid var(--os-border)", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
+                                style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "var(--os-surface)", color: "var(--os-red)", border: "none", borderRadius: "6px", cursor: "pointer", whiteSpace: "nowrap" }}
                                 onClick={(e) => { e.stopPropagation(); deleteBoatPartner(partner.id); }}
                               >
                                 Удалить
