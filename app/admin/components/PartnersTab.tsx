@@ -10,9 +10,10 @@ type Partner = {
 };
 
 const btn = (color: string): React.CSSProperties => ({
-  padding: '5px 14px', borderRadius: 4, border: 'none',
-  cursor: 'pointer', fontSize: 12, fontWeight: 600,
-  backgroundColor: color, color: '#fff',
+  padding: '6px 14px', borderRadius: 8, border: '1px solid var(--os-border)',
+  cursor: 'pointer', fontSize: 13, fontWeight: 500,
+  backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)',
+  transition: 'all 0.15s',
 });
 const inp: React.CSSProperties = {
   padding: '7px 12px', backgroundColor: 'var(--os-surface)',
@@ -71,7 +72,7 @@ export default function PartnersTab() {
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
         <input placeholder="🔍 Поиск партнёра..." value={search} onChange={e => setSearch(e.target.value)}
           style={{ ...inp, minWidth: 260 }} />
-        <button onClick={() => setAdding(true)} style={btn('var(--os-aqua)')}>+ Добавить партнёра</button>
+        <button onClick={() => setAdding(true)} style={{...btn(''), backgroundColor:'var(--os-surface)', border:'1px solid var(--os-border)', color:'var(--os-text-1)', padding:'8px 16px', borderRadius:8, fontSize:13, fontWeight:500, cursor:'pointer'}}>+ Добавить партнёра</button>
         {msg && <span style={{ fontSize: 13, color: 'var(--os-red)' }}>{msg}</span>}
       </div>
 
