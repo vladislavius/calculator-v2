@@ -357,55 +357,27 @@ export default function Home() {
   useEffect(() => {
     const loadPartnersData = async () => {
       try {
-        // Load catering partners & menu
-        const { data: cpData } = await supabase.from('catering_partners').select('*');
-        if (cpData) setCateringPartners(cpData);
-
-        const { data: cmData } = await supabase.from('catering_menu').select('*');
-        if (cmData) setCateringMenu(cmData);
-
-        // Load watersports partners & catalog
-        const { data: wpData } = await supabase.from('watersports_partners').select('*');
-        if (wpData) setWatersportsPartners(wpData);
-
-        const { data: wcData } = await supabase.from('watersports_catalog').select('*');
-        if (wcData) setWatersportsCatalog(wcData);
-
-        // Load transfer options
-        const { data: toData } = await supabase.from('transfer_options').select('*');
-        if (toData) setTransferOptionsDB(toData);
-
-        // Load staff services
-        const { data: ssData } = await supabase.from('staff_services').select('*');
-        if (ssData) setStaffServices(ssData);
-
-        // Load boat partners
-        const { data: bpData } = await supabase.from('partners').select('*').order('name');
-        if (bpData) setBoatPartners(bpData);
-
-        // Load all boats for autocomplete
-        const { data: boatsData } = await supabase.from('boats').select('id, name, partner_id').eq('active', true).order('name');
-        if (boatsData) setAllBoats(boatsData);
-
-        // Load all routes for autocomplete
-        const { data: routesData } = await supabase.from('routes').select('id, name_en, name_ru').order('name_en');
-        if (routesData) setAllRoutes(routesData);
-
-        // Load partner menus (new system)
-        const { data: pmData } = await supabase.from('partner_menus').select('*').eq('active', true);
-        if (pmData) setPartnerMenus(pmData);
-
-        const { data: msData } = await supabase.from('menu_sets').select('*').eq('active', true);
-        if (msData) setPartnerMenuSets(msData);
-
-        // Загружаем доступность лодок для сортировки
         const today = new Date().toISOString().split('T')[0];
         const in30days = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-        const { data: unavailData } = await supabase
-          .from('boat_unavailable_dates')
-          .select('boat_id, date_from, date_to')
-          .gte('date_to', today)
-          .lte('date_from', in30days);
+
+        // Phase 1: Load search-critical data in parallel
+        const [
+          { data: bpData },
+          { data: boatsData },
+          { data: routesData },
+          { data: unavailData },
+          { data: calData },
+        ] = await Promise.all([
+          supabase.from('partners').select('*').order('name'),
+          supabase.from('boats').select('id, name, partner_id').eq('active', true).order('name'),
+          supabase.from('routes').select('id, name_en, name_ru').order('name_en'),
+          supabase.from('boat_unavailable_dates').select('boat_id, date_from, date_to').gte('date_to', today).lte('date_from', in30days),
+          supabase.from('boat_calendars').select('boat_id').eq('active', true),
+        ]);
+
+        if (bpData) setBoatPartners(bpData);
+        if (boatsData) setAllBoats(boatsData);
+        if (routesData) setAllRoutes(routesData);
         if (unavailData) {
           const unavailMap: Record<number, Array<{date_from: string, date_to: string}>> = {};
           unavailData.forEach((u: any) => {
@@ -414,13 +386,30 @@ export default function Home() {
           });
           setBoatUnavailMap(unavailMap);
         }
-        const { data: calData } = await supabase
-          .from('boat_calendars')
-          .select('boat_id')
-          .eq('active', true);
         if (calData) {
           setBoatCalSet(new Set(calData.map((c: any) => c.boat_id)));
         }
+
+        // Phase 2: Load modal data in parallel (non-blocking)
+        Promise.all([
+          supabase.from('catering_partners').select('*'),
+          supabase.from('catering_menu').select('*'),
+          supabase.from('watersports_partners').select('*'),
+          supabase.from('watersports_catalog').select('*'),
+          supabase.from('transfer_options').select('*'),
+          supabase.from('staff_services').select('*'),
+          supabase.from('partner_menus').select('*').eq('active', true),
+          supabase.from('menu_sets').select('*').eq('active', true),
+        ]).then(([cpRes, cmRes, wpRes, wcRes, toRes, ssRes, pmRes, msRes]) => {
+          if (cpRes.data) setCateringPartners(cpRes.data);
+          if (cmRes.data) setCateringMenu(cmRes.data);
+          if (wpRes.data) setWatersportsPartners(wpRes.data);
+          if (wcRes.data) setWatersportsCatalog(wcRes.data);
+          if (toRes.data) setTransferOptionsDB(toRes.data);
+          if (ssRes.data) setStaffServices(ssRes.data);
+          if (pmRes.data) setPartnerMenus(pmRes.data);
+          if (msRes.data) setPartnerMenuSets(msRes.data);
+        });
 
         // Загружаем все лодки по умолчанию (без поиска)
         const nowDate = new Date();
