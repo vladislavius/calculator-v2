@@ -25,6 +25,7 @@ interface CharterState {
   minBudget: string;
   maxBudget: string;
   sortBy: string;
+  pierFilter: string;
   season: string;
 
   // Results
@@ -156,6 +157,7 @@ export const useCharterStore = create<CharterState>((set, get) => ({
   minBudget: '',
   maxBudget: '',
   sortBy: 'price_asc',
+    pierFilter: '',
   season: 'auto',
 
   // Results

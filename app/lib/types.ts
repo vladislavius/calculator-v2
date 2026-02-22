@@ -27,6 +27,9 @@ export interface SearchResult {
   calculated_agent_total: number;
   base_pax: number;
   marina_name: string;
+  departure_pier?: string;
+  chat_url?: string;
+  calendar_url?: string;
   season?: string;
 }
 

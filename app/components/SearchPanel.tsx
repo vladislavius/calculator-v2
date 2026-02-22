@@ -33,6 +33,8 @@ export default function SearchPanel({ handleSearch }: { handleSearch: () => void
   const timeSlot = s.timeSlot;
   const setTimeSlot = (v: string) => s.set({ timeSlot: v });
   const boatType = s.boatType;
+  const pierFilter = s.pierFilter;
+  const setPierFilter = (v: string) => s.set({ pierFilter: v });
   const setBoatType = (v: string) => s.set({ boatType: v });
   const season = s.season;
   const setSeason = (v: string) => s.set({ season: v });
@@ -55,6 +57,8 @@ export default function SearchPanel({ handleSearch }: { handleSearch: () => void
     { value: 'sunset', label: 'Закат (3ч)' },
     { value: 'overnight', label: 'С ночёвкой' },
   ];
+  const piers = ['Chalong Pier', 'Royal Phuket Marina', 'Boat Lagoon', 'AoPo Grand Marina', 'Visit Panwa', 'Yacht Haven Marina', 'Coco Pier'];
+
   const boatTypes = [
     { value: '', label: 'Любой тип' },
     { value: 'catamaran', label: '⛵ Катамаран' },
@@ -111,6 +115,7 @@ export default function SearchPanel({ handleSearch }: { handleSearch: () => void
           <span>·</span>
           <span>👥 {adults}</span>
           {destination && <><span>·</span><span style={{maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>🏝️ {destination}</span></>}
+              {pierFilter && <><span>·</span><span>🚢 {pierFilter}</span></>}
         </div>
         <button onClick={() => setCollapsed(false)} style={{
           padding: isMob ? '5px 10px' : '6px 14px',
@@ -127,7 +132,7 @@ export default function SearchPanel({ handleSearch }: { handleSearch: () => void
   return (
     <div className="os-card" style={{ marginBottom: isMob ? 10 : 20, padding: pad }}>
       {/* ROW 1 */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : '150px 1fr 1fr 1fr', gap, marginBottom: gap }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : '130px 1fr 1fr 1fr 1fr', gap, marginBottom: gap }}>
         <div>
           <label style={lbl}>📅 Дата</label>
           <input type="date" value={searchDate} onChange={e => setSearchDate(e.target.value)} style={{...inp, colorScheme:'dark'}} />
@@ -169,6 +174,13 @@ export default function SearchPanel({ handleSearch }: { handleSearch: () => void
           <select value={selectedPartnerFilter} onChange={e => setSelectedPartnerFilter(e.target.value)} style={inp as any}>
             <option value="">Все</option>
             {boatPartners.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={lbl}>🚢 Пирс</label>
+          <select value={pierFilter} onChange={e => setPierFilter(e.target.value)} style={inp as any}>
+            <option value="">Все пирсы</option>
+            {piers.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
       </div>
