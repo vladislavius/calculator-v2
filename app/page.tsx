@@ -453,6 +453,7 @@ export default function Home() {
     const _minBudget = st.minBudget || '';
     const _maxBudget = st.maxBudget || '';
     const _sortBy = st.sortBy || 'price_asc';
+    const _pierFilter = st.pierFilter || '';
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc('search_available_boats', {
@@ -486,6 +487,13 @@ export default function Home() {
       if (_selectedPartnerFilter) {
         filtered = filtered.filter((r: SearchResult) =>
           r.partner_id === Number(_selectedPartnerFilter)
+        );
+      }
+
+      // Filter by pier
+      if (_pierFilter) {
+        filtered = filtered.filter((r: SearchResult) =>
+          r.departure_pier && r.departure_pier.toUpperCase().includes(_pierFilter.toUpperCase())
         );
       }
 

@@ -18,21 +18,37 @@ const ALLOWED_TABLES = [
 
 
 // Auto-sync photo from Google Sheets when boat is inserted
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQuotes = !inQuotes; continue; }
+    if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; continue; }
+    current += ch;
+  }
+  result.push(current.trim());
+  return result;
+}
+
 async function autoSyncBoatFromSheet(boatName: string, boatId: number, supabaseAdmin: any) {
   try {
-    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/184iVugfmLU0sy3e9B9IEf5P4zHkJdFPiDEKC00xeR5g/export?format=csv&gid=1788852346";
+    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/184iVugfmLU0sy3e9B9IEf5P4zHkJdFPiDEKC00xeR5g/export?format=csv";
     const res = await fetch(SHEETS_URL);
     const csv = await res.text();
     const lines = csv.split('\n');
-    const headers = lines[0].split(',').map((h: string) => h.replace(/"/g, '').trim());
+    const headers = parseCSVLine(lines[0]);
     const nameIdx = headers.indexOf('Real name');
     const photoIdx = headers.indexOf('Photo URL');
     const urlIdx = headers.indexOf('Boat URLs');
+    const chatIdx = headers.indexOf('URL CHAT');
+    const calIdx = headers.indexOf('Calendars');
     if (nameIdx === -1) return;
 
     const boatNameUpper = boatName.toUpperCase().trim();
     for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(',');
+      const cols = parseCSVLine(lines[i]);
       if (cols.length <= nameIdx) continue;
       const sheetName = cols[nameIdx]?.replace(/"/g, '').trim().toUpperCase();
       if (!sheetName) continue;
@@ -45,6 +61,14 @@ async function autoSyncBoatFromSheet(boatName: string, boatId: number, supabaseA
         if (urlIdx !== -1) {
           const websiteUrl = cols[urlIdx]?.replace(/"/g, '').trim();
           if (websiteUrl && websiteUrl.startsWith('http')) updates.website_url = websiteUrl;
+        }
+        if (chatIdx !== -1) {
+          const chatUrl = cols[chatIdx]?.replace(/"/g, '').trim();
+          if (chatUrl && chatUrl.startsWith('http')) updates.chat_url = chatUrl;
+        }
+        if (calIdx !== -1) {
+          const calUrl = cols[calIdx]?.replace(/"/g, '').trim();
+          if (calUrl && calUrl.startsWith('http')) updates.calendar_url = calUrl;
         }
         if (Object.keys(updates).length > 0) {
           await supabaseAdmin.from('boats').update(updates).eq('id', boatId);
