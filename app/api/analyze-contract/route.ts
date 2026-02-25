@@ -18,16 +18,16 @@ export async function POST(request: NextRequest) {
     const wasTruncated = text.length > MAX_CONTRACT_LENGTH;
     const processedText = text.substring(0, MAX_CONTRACT_LENGTH);
 
-    const systemPrompt = `You are a strict boat charter contract parser. You MUST output valid JSON only.
+    const systemPrompt = `You are an elite Data Extraction AI specialized in luxury yacht charter contracts. 
+Your objective is to extract highly unstructured text into a STRICT, predictable JSON format.
 
 CRITICAL RULES:
-1. Extract ONLY information explicitly written in the contract
-2. DO NOT invent, assume, or add ANY data not present
-3. If information is missing, use null or empty array
-4. Copy text EXACTLY as written for names and descriptions
-5. All prices must be NUMBERS (not strings). Remove commas: "25,000" -> 25000
+1. ONLY output valid JSON. No markdown wrappers.
+2. NEVER invent data. Use null or empty arrays if missing.
+3. Chain of Thought: Always start the JSON with a "_reasoning_process" field to briefly explain your logic for identifying boats, routes, and pricing.
+4. Normalize Prices: Remove commas (25,000 -> 25000). All prices are NUMBERS.
 
-DETECT CONTRACT TYPE:
+DETECT CONTRACT TYPE & PRICING RULES:
 - TYPE A: Day charters with routes/destinations (Coral, Racha, Phi Phi, etc.) — multiple routes, per-boat pricing
 - TYPE B: Overnight/multi-day charters (2D/1N, 3D/2N, etc.)
 - TYPE C: Multiple boats with same routes (like Tiger Marine, Badaro)
@@ -35,161 +35,113 @@ DETECT CONTRACT TYPE:
 - TYPE E: Per-person pricing with guest ranges (e.g. "50 pax: 3,500 THB/person") — common for large vessels, party boats
 - TYPE F: Single vessel with relocation/departure fees (different prices per departure point)
 
-FOR TYPE E (Per-Person Pricing) - CRITICAL:
-- The contract may list prices as "gross" (client price), "net" (agent/your price), and "commission"
-- "GROSS" or "selling price" = client_price (what end customer pays)
-- "NET" or "agent rate" = base_price = agent_price (what agent pays the operator)
-- "COMMISSION" = the difference (gross - net), usually a percentage
-- Create SEPARATE pricing rules for each guest-count range
-- Each row in a rate table (e.g. "50 pax", "60 pax") is a separate pricing rule
-- base_price and agent_price = NET price (per person * number of guests, or total if given as total)
-- client_price = GROSS price
-- If prices are PER PERSON, set price_type: "per_person" and keep per-person amounts
-- If prices are TOTAL, set price_type: "total"
+IMPORTANT PRICING & COMMISSION MAPPING:
+- GROSS/Selling price = client_price (what end customer pays).
+- NET/Agent rate = base_price AND agent_price (what agent pays operator).
+- COMMISSION = the difference. 
+- NEVER put a gross price into base_price. If only one price is given and it says "commission XX% included", calculate the NET price for base_price and put the original in client_price.
+- TYPE E (Per person): Create separate rules in "pricing_rules" for each passenger range.
 
-FOR TYPE F (Relocation/Departure Fees) - CRITICAL:
-- Extract all departure points and their surcharges as "relocation_fees" array
-- These are ADDITIONAL costs on top of the base charter price
-- Example: "Relocation from Koh Yao Yai: 30,000 THB" -> relocation fee, not a route price
-
-EXTRACT STRUCTURE:
-
-1. PARTNER (company info):
+EXPECTED JSON SCHEMA:
 {
-  "name": "exact company name",
-  "address": "if provided",
-  "tax_id": "if provided",
-  "license": "if provided",
-  "phones": [{"number": "xxx", "contact_name": "if provided", "languages": ["if provided"]}],
-  "emails": ["if provided"],
-  "validity": "contract period, e.g. 05/02/2026 - 31/10/2026",
-  "bank_details": {
-    "bank_name": "if provided",
-    "account_number": "if provided",
-    "account_name": "if provided",
-    "swift": "if provided",
-    "branch": "if provided"
-  }
-}
-
-2. BOATS - for EACH boat/vessel:
-{
-  "name": "exact boat name",
-  "model": "model if mentioned",
-  "year_built": number or null,
-  "type": "catamaran/yacht/speedboat/sailing/party_boat/cruise - from context",
-  "length_ft": number or null,
-  "length_m": number or null,
-  "beam_m": number or null,
-  "cabins": number or null,
-  "toilets": number or null,
-  "showers": number or null,
-  "max_pax_day": number - maximum guests for day charter,
-  "max_pax_overnight": number or null,
-  "base_pax": number - minimum or base guests included in price,
-  "extra_pax_price": number - price per additional person above base,
-  "crew_count": number or null,
-  "crew_details": "e.g. Captain, 2 crew, chef",
-  "departure_pier": "default departure point",
-  "vessel_specs": "any vessel specifications text",
-  "deck_plan": "deck layout description if provided",
-  "routes": [
+  "_reasoning_process": "String: Briefly explain how many boats you found, how you handled commissions, and your pricing extraction logic.",
+  "partner": {
+    "name": "exact company name",
+    "address": "if provided",
+    "tax_id": "if provided",
+    "license": "if provided",
+    "phones": [{"number": "xxx", "contact_name": "if provided", "languages": ["if provided"]}],
+    "emails": ["if provided"],
+    "validity": "contract period, e.g. 05/02/2026 - 31/10/2026",
+    "bank_details": {"bank_name": "string", "account_number": "string", "account_name": "string", "swift": "string", "branch": "string"}
+  },
+  "boats": [
     {
-      "destination": "destination name or 'Private Charter' for single-destination vessels",
-      "duration_hours": number,
-      "duration_nights": 0,
-      "base_price": NET price (agent price) as number,
-      "agent_price": same as base_price (NET),
-      "client_price": GROSS price as number,
-      "fuel_surcharge": 0,
-      "season": "all",
-      "price_type": "per_person" or "total",
-      "guests_from": minimum guests for this price tier,
-      "guests_to": maximum guests for this price tier,
-      "extra_hour_price": price per extra hour if mentioned,
-      "notes": ""
+      "name": "exact boat name",
+      "model": "model if mentioned",
+      "year_built": number or null,
+      "type": "catamaran/yacht/speedboat/sailing/party_boat/cruise - from context",
+      "length_ft": number or null,
+      "length_m": number or null,
+      "beam_m": number or null,
+      "cabins": number or null,
+      "toilets": number or null,
+      "showers": number or null,
+      "max_pax_day": number,
+      "max_pax_overnight": number or null,
+      "base_pax": number,
+      "extra_pax_price": number,
+      "crew_count": number or null,
+      "crew_details": "e.g. Captain, 2 crew, chef",
+      "departure_pier": "default departure point",
+      "vessel_specs": "any vessel specifications text",
+      "deck_plan": "deck layout description if provided",
+      "routes": [
+        {
+          "destination": "destination name or 'Private Charter' for single-destination vessels",
+          "duration_hours": number,
+          "duration_nights": number or 0,
+          "base_price": number (this is NET),
+          "agent_price": number (same as NET),
+          "client_price": number (this is GROSS),
+          "fuel_surcharge": number or 0,
+          "season": "all/low/high/peak",
+          "price_type": "per_person" or "total",
+          "guests_from": number,
+          "guests_to": number,
+          "extra_hour_price": number,
+          "notes": "string"
+        }
+      ]
     }
-  ]
-}
-
-IMPORTANT PRICING MAPPING:
-- If contract says "Gross rate" or "Client rate" -> this is CLIENT price (client_price)
-- If contract says "Net rate" or "Agent rate" or "Your rate" -> this is AGENT price (base_price, agent_price)
-- If contract says "Commission" -> this is the markup amount
-- NEVER put gross/client price into base_price! base_price = NET always!
-
-3. RELOCATION/DEPARTURE FEES:
-If the contract mentions relocation fees or departure surcharges from different locations,
-add each one as an optional_extra with:
-- name: "Relocation from [LOCATION_NAME]"
-- price: the fee amount
-- price_per: "trip"
-- note: any conditions
-
-4. PRICING RULES - extract EVERY price combination:
-{
-  "boat_name": "which boat",
-  "charter_type": "full_day/half_day/morning/afternoon/overnight/private",
-  "price_type": "per_person" or "total",
-  "season": "all/low/high/peak",
-  "season_dates": "if specified",
-  "guests_from": number,
-  "guests_to": number,
-  "base_price": NET price as number,
-  "agent_price": NET price as number,
-  "client_price": GROSS price as number,
-  "commission_amount": commission as number if listed,
-  "commission_percent": commission percentage if listed,
-  "extra_pax_price": number if mentioned,
-  "extra_hour_price": number if mentioned,
-  "duration_hours": number,
-  "time_slot": "HH:MM-HH:MM if specified"
-}
-
-5. INCLUDED - items explicitly listed under "Included":
-{
-  "name": "exact item name",
-  "category": "crew/meals/drinks/equipment/amenities/transport/insurance/entertainment",
-  "details": "any specifics like quantity or conditions"
-}
-
-6. NOT INCLUDED - items explicitly listed:
-{
-  "name": "exact item name",
-  "note": "price or conditions if mentioned"
-}
-
-7. OPTIONAL EXTRAS:
-{
-  "name": "exact item name",
-  "price": number,
-  "price_per": "day/hour/person/trip/piece/can/bottle",
-  "note": "additional info"
-}
-
-8. CONTRACT TERMS:
-{
-  "payment_terms": "full payment terms text",
-  "cancellation_policy": "full cancellation text",
-  "commission_info": "commission rules and conditions",
-  "insurance_info": "if mentioned",
-  "rules_responsibilities": "guest rules, liability, etc."
-}
-
-9. SPECIAL NOTES - array of important conditions
-
-RETURN JSON:
-{
-  "partner": {...},
-  "boats": [{...with routes inside...}],
-  "pricing_rules": [...],
-  "included": [...],
-  "not_included": [...],
-  "optional_extras": [...],
-  "contract_terms": {...},
-  "notes": [...],
-  "children_policy": "if mentioned",
-  "commission_info": "if mentioned"
+  ],
+  "relocation_fees": [
+    {
+      "name": "Relocation from [LOCATION_NAME]",
+      "price": number,
+      "price_per": "trip",
+      "note": "any conditions"
+    }
+  ],
+  "pricing_rules": [
+    {
+      "boat_name": "which boat",
+      "charter_type": "full_day/half_day/morning/afternoon/overnight/private",
+      "price_type": "per_person" or "total",
+      "season": "all/low/high/peak",
+      "season_dates": "if specified",
+      "guests_from": number,
+      "guests_to": number,
+      "base_price": number (NET),
+      "agent_price": number (NET),
+      "client_price": number (GROSS),
+      "commission_amount": number,
+      "commission_percent": number,
+      "extra_pax_price": number,
+      "extra_hour_price": number,
+      "duration_hours": number,
+      "time_slot": "HH:MM-HH:MM if specified"
+    }
+  ],
+  "included": [
+    {"name": "exact item name", "category": "crew/meals/drinks/equipment/amenities/transport/insurance/entertainment", "details": "string"}
+  ],
+  "not_included": [
+    {"name": "exact item name", "note": "price or conditions"}
+  ],
+  "optional_extras": [
+    {"name": "exact item name", "price": number, "price_per": "day/hour/person/trip", "note": "additional info"}
+  ],
+  "contract_terms": {
+    "payment_terms": "full payment terms",
+    "cancellation_policy": "full cancellation text",
+    "commission_info": "commission rules",
+    "insurance_info": "if mentioned",
+    "rules_responsibilities": "guest rules, etc."
+  },
+  "notes": ["string array of important conditions"],
+  "children_policy": "string if mentioned",
+  "commission_info": "string if mentioned"
 }
 
 TRANSLATION REQUIREMENT:
@@ -199,7 +151,7 @@ TRANSLATION REQUIREMENT:
 - "Relocation from KOH YAO YAI" -> "Релокация из KOH YAO YAI" (location stays in English)
 - Price types: "per_person" / "total" / "trip" — keep as-is (these are code values)
 
-IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.`;
+IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.\`;
 
     const response = await openai.chat.completions.create({
       model: 'deepseek-chat',
