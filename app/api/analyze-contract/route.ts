@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
     if (!process.env.DEEPSEEK_API_KEY) {
       return NextResponse.json({ success: false, error: 'API key not configured' }, { status: 500 });
     }
-    
-    const openai = new OpenAI({ 
+
+    const openai = new OpenAI({
       apiKey: process.env.DEEPSEEK_API_KEY,
       baseURL: 'https://api.deepseek.com/v1'
     });
@@ -151,7 +151,7 @@ TRANSLATION REQUIREMENT:
 - "Relocation from KOH YAO YAI" -> "Релокация из KOH YAO YAI" (location stays in English)
 - Price types: "per_person" / "total" / "trip" — keep as-is (these are code values)
 
-IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.\`;
+IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.`;
 
     const response = await openai.chat.completions.create({
       model: 'deepseek-chat',
@@ -167,7 +167,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
     console.log('Raw AI response length:', content.length);
     console.log('Raw AI response first 500:', content.substring(0, 500));
     console.log('Raw AI response last 500:', content.substring(content.length - 500));
-    
+
     content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     // Check if response was likely truncated (ends without proper closing)
@@ -203,21 +203,21 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
       try { return JSON.parse(str); } catch (e: any) { console.log('Direct parse failed:', e.message); }
 
       let fixed = str;
-      
+
       // Remove trailing commas
       fixed = fixed.replace(/,\s*([}\]])/g, '$1');
-      try { return JSON.parse(fixed); } catch {}
-      
+      try { return JSON.parse(fixed); } catch { }
+
       // Fix single quotes to double quotes in keys
       fixed = fixed.replace(/([{,]\s*)'([^']+)'\s*:/g, '$1"$2":');
-      try { return JSON.parse(fixed); } catch {}
-      
+      try { return JSON.parse(fixed); } catch { }
+
       // Fix unescaped newlines inside strings
       fixed = fixed.replace(/(?<=": ")(.*?)(?="[,}\]])/g, (match) => {
         return match.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
       });
-      try { return JSON.parse(fixed); } catch {}
-      
+      try { return JSON.parse(fixed); } catch { }
+
       // Truncate to last complete structure
       const lastBrace = fixed.lastIndexOf('}');
       const lastBracket = fixed.lastIndexOf(']');
@@ -230,26 +230,26 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
         const csb = (truncated.match(/\]/g) || []).length;
         truncated += '}'.repeat(Math.max(0, ob - cb));
         truncated += ']'.repeat(Math.max(0, osb - csb));
-        try { return JSON.parse(truncated); } catch {}
-        
+        try { return JSON.parse(truncated); } catch { }
+
         const lastComma = truncated.lastIndexOf(',');
         if (lastComma > 0) {
           let chopped = truncated.substring(0, lastComma);
           const ob2 = (chopped.match(/{/g) || []).length;
           const cb2 = (chopped.match(/}/g) || []).length;
           chopped += '}'.repeat(Math.max(0, ob2 - cb2));
-          try { return JSON.parse(chopped); } catch {}
+          try { return JSON.parse(chopped); } catch { }
         }
       }
-      
+
       // Extract first JSON object
       const match = str.match(/\{[\s\S]*\}/);
       if (match) {
-        try { return JSON.parse(match[0]); } catch {}
+        try { return JSON.parse(match[0]); } catch { }
         let ext = match[0].replace(/,\s*([}\]])/g, '$1');
-        try { return JSON.parse(ext); } catch {}
+        try { return JSON.parse(ext); } catch { }
       }
-      
+
       console.log('All JSON fix attempts failed. Content sample:', str.substring(0, 1000));
       throw new Error('Failed to parse AI response as JSON - sample: ' + str.substring(0, 300));
     };
@@ -268,9 +268,9 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
     }
 
     if (!data.partner && !data.boats?.length) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'AI could not parse contract data. Try a different format.' 
+      return NextResponse.json({
+        success: false,
+        error: 'AI could not parse contract data. Try a different format.'
       }, { status: 422 });
     }
 
@@ -281,7 +281,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
       if (boatsWithoutRoutes.length > 0) {
         warnings.push('Boats without routes: ' + boatsWithoutRoutes.map((b: any) => b.name).join(', '));
       }
-      const boatsWithoutPrices = data.boats.filter((b: any) => 
+      const boatsWithoutPrices = data.boats.filter((b: any) =>
         b.routes?.length > 0 && b.routes.every((r: any) => !r.base_price || r.base_price === 0)
       );
       if (boatsWithoutPrices.length > 0) {
@@ -295,7 +295,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
 
     // Validate pricing: check if gross/net were correctly assigned
     if (data.pricing_rules?.length > 0) {
-      const hasMismatch = data.pricing_rules.some((p: any) => 
+      const hasMismatch = data.pricing_rules.some((p: any) =>
         p.client_price && p.base_price && p.client_price < p.base_price
       );
       if (hasMismatch) {
@@ -307,8 +307,8 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
       warnings.push('Relocation fees found: ' + data.relocation_fees.length + ' departure points');
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       data,
       warnings: warnings.length > 0 ? warnings : undefined,
       truncated: wasTruncated || undefined
