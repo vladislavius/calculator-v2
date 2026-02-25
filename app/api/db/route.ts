@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { validateSessionToken } from '@/lib/admin-session';
 
-// Verify admin session token
+// Verify admin session via signed httpOnly cookie
 function isAuthorized(req: NextRequest): boolean {
-  const token = req.headers.get('x-admin-token');
-  return !!token && token.length === 64;
+  const token = req.cookies.get('admin_session')?.value;
+  return validateSessionToken(token);
 }
 
 // Tables that admin can write to

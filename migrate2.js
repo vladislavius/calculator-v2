@@ -1,7 +1,9 @@
-const OLD_URL = 'https://supabase.assisthelp.ru/rest/v1';
-const OLD_KEY = 'OLD_SUPABASE_KEY_REMOVED';
-const NEW_URL = 'https://jcidlaaqyehcohwzmwnz.supabase.co/rest/v1';
-const NEW_KEY = 'NEW_SUPABASE_KEY_REMOVED';
+// IMPORTANT: Never commit real API keys. Set these in your environment before running.
+// Usage: OLD_SUPABASE_URL=... OLD_SUPABASE_KEY=... NEW_SUPABASE_URL=... NEW_SUPABASE_KEY=... node migrate2.js
+const OLD_URL = (process.env.OLD_SUPABASE_URL || '').replace(/\/$/, '') + '/rest/v1';
+const OLD_KEY = process.env.OLD_SUPABASE_KEY || (() => { throw new Error('OLD_SUPABASE_KEY env var is required'); })();
+const NEW_URL = (process.env.NEW_SUPABASE_URL || '').replace(/\/$/, '') + '/rest/v1';
+const NEW_KEY = process.env.NEW_SUPABASE_KEY || (() => { throw new Error('NEW_SUPABASE_KEY env var is required'); })();
 
 const tables = [
   'partners', 'boats', 'routes', 'options_catalog',

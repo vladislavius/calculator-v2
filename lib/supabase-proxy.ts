@@ -1,10 +1,3 @@
-const STORAGE_KEY = 'admin_session_token';
-
-function getAdminToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(STORAGE_KEY);
-}
-
 interface ProxyResult<T = any> {
   data: T | null;
   error: { message: string } | null;
@@ -17,14 +10,12 @@ async function dbWrite(body: {
   match?: Record<string, any>;
   select?: string;
 }): Promise<ProxyResult> {
-  const token = getAdminToken();
-  if (!token) return { data: null, error: { message: 'Not authorized' } };
-
+  // Session token is in an httpOnly cookie — sent automatically by the browser,
+  // not accessible to JS (XSS-safe). No manual token handling needed here.
   const res = await fetch('/api/db', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-admin-token': token
     },
     body: JSON.stringify(body)
   });

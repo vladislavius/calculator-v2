@@ -34,6 +34,15 @@ interface PDFParams {
   customNotes: string;
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export function generatePDFContent(p: PDFParams): string {
   const { selectedBoat, totals, lang } = p;
 
@@ -58,7 +67,7 @@ export function generatePDFContent(p: PDFParams): string {
   // 2. Included Options
   const includedOptions = p.boatOptions
     .filter(opt => opt.status === 'included')
-    .map(opt => lang === 'en' ? (opt.option_name || opt.option_name_ru || '') : (opt.option_name_ru || opt.option_name || ''))
+    .map(opt => escapeHtml(lang === 'en' ? (opt.option_name || opt.option_name_ru || '') : (opt.option_name_ru || opt.option_name || '')))
     .filter(Boolean);
 
   // 3. Generate HTML Sections from Items
@@ -67,8 +76,8 @@ export function generatePDFContent(p: PDFParams): string {
     if (categoryItems.length === 0) return '';
 
     const rows = categoryItems.map(i => {
-      const name = lang === 'en' ? i.name : (i.nameRu || i.name);
-      return `<tr><td>${name}${i.details ? ` <br><span style="color:#666;font-size:9px">(${i.details})</span>` : ''}</td><td>${i.quantity} ${i.unit}</td><td>${fmt(i.total)}</td></tr>`;
+      const name = escapeHtml(lang === 'en' ? i.name : (i.nameRu || i.name));
+      return `<tr><td>${name}${i.details ? ` <br><span style="color:#666;font-size:9px">(${escapeHtml(i.details)})</span>` : ''}</td><td>${escapeHtml(i.quantity)} ${escapeHtml(i.unit)}</td><td>${fmt(i.total)}</td></tr>`;
     }).join('');
 
     return `<div class="section"><div class="section-title">${title}</div><table><tr><th>${headers[0]}</th><th>${headers[1]}</th><th>${headers[2]}</th></tr>${rows}</table></div>`;
@@ -122,7 +131,7 @@ export function generatePDFContent(p: PDFParams): string {
   const boatBaseRow = `<div class="total-row"><span>${t('total.boatBase', lang)}</span><span>${fmt(boatPrice)}</span></div>`;
 
   const extraGuestsRows = items.filter(i => i.category === 'boat' && i.id !== 'boat_base').map(i => {
-    const name = lang === 'en' ? i.name : (i.nameRu || i.name);
+    const name = escapeHtml(lang === 'en' ? i.name : (i.nameRu || i.name));
     return `<div class="total-row"><span>${name}</span><span>+${fmt(i.total)}</span></div>`;
   }).join('');
 
@@ -150,8 +159,8 @@ export function generatePDFContent(p: PDFParams): string {
 
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Расчёт - ' + selectedBoat.boat_name + '</title><style>' + css + '</style></head><body>' +
     '<div class="header"><div class="logo">' + t('pdf.company', lang) + '</div><div class="subtitle">' + t('pdf.footer', lang) + '</div><div class="date">' + new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }) + '</div></div>' +
-    '<div class="yacht-info"><div class="yacht-name">' + (selectedBoat.boat_name || 'Яхта') + '</div><div class="yacht-details"><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.route', lang) + '</div><div class="yacht-detail-value">' + (selectedBoat.route_name || 'По запросу') + '</div></div><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.duration', lang) + '</div><div class="yacht-detail-value">' + (selectedBoat.duration || (lang === 'en' ? '8 hours' : '8 часов')) + '</div></div><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.guestsLabel', lang) + '</div><div class="yacht-detail-value">' + p.totalGuests + ' (' + t('pdf.adults', lang) + ': ' + (p.adults + p.extraAdults) + ', ' + (lang === 'en' ? 'children 3-11' : 'дети 3-11') + ': ' + p.children3to11 + ', ' + t('wa.under3', lang) + ': ' + p.childrenUnder3 + ')</div></div><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.boatPrice', lang) + '</div><div class="yacht-detail-value">' + fmt(boatPrice) + '</div></div></div></div>' +
-    (includedOptions.length > 0 ? '<div class="section"><div class="section-title">' + t('pdf.included', lang) + '</div><div class="included-list">' + includedOptions.map(opt => '<span class="included-item">' + opt + '</span>').join('') + '</div></div>' : '') +
+    '<div class="yacht-info"><div class="yacht-name">' + escapeHtml(selectedBoat.boat_name || 'Яхта') + '</div><div class="yacht-details"><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.route', lang) + '</div><div class="yacht-detail-value">' + escapeHtml(selectedBoat.route_name || 'По запросу') + '</div></div><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.duration', lang) + '</div><div class="yacht-detail-value">' + escapeHtml(selectedBoat.duration || (lang === 'en' ? '8 hours' : '8 часов')) + '</div></div><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.guestsLabel', lang) + '</div><div class="yacht-detail-value">' + escapeHtml(p.totalGuests) + ' (' + t('pdf.adults', lang) + ': ' + escapeHtml(p.adults + p.extraAdults) + ', ' + (lang === 'en' ? 'children 3-11' : 'дети 3-11') + ': ' + escapeHtml(p.children3to11) + ', ' + t('wa.under3', lang) + ': ' + escapeHtml(p.childrenUnder3) + ')</div></div><div class="yacht-detail"><div class="yacht-detail-label">' + t('pdf.boatPrice', lang) + '</div><div class="yacht-detail-value">' + fmt(boatPrice) + '</div></div></div></div>' +
+    (includedOptions.length > 0 ? '<div class="section"><div class="section-title">' + t('pdf.included', lang) + '</div><div class="included-list">' + includedOptions.map(opt => '<span class="included-item">' + escapeHtml(opt) + '</span>').join('') + '</div></div>' : '') +
     extrasHtml +
     dishesHtml +
     (cateringHtml ? cateringHtml.replace('</table>', (conditionsHtml || '') + '</table>') : '') + // Hack to inject conditions
@@ -164,6 +173,6 @@ export function generatePDFContent(p: PDFParams): string {
     '<div class="total-section">' +
     summaryHtml +
     '<div class="total-row final"><span>' + t('pdf.totalToPay', lang) + '</span><span>' + fmt(finalTotal) + '</span></div></div>' +
-    (p.customNotes ? '<div class="section" style="margin-top:20px;padding:15px;background:#fff3cd;border-radius:8px;border:1px solid #ffc107"><div class="section-title" style="color:#856404">' + t('pdf.notes', lang) + '</div><p style="margin:10px 0 0;color:#856404">' + p.customNotes.replace(/\n/g, '<br>') + '</p></div>' : '') +
+    (p.customNotes ? '<div class="section" style="margin-top:20px;padding:15px;background:#fff3cd;border-radius:8px;border:1px solid #ffc107"><div class="section-title" style="color:#856404">' + t('pdf.notes', lang) + '</div><p style="margin:10px 0 0;color:#856404">' + escapeHtml(p.customNotes).replace(/\n/g, '<br>') + '</p></div>' : '') +
     '<div class="footer"><p><strong>' + t('pdf.company', lang) + '</strong> — ' + t('pdf.footer', lang) + '</p><p>WhatsApp: +66 810507171 • Email: tratatobookings@gmail.com</p></div></body></html>';
 }

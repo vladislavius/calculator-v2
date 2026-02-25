@@ -1,14 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { quote, client, notes } = await request.json();
+
+    const boatName = escapeHtml(quote.boat?.name || 'Yacht Charter');
+    const boatModel = escapeHtml(quote.boat?.model || '');
+    const routeName = escapeHtml(quote.route?.name || quote.route?.destination || '-');
+    const duration = quote.nights > 0
+      ? escapeHtml((quote.nights + 1) + 'D/' + quote.nights + 'N')
+      : 'Day Trip';
+    const guests = escapeHtml(quote.guests);
+    const startDate = escapeHtml(quote.startDate || 'TBD');
+    const season = escapeHtml(quote.season);
+    const extrasRows = (quote.extras ?? [])
+      .map((e: any) =>
+        '<tr><td>' + escapeHtml(e.name) + ' x' + escapeHtml(e.quantity) + '</td><td class="price">' +
+        Number(e.price * e.quantity).toLocaleString() + '</td></tr>'
+      ).join('');
+    const clientBlock = client?.name
+      ? '<div class="section" style="margin-top:30px;"><div class="section-title">Client</div><p><strong>' +
+        escapeHtml(client.name) + '</strong><br>' + escapeHtml(client.email || '') +
+        '<br>' + escapeHtml(client.phone || '') + '</p></div>'
+      : '';
+    const notesBlock = notes
+      ? '<div class="section"><div class="section-title">Notes</div><p>' + escapeHtml(notes) + '</p></div>'
+      : '';
 
     const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Quote - ${quote.boat?.name || 'Yacht Charter'}</title>
+  <title>Quote - ${boatName}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
@@ -37,46 +69,46 @@ export async function POST(request: NextRequest) {
     <div class="logo">Phuket Yacht Charter</div>
     <div class="quote-date">Quote Date: ${new Date().toLocaleDateString()}</div>
   </div>
-  
+
   <div class="hero">
-    <h1>${quote.boat?.name || 'Yacht Charter'}</h1>
-    <div>${quote.boat?.model || ''}</div>
+    <h1>${boatName}</h1>
+    <div>${boatModel}</div>
     <div class="hero-details">
-      <div class="hero-detail"><strong>Route:</strong> ${quote.route?.name || quote.route?.destination || '-'}</div>
-      <div class="hero-detail"><strong>Duration:</strong> ${quote.nights > 0 ? (quote.nights + 1) + 'D/' + quote.nights + 'N' : 'Day Trip'}</div>
-      <div class="hero-detail"><strong>Guests:</strong> ${quote.guests}</div>
-      <div class="hero-detail"><strong>Date:</strong> ${quote.startDate || 'TBD'}</div>
+      <div class="hero-detail"><strong>Route:</strong> ${routeName}</div>
+      <div class="hero-detail"><strong>Duration:</strong> ${duration}</div>
+      <div class="hero-detail"><strong>Guests:</strong> ${guests}</div>
+      <div class="hero-detail"><strong>Date:</strong> ${startDate}</div>
     </div>
   </div>
-  
+
   <div class="section">
     <div class="section-title">Price Breakdown</div>
     <table>
       <tr><th>Description</th><th class="price">Amount (THB)</th></tr>
-      <tr><td>Charter Base Price (${quote.season} season)</td><td class="price">${Number(quote.basePrice).toLocaleString()}</td></tr>
-      ${quote.extras?.map((e: any) => '<tr><td>' + e.name + ' x' + e.quantity + '</td><td class="price">' + (Number(e.price) * e.quantity).toLocaleString() + '</td></tr>').join('') || ''}
+      <tr><td>Charter Base Price (${season} season)</td><td class="price">${Number(quote.basePrice).toLocaleString()}</td></tr>
+      ${extrasRows}
       <tr><td><strong>Subtotal</strong></td><td class="price"><strong>${Number(quote.subtotal).toLocaleString()}</strong></td></tr>
-      ${quote.markupAmount > 0 ? '<tr><td>Service Fee (' + quote.markup + '%)</td><td class="price">' + Number(quote.markupAmount).toLocaleString() + '</td></tr>' : ''}
+      ${quote.markupAmount > 0 ? '<tr><td>Service Fee (' + escapeHtml(quote.markup) + '%)</td><td class="price">' + Number(quote.markupAmount).toLocaleString() + '</td></tr>' : ''}
     </table>
   </div>
-  
+
   <div class="total-box">
     <div>TOTAL</div>
     <div class="total-amount">THB ${Number(quote.total).toLocaleString()}</div>
   </div>
-  
-  ${client?.name ? '<div class="section" style="margin-top:30px;"><div class="section-title">Client</div><p><strong>' + client.name + '</strong><br>' + (client.email || '') + '<br>' + (client.phone || '') + '</p></div>' : ''}
-  
-  ${notes ? '<div class="section"><div class="section-title">Notes</div><p>' + notes + '</p></div>' : ''}
-  
+
+  ${clientBlock}
+
+  ${notesBlock}
+
   <div class="terms">
     <strong>Terms:</strong> 50% deposit required. Full payment 7 days before. Free cancellation 14+ days before.
   </div>
-  
+
   <div class="footer">
     Phuket Yacht Charter | booking@phuketcharter.com | +66 81 234 5678
   </div>
-  
+
   <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>`;

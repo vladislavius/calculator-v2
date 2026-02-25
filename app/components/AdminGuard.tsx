@@ -1,8 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-const STORAGE_KEY = 'admin_session_token';
-
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState(false);
   const [pin, setPin] = useState('');
@@ -11,10 +9,13 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // If token exists, user was previously authorized this session
-    const token = localStorage.getItem(STORAGE_KEY);
-    if (token && token.length === 64) setAuthorized(true);
-    setChecking(false);
+    // Validate session via server — token is in an httpOnly cookie, not readable by JS
+    fetch('/api/auth/check')
+      .then(res => {
+        if (res.ok) setAuthorized(true);
+      })
+      .catch(() => {/* network error — show login form */})
+      .finally(() => setChecking(false));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,8 +31,8 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       });
       const data = await res.json();
 
-      if (data.success && data.token) {
-        localStorage.setItem(STORAGE_KEY, data.token);
+      if (data.success) {
+        // Session token is set as httpOnly cookie by the server — not accessible to JS
         setAuthorized(true);
       } else {
         setError('Неверный пин-код');
