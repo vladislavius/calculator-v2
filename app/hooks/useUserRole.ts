@@ -5,15 +5,8 @@ export function useUserRole() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
-    if (!token) {
-      setRole(null);
-      setLoading(false);
-      return;
-    }
-    fetch('/api/auth/me', {
-      headers: { 'x-session-token': token }
-    })
+    // Token is in httpOnly cookie — browser sends it automatically
+    fetch('/api/auth/me', { method: 'GET' })
       .then(r => r.json())
       .then(data => {
         setRole(data.user?.role ?? null);
