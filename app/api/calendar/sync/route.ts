@@ -39,7 +39,7 @@ function parseIcal(icalText: string): Array<{title: string, dateFrom: string, da
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get('x-session-token');
+    const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token');
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

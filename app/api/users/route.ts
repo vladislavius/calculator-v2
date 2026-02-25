@@ -8,7 +8,7 @@ const sb = createClient(
 );
 
 async function getSessionUser(req: NextRequest) {
-  const token = req.headers.get('x-session-token');
+  const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token');
   if (!token) return null;
   const { data: session } = await sb.from('app_sessions').select('user_id, expires_at').eq('token', token).single();
   if (!session || new Date(session.expires_at) < new Date()) return null;

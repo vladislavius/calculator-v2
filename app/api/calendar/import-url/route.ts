@@ -34,7 +34,7 @@ function parseIcal(text: string): Array<{title: string, dateFrom: string, dateTo
 }
 
 export async function POST(req: NextRequest) {
-  const token = req.headers.get('x-session-token') || req.headers.get('x-api-token');
+  const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token') || req.headers.get('x-api-token');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
   const apiToken = process.env.CALENDAR_API_TOKEN;

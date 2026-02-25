@@ -29,10 +29,10 @@ async function validateToken(token: string) {
   return user;
 }
 
-// GET — токен из header x-session-token
+// GET — token from httpOnly cookie (primary) or x-session-token header (fallback)
 export async function GET(req: NextRequest) {
   try {
-    const token = req.headers.get('x-session-token');
+    const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token');
     if (!token) return NextResponse.json({ valid: false }, { status: 401 });
 
     const user = await validateToken(token);
@@ -44,11 +44,12 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST — токен из body или header
+// POST — token from httpOnly cookie (primary), header, or body (legacy)
 export async function POST(req: NextRequest) {
   try {
+    const cookieToken = req.cookies.get('os_token')?.value;
     const headerToken = req.headers.get('x-session-token');
-    let token = headerToken;
+    let token = cookieToken || headerToken;
 
     if (!token) {
       const body = await req.json().catch(() => ({}));

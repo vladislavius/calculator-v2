@@ -90,7 +90,6 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
   const showMsg = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
   const showCalMsg = (m: string) => { setCalMsg(m); setTimeout(() => setCalMsg(''), 3000); };
 
-  const getToken = () => JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
 
   useEffect(() => { loadData(); }, [partnerId]);
 
@@ -150,10 +149,9 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
     if (!calBoatId || !manualForm.date_from || !manualForm.date_to) {
       showCalMsg('❌ Выберите лодку и даты'); return;
     }
-    const token = getToken();
     const res = await fetch('/api/calendar/unavailable', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ boat_id: calBoatId, ...manualForm, source: 'manual' }),
     });
     if (res.ok) {
@@ -166,9 +164,8 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
   }
 
   async function deleteUnavailDate(id: number) {
-    const token = getToken();
     await fetch('/api/calendar/unavailable', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-session-token': token }, body: JSON.stringify({ id }),
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }),
     });
     loadCalendarData();
   }
@@ -177,10 +174,9 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
     if (!icalForm.boat_id || !icalForm.ical_url) {
       showCalMsg('❌ Выберите лодку и введите ссылку'); return;
     }
-    const token = getToken();
     const res = await fetch('/api/calendar/boats', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ boat_id: Number(icalForm.boat_id), calendar_type: 'ical', ical_url: icalForm.ical_url, active: true }),
     });
     if (res.ok) {
@@ -193,11 +189,10 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
   }
 
   async function syncIcal(boatId: number) {
-    const token = getToken();
     setCalLoading(true);
     const res = await fetch('/api/calendar/sync', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ boat_id: boatId }),
     });
     const data = await res.json();
@@ -459,9 +454,8 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
                         <button onClick={() => syncIcal(bc.boat_id)} style={btn('var(--os-aqua)')}>🔄 Sync</button>
                         <button onClick={async () => {
                           if (!confirm('Удалить календарь и все синхронизированные даты?')) return;
-                          const token = getToken();
-                          await fetch('/api/calendar/boats', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-session-token': token }, body: JSON.stringify({ id: bc.id }) });
-                          await fetch('/api/calendar/unavailable', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-session-token': token }, body: JSON.stringify({ boat_id: bc.boat_id, source: 'all_synced' }) });
+                          await fetch('/api/calendar/boats', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: bc.id }) });
+                          await fetch('/api/calendar/unavailable', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ boat_id: bc.boat_id, source: 'all_synced' }) });
                           loadCalendarData();
                         }} style={btn('#ef4444')}>🗑</button>
                       </div>
@@ -506,10 +500,9 @@ export default function PartnerDetail({ partnerId, partnerName, onBack }: {
                   {unavailDates.some(d => ['ical','teamup','url_import'].includes(d.source)) && (
                     <button onClick={async () => {
                       if (!confirm('Удалить все синхронизированные даты (ical/teamup)?')) return;
-                      const token = getToken();
                       await fetch('/api/calendar/unavailable', {
                         method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ boat_id: calBoatId, source: 'all_synced' }),
                       });
                       loadCalendarData();

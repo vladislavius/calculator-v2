@@ -65,10 +65,9 @@ export default function CalendarTab() {
     if (!selectedBoatForDates || !manualForm.date_from || !manualForm.date_to) {
       setMsg('❌ Выберите лодку и укажите даты'); return;
     }
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     const r = await fetch('/api/calendar/unavailable', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...manualForm, boat_id: selectedBoatForDates.id, source: 'manual' })
     });
     const data = await r.json();
@@ -79,10 +78,9 @@ export default function CalendarTab() {
   }
 
   async function deleteUnavailDate(id: number) {
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     await fetch('/api/calendar/unavailable', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
     });
     if (selectedBoatForDates) loadUnavailDates(selectedBoatForDates.id);
@@ -93,10 +91,9 @@ export default function CalendarTab() {
       setMsg('❌ Выберите лодку и укажите URL'); return;
     }
     setImportingUrl(true);
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     const r = await fetch('/api/calendar/import-url', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ boat_id: selectedBoatForDates.id, url: importUrl, replace: importReplace })
     });
     const data = await r.json();
@@ -130,11 +127,10 @@ export default function CalendarTab() {
   async function syncAll() {
     setSyncing(true);
     setSyncResult(null);
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     try {
       const r = await fetch('/api/calendar/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-session-token': token || '' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       });
       const data = await r.json();
@@ -147,11 +143,10 @@ export default function CalendarTab() {
 
   async function syncOne(boatId: number) {
     setSyncing(true);
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     try {
       const r = await fetch('/api/calendar/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-session-token': token || '' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ boat_id: boatId })
       });
       const data = await r.json();
@@ -166,10 +161,9 @@ export default function CalendarTab() {
     if (!form.boat_id || !form.ical_url) {
       setMsg('❌ Выберите лодку и укажите ссылку'); return;
     }
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     const r = await fetch('/api/calendar/boats', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token || '' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)
     });
     const data = await r.json();
@@ -183,10 +177,9 @@ export default function CalendarTab() {
 
   async function deleteCalendar(id: number) {
     if (!confirm('Удалить календарь?')) return;
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
     await fetch('/api/calendar/boats', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', 'x-session-token': token || '' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
     });
     setMsg('✅ Удалено');
@@ -205,10 +198,9 @@ export default function CalendarTab() {
     setTeamupSyncing(true);
     setTeamupResult(null);
     try {
-      const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
       const res = await fetch('/api/calendar/sync-teamup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ partner_id: teamupPartnerId, teamup_url: teamupUrl }),
       });
       const data = await res.json();

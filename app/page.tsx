@@ -310,13 +310,11 @@ export default function Home() {
 
   // Load user role once
   useEffect(() => {
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
-    if (token) {
-      fetch('/api/auth/me', { headers: { 'x-session-token': token } })
-        .then(r => r.json())
-        .then(data => { if (data.user?.role === 'admin') storeSet({ isAdmin: true }); })
-        .catch(() => {});
-    }
+    // Token is in httpOnly cookie — browser sends it automatically
+    fetch('/api/auth/me', { method: 'GET' })
+      .then(r => r.json())
+      .then(data => { if (data.user?.role === 'admin') storeSet({ isAdmin: true }); })
+      .catch(() => {});
   }, []);
 
   // Sync local state → store for components that read from store

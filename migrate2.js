@@ -1,7 +1,10 @@
-const OLD_URL = 'https://supabase.assisthelp.ru/rest/v1';
-const OLD_KEY = 'OLD_SUPABASE_KEY_REMOVED';
-const NEW_URL = 'https://jcidlaaqyehcohwzmwnz.supabase.co/rest/v1';
-const NEW_KEY = 'NEW_SUPABASE_KEY_REMOVED';
+// SECURITY: Never hardcode API keys in source files.
+// Set these environment variables before running this migration script:
+//   OLD_SUPABASE_URL, OLD_SUPABASE_KEY, NEW_SUPABASE_URL, NEW_SUPABASE_KEY
+const OLD_URL = process.env.OLD_SUPABASE_URL || (() => { throw new Error('OLD_SUPABASE_URL env variable is not set'); })();
+const OLD_KEY = process.env.OLD_SUPABASE_KEY || (() => { throw new Error('OLD_SUPABASE_KEY env variable is not set'); })();
+const NEW_URL = process.env.NEW_SUPABASE_URL || (() => { throw new Error('NEW_SUPABASE_URL env variable is not set'); })();
+const NEW_KEY = process.env.NEW_SUPABASE_KEY || (() => { throw new Error('NEW_SUPABASE_KEY env variable is not set'); })();
 
 const tables = [
   'partners', 'boats', 'routes', 'options_catalog',

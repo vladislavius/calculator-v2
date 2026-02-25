@@ -1,10 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createClient } from '@supabase/supabase-js';
 
-// Verify admin session token
-function isAuthorized(req: NextRequest): boolean {
-  const token = req.headers.get('x-admin-token');
-  return !!token && token.length === 64;
+const sb = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Verify admin session token against the database
+async function isAuthorized(req: NextRequest): Promise<boolean> {
+  // Accept token from httpOnly cookie (primary) or header (legacy fallback)
+  const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token');
+  if (!token) return false;
+
+  const { data: session } = await sb
+    .from('app_sessions')
+    .select('user_id, expires_at')
+    .eq('token', token)
+    .single();
+
+  if (!session) return false;
+  if (new Date(session.expires_at) < new Date()) {
+    await sb.from('app_sessions').delete().eq('token', token);
+    return false;
+  }
+  return true;
 }
 
 // Tables that admin can write to
@@ -83,7 +103,7 @@ async function autoSyncBoatFromSheet(boatName: string, boatId: number, supabaseA
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) {
+  if (!await isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

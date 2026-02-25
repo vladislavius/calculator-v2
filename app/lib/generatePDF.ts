@@ -34,6 +34,15 @@ interface PDFParams {
   customNotes: string;
 }
 
+function escapeHtml(str: unknown): string {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function generatePDFContent(p: PDFParams): string {
   const { selectedBoat, totals, lang } = p;
 
@@ -194,6 +203,6 @@ export function generatePDFContent(p: PDFParams): string {
     '<div class="total-section">' +
     summaryHtml +
     '<div class="total-row final"><span>' + t('pdf.totalToPay', lang) + '</span><span>' + fmt(finalTotal) + '</span></div></div>' +
-    (p.customNotes ? '<div class="section" style="margin-top:20px;padding:15px;background:#fff3cd;border-radius:8px;border:1px solid #ffc107"><div class="section-title" style="color:#856404">' + t('pdf.notes', lang) + '</div><p style="margin:10px 0 0;color:#856404">' + p.customNotes.replace(/\n/g, '<br>') + '</p></div>' : '') +
+    (p.customNotes ? '<div class="section" style="margin-top:20px;padding:15px;background:#fff3cd;border-radius:8px;border:1px solid #ffc107"><div class="section-title" style="color:#856404">' + t('pdf.notes', lang) + '</div><p style="margin:10px 0 0;color:#856404">' + escapeHtml(p.customNotes).replace(/\n/g, '<br>') + '</p></div>' : '') +
     '<div class="footer"><p><strong>' + t('pdf.company', lang) + '</strong> — ' + t('pdf.footer', lang) + '</p><p>WhatsApp: +66 810507171 • Email: tratatobookings@gmail.com</p></div></body></html>';
 }

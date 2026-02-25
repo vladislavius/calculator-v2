@@ -7,7 +7,7 @@ const sb = createClient(
 );
 
 async function checkAuth(req: NextRequest) {
-  const token = req.headers.get('x-session-token') || req.headers.get('x-api-token');
+  const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token') || req.headers.get('x-api-token');
   if (!token) return false;
   const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
   if (session) return true;

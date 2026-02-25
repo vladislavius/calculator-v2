@@ -32,13 +32,14 @@ const btn = (color: string): React.CSSProperties => ({
 });
 
 export default function UsersTab() {
-  const { token } = useAuth();
+  useAuth(); // Ensure we're inside AdminGuard context
   const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<AppUser & { pin: string }> | null>(null);
   const [msg, setMsg] = useState('');
 
-  const headers = { 'Content-Type': 'application/json', 'x-session-token': token || '' };
+  // Token is in httpOnly cookie — no need to send it manually in headers
+  const headers = { 'Content-Type': 'application/json' };
   const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 4000); };
 
   const load = () => {

@@ -103,7 +103,7 @@ function parseTeamupIcal(icalText: string): TeamupEvent[] {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get('x-session-token');
+    const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token');
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const isCron = token === 'cron-internal' && (req.headers.get('authorization') === 'Bearer ' + (process.env.CRON_SECRET || ''));
     if (!isCron) {

@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function escapeHtml(str: unknown): string {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { quote, client, notes } = await request.json();
@@ -8,7 +17,7 @@ export async function POST(request: NextRequest) {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Quote - ${quote.boat?.name || 'Yacht Charter'}</title>
+  <title>Quote - ${escapeHtml(quote.boat?.name || 'Yacht Charter')}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
@@ -39,13 +48,13 @@ export async function POST(request: NextRequest) {
   </div>
   
   <div class="hero">
-    <h1>${quote.boat?.name || 'Yacht Charter'}</h1>
-    <div>${quote.boat?.model || ''}</div>
+    <h1>${escapeHtml(quote.boat?.name || 'Yacht Charter')}</h1>
+    <div>${escapeHtml(quote.boat?.model || '')}</div>
     <div class="hero-details">
-      <div class="hero-detail"><strong>Route:</strong> ${quote.route?.name || quote.route?.destination || '-'}</div>
-      <div class="hero-detail"><strong>Duration:</strong> ${quote.nights > 0 ? (quote.nights + 1) + 'D/' + quote.nights + 'N' : 'Day Trip'}</div>
-      <div class="hero-detail"><strong>Guests:</strong> ${quote.guests}</div>
-      <div class="hero-detail"><strong>Date:</strong> ${quote.startDate || 'TBD'}</div>
+      <div class="hero-detail"><strong>Route:</strong> ${escapeHtml(quote.route?.name || quote.route?.destination || '-')}</div>
+      <div class="hero-detail"><strong>Duration:</strong> ${quote.nights > 0 ? (Number(quote.nights) + 1) + 'D/' + Number(quote.nights) + 'N' : 'Day Trip'}</div>
+      <div class="hero-detail"><strong>Guests:</strong> ${escapeHtml(quote.guests)}</div>
+      <div class="hero-detail"><strong>Date:</strong> ${escapeHtml(quote.startDate || 'TBD')}</div>
     </div>
   </div>
   
@@ -53,10 +62,10 @@ export async function POST(request: NextRequest) {
     <div class="section-title">Price Breakdown</div>
     <table>
       <tr><th>Description</th><th class="price">Amount (THB)</th></tr>
-      <tr><td>Charter Base Price (${quote.season} season)</td><td class="price">${Number(quote.basePrice).toLocaleString()}</td></tr>
-      ${quote.extras?.map((e: any) => '<tr><td>' + e.name + ' x' + e.quantity + '</td><td class="price">' + (Number(e.price) * e.quantity).toLocaleString() + '</td></tr>').join('') || ''}
+      <tr><td>Charter Base Price (${escapeHtml(quote.season)} season)</td><td class="price">${Number(quote.basePrice).toLocaleString()}</td></tr>
+      ${quote.extras?.map((e: any) => '<tr><td>' + escapeHtml(e.name) + ' x' + Number(e.quantity) + '</td><td class="price">' + (Number(e.price) * Number(e.quantity)).toLocaleString() + '</td></tr>').join('') || ''}
       <tr><td><strong>Subtotal</strong></td><td class="price"><strong>${Number(quote.subtotal).toLocaleString()}</strong></td></tr>
-      ${quote.markupAmount > 0 ? '<tr><td>Service Fee (' + quote.markup + '%)</td><td class="price">' + Number(quote.markupAmount).toLocaleString() + '</td></tr>' : ''}
+      ${quote.markupAmount > 0 ? '<tr><td>Service Fee (' + Number(quote.markup) + '%)</td><td class="price">' + Number(quote.markupAmount).toLocaleString() + '</td></tr>' : ''}
     </table>
   </div>
   
@@ -65,9 +74,9 @@ export async function POST(request: NextRequest) {
     <div class="total-amount">THB ${Number(quote.total).toLocaleString()}</div>
   </div>
   
-  ${client?.name ? '<div class="section" style="margin-top:30px;"><div class="section-title">Client</div><p><strong>' + client.name + '</strong><br>' + (client.email || '') + '<br>' + (client.phone || '') + '</p></div>' : ''}
-  
-  ${notes ? '<div class="section"><div class="section-title">Notes</div><p>' + notes + '</p></div>' : ''}
+  ${client?.name ? '<div class="section" style="margin-top:30px;"><div class="section-title">Client</div><p><strong>' + escapeHtml(client.name) + '</strong><br>' + escapeHtml(client.email || '') + '<br>' + escapeHtml(client.phone || '') + '</p></div>' : ''}
+
+  ${notes ? '<div class="section"><div class="section-title">Notes</div><p>' + escapeHtml(notes).replace(/\n/g, '<br>') + '</p></div>' : ''}
   
   <div class="terms">
     <strong>Terms:</strong> 50% deposit required. Full payment 7 days before. Free cancellation 14+ days before.

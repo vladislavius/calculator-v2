@@ -1,21 +1,18 @@
 'use client';
 import { useState, useEffect, createContext, useContext } from 'react';
 
-const STORAGE_KEY = 'os_session';
-
 export type UserRole = 'admin' | 'manager' | 'agent';
 export type SessionUser = { id: number; email: string; name: string; role: UserRole };
 
 type AuthCtx = {
   user: SessionUser | null;
-  token: string | null;
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthCtx>({ user: null, token: null, logout: () => {} });
+const AuthContext = createContext<AuthCtx>({ user: null, logout: () => {} });
 export const useAuth = () => useContext(AuthContext);
 
-function LoginForm({ onLogin }: { onLogin: (token: string, user: SessionUser) => void }) {
+function LoginForm({ onLogin }: { onLogin: (user: SessionUser) => void }) {
   const [email, setEmail] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
@@ -33,7 +30,8 @@ function LoginForm({ onLogin }: { onLogin: (token: string, user: SessionUser) =>
       });
       const data = await res.json();
       if (data.success) {
-        onLogin(data.token, data.user);
+        // Server sets httpOnly cookie — just pass user info to parent
+        onLogin(data.user);
       } else {
         setError(data.error || 'Ошибка входа');
         setPin('');
@@ -119,44 +117,26 @@ export default function AdminGuard({ children, requireRole }: {
   requireRole?: UserRole | UserRole[];
 }) {
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) { setChecking(false); return; }
-    try {
-      const { token: t, user: u } = JSON.parse(stored);
-      // Верифицируем токен на сервере
-      fetch('/api/auth/me', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: t }),
-      }).then(r => r.json()).then(data => {
-        if (data.valid) {
-          setToken(t);
-          setUser(data.user);
-        } else {
-          localStorage.removeItem(STORAGE_KEY);
-        }
+    // Verify session via httpOnly cookie (sent automatically by the browser)
+    fetch('/api/auth/me', { method: 'GET' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.valid) setUser(data.user);
         setChecking(false);
-      }).catch(() => setChecking(false));
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-      setChecking(false);
-    }
+      })
+      .catch(() => setChecking(false));
   }, []);
 
-  const handleLogin = (t: string, u: SessionUser) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: t, user: u }));
-    setToken(t);
+  const handleLogin = (u: SessionUser) => {
+    // Token is stored in httpOnly cookie by the server — just update UI state
     setUser(u);
   };
 
   const logout = async () => {
-    if (token) await fetch('/api/auth/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
-    localStorage.removeItem(STORAGE_KEY);
-    setToken(null);
+    await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
   };
 
@@ -188,7 +168,7 @@ export default function AdminGuard({ children, requireRole }: {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, logout }}>
+    <AuthContext.Provider value={{ user, logout }}>
       {children}
     </AuthContext.Provider>
   );
