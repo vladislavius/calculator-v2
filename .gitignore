@@ -36,6 +36,11 @@ yarn-error.log*
 # Migration scripts with potential secrets
 migrate*.js
 
+# Backup files
+*.backup
+*.bak
+_backups_*/
+
 # vercel
 .vercel
 
