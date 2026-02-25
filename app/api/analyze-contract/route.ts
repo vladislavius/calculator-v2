@@ -208,7 +208,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
         { role: 'user', content: 'Parse this charter contract. Extract ONLY what is explicitly written. Output valid JSON only:\n\n' + processedText }
       ],
       temperature: 0.03,
-      max_tokens: 8192,
+      max_tokens: 16384,
     });
 
     let content = response.choices[0].message.content || '{}';
@@ -234,7 +234,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
             { role: 'user', content: 'Continue this JSON (pick up exactly where it ends):\n\n' + content.substring(content.length - 2000) }
           ],
           temperature: 0.01,
-          max_tokens: 4096,
+          max_tokens: 8192,
         });
         const continuation = (contResponse.choices[0].message.content || '').replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         if (continuation.length > 10) {

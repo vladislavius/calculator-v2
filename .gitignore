@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+
+# backup files — never commit these
+*.backup
+*.bak
+_backups_*/

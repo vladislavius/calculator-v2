@@ -282,13 +282,6 @@ export function calculateTotals(p: CalcParams): DetailedCalcResult {
     });
   }
 
-  // Calculate Subtotals
-  const subtotals = items.reduce((acc, item) => {
-    const cat = item.category === 'boat' ? (_ => 'client')() : item.category; // Map boat to client logic? No, keep pure categories
-    // Actually we need to map categories to specific result fields
-    return acc;
-  }, {});
-
   const getSum = (cat: string) => items.filter(i => i.category === cat).reduce((sum, i) => sum + i.total, 0);
 
   // Boat sum includes base + extra guests
