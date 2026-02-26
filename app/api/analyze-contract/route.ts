@@ -238,7 +238,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
         { role: 'user', content: 'Parse this charter contract. Extract ONLY what is explicitly written. Output valid JSON only:\n\n' + processedText }
       ],
       temperature: 0.03,
-      max_tokens: 8192,
+      max_tokens: useGemini ? 8000 : 4096,
     });
 
     let content = response.choices[0].message.content || '{}';

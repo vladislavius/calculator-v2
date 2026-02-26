@@ -16,10 +16,10 @@ try {
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
+  "font-src 'self' data: https://fonts.gstatic.com",
   "frame-src 'none'",
   "object-src 'none'",
   "base-uri 'self'",
