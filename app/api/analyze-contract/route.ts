@@ -96,6 +96,9 @@ Before extracting business data, mentally reconstruct the conversation:
 STEP 2 — DETECT CONTRACT TYPE
 ═══════════════════════════════════════════
 - TYPE A: Day charters with routes/destinations (Coral, Racha, Phi Phi, etc.) — multiple routes, per-boat pricing
+  → SEASONAL EXPANSION RULE: If TYPE A lists distinct prices per season (Peak/High/Low), you MUST create a SEPARATE route entry for EACH (season × destination × charter_type) combination. NEVER collapse multiple seasons into a single "all" season entry when distinct prices exist.
+  → Example: "Full Day Peak 115,000 / Full Day High 105,000 / Full Day Low 88,000 / Half Day Peak 85,000..." → 6+ separate route objects, each with the correct season value ("peak"/"high"/"low").
+  → Half Day duration_hours: use explicitly stated hours, or default to 4 if not stated.
 - TYPE B: Overnight/multi-day charters (2D/1N, 3D/2N, etc.)
 - TYPE C: Multiple boats with same routes (like Tiger Marine, Badaro)
 - TYPE D: Boat names listed at top, then SHARED pricing section below
@@ -110,6 +113,18 @@ STEP 3 — PRICING & COMMISSION RULES
 - COMMISSION = the difference
 - NEVER put a gross price into base_price. If only one price given with "commission XX% included" → calculate NET for base_price, put original in client_price
 - TYPE E (Per person): Create separate rules in "pricing_rules" for each passenger range
+
+COMMISSION MATH — mandatory calculation steps:
+1. "Price X THB — VAT and 20% commission included" → the listed price X is the GROSS (client_price). base_price = agent_price = round(X / 1.2).
+   Example: 115,000 THB commission included → client_price: 115000, base_price: 95833, agent_price: 95833
+2. "Net price X THB, 20% commission on top" → base_price = agent_price = X, client_price = round(X * 1.2)
+3. NEVER set base_price = client_price when any commission is mentioned.
+
+FIELD CONSTRAINTS — prevent hallucinations:
+- extra_pax_price on boat level: set ONLY if the contract explicitly states an extra-passenger surcharge rate. If NOT mentioned, set to 0.
+- Route guests_to: MUST NOT exceed the boat's max_pax_day unless the route explicitly states a different capacity.
+- Route guests_from: use 1 unless contract states minimum passengers.
+- Do NOT invent duration_hours — use only what is stated (Full Day = stated hours or 8; Half Day = stated hours or 4).
 
 PRICE CONFLICT RESOLUTION:
 - Same price mentioned multiple times → use the LAST occurrence
