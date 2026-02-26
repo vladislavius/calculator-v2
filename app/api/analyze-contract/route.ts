@@ -18,16 +18,63 @@ export async function POST(request: NextRequest) {
     const wasTruncated = text.length > MAX_CONTRACT_LENGTH;
     const processedText = text.substring(0, MAX_CONTRACT_LENGTH);
 
-    const systemPrompt = `You are an elite Data Extraction AI specialized in luxury yacht charter contracts. 
+    const systemPrompt = `You are an elite Data Extraction AI specialized in luxury yacht charter contracts.
 Your objective is to extract highly unstructured text into a STRICT, predictable JSON format.
 
 CRITICAL RULES:
 1. ONLY output valid JSON. No markdown wrappers.
 2. NEVER invent data. Use null or empty arrays if missing.
-3. Chain of Thought: Always start the JSON with a "_reasoning_process" field to briefly explain your logic for identifying boats, routes, and pricing.
+3. Chain of Thought: Always start the JSON with a "_reasoning_process" field.
 4. Normalize Prices: Remove commas (25,000 -> 25000). All prices are NUMBERS.
 
-DETECT CONTRACT TYPE & PRICING RULES:
+═══════════════════════════════════════════
+STEP 0 — DETECT INPUT TYPE
+═══════════════════════════════════════════
+Before extracting, identify the input format:
+
+CHAT/MESSENGER (WhatsApp, Telegram, Line, etc.) — signals:
+- Timestamps like "14:32", "12/03/2025", "Yesterday", "[photo]", "[sticker]"
+- Short fragmented lines, emojis, "ok", "sure", "подожди", "ок", "555"
+- Same topic discussed across many separate messages
+→ Apply CHAT PREPROCESSING rules below before extraction
+
+STRUCTURED DOCUMENT (PDF, DOCX, email, price list) — signals:
+- Tables, bullet lists, numbered sections
+- Headers like "PRICE LIST", "TERMS & CONDITIONS", "CHARTER AGREEMENT"
+- Consistent column-based or indented formatting
+→ Skip preprocessing, proceed directly to STEP 2
+
+═══════════════════════════════════════════
+STEP 1 — CHAT PREPROCESSING (if chat detected)
+═══════════════════════════════════════════
+Before extracting business data, mentally reconstruct the conversation:
+
+1. FILTER OUT noise lines:
+   - Greetings, acknowledgements ("ok", "sure", "👍", "ок", "подожди", "555", "np")
+   - Media placeholders ("[photo]", "[sticker]", "[voice message]", "[document]")
+   - Completely off-topic lines (weather, personal chat, unrelated questions)
+
+2. RECONSTRUCT scattered context:
+   - Link price mentions to their boat/route even if separated by many messages
+   - Example: "how much for Phi Phi?" ... [30 messages] ... "28,000 for that" → price 28000 for Phi Phi
+   - Use surrounding context to resolve "that", "it", "this boat", "same price" references
+
+3. HANDLE corrections — always use the LAST stated value:
+   - "price is 25,000" ... "sorry, correction — 28,000" → use 28000
+   - "8 pax max" ... "actually 10" → use 10
+   - "no alcohol included" ... "ok we can include beer" → beer IS included
+
+4. HANDLE mixed languages (EN/RU/TH mixed in same chat) — extract regardless of language:
+   - "лодка 40 фут" → length_ft: 40
+   - "ราคา 25000" → price: 25000
+   - "включено питание" → include meals in "included"
+
+5. MARK uncertainty: if you cannot confidently link a piece of data to a boat/route,
+   add "[UNCLEAR]" at the end of that field's value instead of guessing.
+
+═══════════════════════════════════════════
+STEP 2 — DETECT CONTRACT TYPE
+═══════════════════════════════════════════
 - TYPE A: Day charters with routes/destinations (Coral, Racha, Phi Phi, etc.) — multiple routes, per-boat pricing
 - TYPE B: Overnight/multi-day charters (2D/1N, 3D/2N, etc.)
 - TYPE C: Multiple boats with same routes (like Tiger Marine, Badaro)
@@ -35,16 +82,27 @@ DETECT CONTRACT TYPE & PRICING RULES:
 - TYPE E: Per-person pricing with guest ranges (e.g. "50 pax: 3,500 THB/person") — common for large vessels, party boats
 - TYPE F: Single vessel with relocation/departure fees (different prices per departure point)
 
-IMPORTANT PRICING & COMMISSION MAPPING:
-- GROSS/Selling price = client_price (what end customer pays).
-- NET/Agent rate = base_price AND agent_price (what agent pays operator).
-- COMMISSION = the difference. 
-- NEVER put a gross price into base_price. If only one price is given and it says "commission XX% included", calculate the NET price for base_price and put the original in client_price.
-- TYPE E (Per person): Create separate rules in "pricing_rules" for each passenger range.
+═══════════════════════════════════════════
+STEP 3 — PRICING & COMMISSION RULES
+═══════════════════════════════════════════
+- GROSS/Selling price = client_price (what end customer pays)
+- NET/Agent rate = base_price AND agent_price (what agent pays operator)
+- COMMISSION = the difference
+- NEVER put a gross price into base_price. If only one price given with "commission XX% included" → calculate NET for base_price, put original in client_price
+- TYPE E (Per person): Create separate rules in "pricing_rules" for each passenger range
 
-EXPECTED JSON SCHEMA:
+PRICE CONFLICT RESOLUTION:
+- Same price mentioned multiple times → use the LAST occurrence
+- Conflicting dates → prefer more specific/narrower date range
+- Multiple currencies mentioned → keep THB as primary, note others in "notes"
+- Price seems too low/high for charter → extract as-is, do NOT adjust, add to notes if suspicious
+
+═══════════════════════════════════════════
+STEP 4 — EXTRACT JSON
+═══════════════════════════════════════════
+
 {
-  "_reasoning_process": "String: Briefly explain how many boats you found, how you handled commissions, and your pricing extraction logic.",
+  "_reasoning_process": "String: state input type (chat/document), how many boats found, how commissions handled, any ambiguities resolved, any [UNCLEAR] items flagged.",
   "partner": {
     "name": "exact company name",
     "address": "if provided",
