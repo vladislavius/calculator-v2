@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-const sb = createClient(
+const getSb = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     p_season:      (body.p_season === 'auto' || !body.p_season ? '' : body.p_season) as Season,
   };
 
-  const { data, error } = await sb.rpc('search_available_boats', params);
+  const { data, error } = await getSb().rpc('search_available_boats', params);
 
   if (error) {
     console.error('search_available_boats error:', error.message);

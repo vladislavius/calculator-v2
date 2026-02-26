@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // ─── Rate limiter ──────────────────────────────────────────────────────────────
 // Sliding window: max 30 write requests per IP per 60 seconds
@@ -63,7 +58,7 @@ async function getAuthorizedUser(req: NextRequest): Promise<AuthUser | null> {
 
   if (!session) return null;
   if (new Date(session.expires_at) < new Date()) {
-    await sb.from('app_sessions').delete().eq('token', token);
+    await getSupabaseAdmin().from('app_sessions').delete().eq('token', token);
     return null;
   }
   return { userId: session.user_id };
@@ -97,7 +92,7 @@ async function writeAuditLog(opts: {
   ip: string;
 }): Promise<void> {
   try {
-    await sb.from('audit_log').insert({
+    await getSupabaseAdmin().from('audit_log').insert({
       user_id:    opts.userId,
       action:     opts.action,
       table_name: opts.tableName,
