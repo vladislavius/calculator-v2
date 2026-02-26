@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 async function getSessionUser(req: NextRequest) {
   const token = req.headers.get('x-session-token');
   if (!token) return null;
+  const sb = getSupabaseAdmin();
   const { data: session } = await sb.from('app_sessions').select('user_id, expires_at').eq('token', token).single();
   if (!session || new Date(session.expires_at) < new Date()) return null;
   const { data: user } = await sb.from('app_users').select('id, role, active').eq('id', session.user_id).single();
@@ -20,7 +18,7 @@ async function getSessionUser(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const me = await getSessionUser(req);
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  const { data } = await sb.from('app_users').select('id, email, name, role, active, created_at, last_login').order('created_at');
+  const { data } = await getSupabaseAdmin().from('app_users').select('id, email, name, role, active, created_at, last_login').order('created_at');
   return NextResponse.json(data || []);
 }
 
@@ -33,7 +31,7 @@ export async function POST(req: NextRequest) {
   if (!email || !name || !role || !pin) return NextResponse.json({ error: 'Все поля обязательны' }, { status: 400 });
 
   const pinHash = crypto.createHash('sha256').update(String(pin)).digest('hex');
-  const { data, error } = await sb.from('app_users').insert({ email: email.toLowerCase().trim(), name, role, pin_hash: pinHash }).select('id, email, name, role, active').single();
+  const { data, error } = await getSupabaseAdmin().from('app_users').insert({ email: email.toLowerCase().trim(), name, role, pin_hash: pinHash }).select('id, email, name, role, active').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
 }
@@ -49,7 +47,7 @@ export async function PATCH(req: NextRequest) {
   const update: any = { ...fields };
   if (pin) update.pin_hash = crypto.createHash('sha256').update(String(pin)).digest('hex');
 
-  const { data, error } = await sb.from('app_users').update(update).eq('id', id).select('id, email, name, role, active').single();
+  const { data, error } = await getSupabaseAdmin().from('app_users').update(update).eq('id', id).select('id, email, name, role, active').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
 }
@@ -63,6 +61,6 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
   if (id === me.id) return NextResponse.json({ error: 'Нельзя удалить себя' }, { status: 400 });
 
-  await sb.from('app_users').delete().eq('id', id);
+  await getSupabaseAdmin().from('app_users').delete().eq('id', id);
   return NextResponse.json({ success: true });
 }

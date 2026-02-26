@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +12,7 @@ export async function POST(req: NextRequest) {
       const body = await req.json().catch(() => ({}));
       token = body.token;
     }
-    if (token) await sb.from('app_sessions').delete().eq('token', token);
+    if (token) await getSupabaseAdmin().from('app_sessions').delete().eq('token', token);
     const response = NextResponse.json({ success: true });
     response.cookies.delete('os_token');
     return response;

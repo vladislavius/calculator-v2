@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   // 1. Sync regular iCal calendars
   try {
-    const { data: icalCals } = await sb.from('boat_calendars').select('*').eq('active', true).eq('calendar_type', 'ical');
+    const { data: icalCals } = await getSupabaseAdmin().from('boat_calendars').select('*').eq('active', true).eq('calendar_type', 'ical');
     if (icalCals?.length) {
       for (const cal of icalCals) {
         if (!cal.ical_url) continue;
@@ -38,11 +33,11 @@ export async function GET(req: NextRequest) {
             if (line.startsWith('DTSTART')) { const v = line.split(':').slice(1).join(':').trim().substring(0,8); current.dateFrom = v.substring(0,4)+'-'+v.substring(4,6)+'-'+v.substring(6,8); }
             if (line.startsWith('DTEND')) { const v = line.split(':').slice(1).join(':').trim().substring(0,8); const dt = new Date(v.substring(0,4)+'-'+v.substring(4,6)+'-'+v.substring(6,8)); dt.setDate(dt.getDate()-1); current.dateTo = dt.toISOString().split('T')[0]; }
           }
-          await sb.from('boat_unavailable_dates').delete().eq('boat_id', cal.boat_id).eq('source', 'ical');
+          await getSupabaseAdmin().from('boat_unavailable_dates').delete().eq('boat_id', cal.boat_id).eq('source', 'ical');
           if (events.length > 0) {
-            await sb.from('boat_unavailable_dates').insert(events.map(e => ({ boat_id: cal.boat_id, date_from: e.dateFrom, date_to: e.dateTo, title: e.title || 'Busy', source: 'ical' })));
+            await getSupabaseAdmin().from('boat_unavailable_dates').insert(events.map(e => ({ boat_id: cal.boat_id, date_from: e.dateFrom, date_to: e.dateTo, title: e.title || 'Busy', source: 'ical' })));
           }
-          await sb.from('boat_calendars').update({ last_synced: new Date().toISOString() }).eq('id', cal.id);
+          await getSupabaseAdmin().from('boat_calendars').update({ last_synced: new Date().toISOString() }).eq('id', cal.id);
           results.push({ type: 'ical', boat_id: cal.boat_id, events: events.length });
         } catch (e: any) {
           results.push({ type: 'ical', boat_id: cal.boat_id, error: e.message });
@@ -55,7 +50,7 @@ export async function GET(req: NextRequest) {
 
   // 2. Sync Teamup calendars
   try {
-    const { data: teamupCals } = await sb.from('boat_calendars')
+    const { data: teamupCals } = await getSupabaseAdmin().from('boat_calendars')
       .select('boat_id, ical_url, boats(partner_id)')
       .eq('active', true).eq('calendar_type', 'teamup');
     if (teamupCals?.length) {

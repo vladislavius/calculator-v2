@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 function parseIcal(icalText: string): Array<{title: string, dateFrom: string, dateTo: string}> {
   const events: Array<{title: string, dateFrom: string, dateTo: string}> = [];
@@ -41,6 +38,7 @@ export async function POST(req: NextRequest) {
   try {
     const token = req.headers.get('x-session-token');
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const sb = getSupabaseAdmin();
     const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -92,7 +90,7 @@ export async function GET(req: NextRequest) {
   const dateFrom = searchParams.get('from') || new Date().toISOString().split('T')[0];
   const dateTo = searchParams.get('to') || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
 
-  const { data } = await sb.from('boat_unavailable_dates')
+  const { data } = await getSupabaseAdmin().from('boat_unavailable_dates')
     .select('date_from, date_to, title, source')
     .eq('boat_id', boatId)
     .lte('date_from', dateTo)

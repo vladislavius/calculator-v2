@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
+
 
 function normalize(name: string): string {
   return name
@@ -107,7 +105,7 @@ export async function POST(req: NextRequest) {
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const isCron = token === 'cron-internal' && (req.headers.get('authorization') === 'Bearer ' + (process.env.CRON_SECRET || ''));
     if (!isCron) {
-      const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
+      const { data: session } = await getSupabaseAdmin().from('app_sessions').select('user_id').eq('token', token).single();
       if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -116,7 +114,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'partner_id and teamup_url required' }, { status: 400 });
     }
 
-    const { data: boats } = await sb.from('boats').select('id, name').eq('partner_id', partner_id);
+    const { data: boats } = await getSupabaseAdmin().from('boats').select('id, name').eq('partner_id', partner_id);
     if (!boats?.length) {
       return NextResponse.json({ error: 'No boats found for this partner' }, { status: 404 });
     }
@@ -180,10 +178,10 @@ export async function POST(req: NextRequest) {
 
     let boatsSynced = 0;
     for (const [boatId, evts] of Object.entries(boatEvents)) {
-      await sb.from('boat_unavailable_dates').delete().eq('boat_id', Number(boatId)).eq('source', 'teamup');
+      await getSupabaseAdmin().from('boat_unavailable_dates').delete().eq('boat_id', Number(boatId)).eq('source', 'teamup');
       if (evts.length > 0) {
         for (let i = 0; i < evts.length; i += 500) {
-          await sb.from('boat_unavailable_dates').insert(
+          await getSupabaseAdmin().from('boat_unavailable_dates').insert(
             evts.slice(i, i + 500).map(e => ({ boat_id: Number(boatId), ...e }))
           );
         }
@@ -192,16 +190,16 @@ export async function POST(req: NextRequest) {
     }
 
     for (const boat of boats) {
-      const { data: existing } = await sb.from('boat_calendars').select('id').eq('boat_id', boat.id).maybeSingle();
+      const { data: existing } = await getSupabaseAdmin().from('boat_calendars').select('id').eq('boat_id', boat.id).maybeSingle();
       if (existing) {
-        await sb.from('boat_calendars').update({
+        await getSupabaseAdmin().from('boat_calendars').update({
           calendar_type: 'teamup',
           ical_url: teamup_url,
           active: true,
           last_synced: new Date().toISOString(),
         }).eq('id', existing.id);
       } else {
-        await sb.from('boat_calendars').insert({
+        await getSupabaseAdmin().from('boat_calendars').insert({
           boat_id: boat.id,
           calendar_type: 'teamup',
           ical_url: teamup_url,

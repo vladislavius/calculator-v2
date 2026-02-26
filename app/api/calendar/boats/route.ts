@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 async function checkAuth(req: NextRequest) {
   const token = req.headers.get('x-session-token');
   if (!token) return false;
-  const { data } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
+  const { data } = await getSupabaseAdmin().from('app_sessions').select('user_id').eq('token', token).single();
   return !!data;
 }
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const boatId = searchParams.get('boat_id');
+  const sb = getSupabaseAdmin();
   let query = sb.from('boat_calendars')
     .select('*, boats(id, name, partners(name))')
     .order('boat_id');
@@ -31,6 +29,7 @@ export async function POST(req: NextRequest) {
   const { boat_id, calendar_type, ical_url, active } = body;
   if (!boat_id) return NextResponse.json({ error: 'boat_id required' }, { status: 400 });
 
+  const sb = getSupabaseAdmin();
   const { data: existing } = await sb.from('boat_calendars').select('id').eq('boat_id', boat_id).maybeSingle();
   if (existing) {
     const { data, error } = await sb.from('boat_calendars')
@@ -50,6 +49,6 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   if (!await checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { id } = await req.json();
-  await sb.from('boat_calendars').delete().eq('id', id);
+  await getSupabaseAdmin().from('boat_calendars').delete().eq('id', id);
   return NextResponse.json({ ok: true });
 }

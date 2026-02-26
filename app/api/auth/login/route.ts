@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +10,7 @@ export async function POST(req: NextRequest) {
     if (!email || !pin) return NextResponse.json({ success: false, error: 'Email и PIN обязательны' }, { status: 400 });
 
     const pinHash = crypto.createHash('sha256').update(String(pin)).digest('hex');
+    const sb = getSupabaseAdmin();
 
     const { data: user, error } = await sb
       .from('app_users')

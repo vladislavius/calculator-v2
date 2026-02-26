@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const sb = createClient(
+export const dynamic = 'force-dynamic';
+
+const getSb = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -9,7 +11,7 @@ const sb = createClient(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { data, error } = await sb.from('offers').insert({
+    const { data, error } = await getSb().from('offers').insert({
       boat_id:      body.boat_id,
       boat_name:    body.boat_name,
       search_date:  body.search_date,
@@ -34,7 +36,7 @@ export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'No id' }, { status: 400 });
 
-  const { data, error } = await sb.from('offers').select('*').eq('id', id).single();
+  const { data, error } = await getSb().from('offers').select('*').eq('id', id).single();
   if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   // Проверяем срок действия

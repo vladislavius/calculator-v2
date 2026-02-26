@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 function parseIcal(text: string): Array<{title: string, dateFrom: string, dateTo: string}> {
   const events: Array<{title: string, dateFrom: string, dateTo: string}> = [];
@@ -36,6 +33,7 @@ function parseIcal(text: string): Array<{title: string, dateFrom: string, dateTo
 export async function POST(req: NextRequest) {
   const token = req.headers.get('x-session-token') || req.headers.get('x-api-token');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const sb = getSupabaseAdmin();
   const { data: session } = await sb.from('app_sessions').select('user_id').eq('token', token).single();
   const apiToken = process.env.CALENDAR_API_TOKEN;
   if (!session && !(apiToken && token === apiToken))

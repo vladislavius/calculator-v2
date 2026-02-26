@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const dynamic = 'force-dynamic';
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,7 +28,7 @@ export async function POST(req: NextRequest) {
       const firstPhoto = photoField.split(' ')[0].trim()
       if (!firstPhoto.startsWith('http')) { skipped++; continue }
 
-      const { data: boats } = await supabase
+      const { data: boats } = await getSupabaseAdmin()
         .from('boats')
         .select('id, name, main_photo_url')
         .ilike('name', `%${title}%`)
@@ -43,7 +41,7 @@ export async function POST(req: NextRequest) {
       }
 
       const boat = boats[0]
-      const { error } = await supabase
+      const { error } = await getSupabaseAdmin()
         .from('boats')
         .update({ main_photo_url: firstPhoto })
         .eq('id', boat.id)

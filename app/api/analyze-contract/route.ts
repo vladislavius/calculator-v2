@@ -9,42 +9,135 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'API key not configured' }, { status: 500 });
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.DEEPSEEK_API_KEY,
-      baseURL: 'https://api.deepseek.com/v1'
-    });
     const { text } = await request.json();
 
-    const wasTruncated = text.length > MAX_CONTRACT_LENGTH;
-    const processedText = text.substring(0, MAX_CONTRACT_LENGTH);
+    // For long contracts: use Gemini 2.0 Flash (1M token context, no truncation)
+    // For normal contracts: use DeepSeek (cheaper, faster)
+    const isLongContract = text.length > MAX_CONTRACT_LENGTH;
+    const useGemini = isLongContract && !!process.env.GEMINI_API_KEY;
 
-    const systemPrompt = `You are an elite Data Extraction AI specialized in luxury yacht charter contracts. 
+    const openai = useGemini
+      ? new OpenAI({
+          apiKey: process.env.GEMINI_API_KEY,
+          baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        })
+      : new OpenAI({
+          apiKey: process.env.DEEPSEEK_API_KEY,
+          baseURL: 'https://api.deepseek.com/v1',
+        });
+
+    const modelName = useGemini ? 'gemini-2.0-flash' : 'deepseek-chat';
+
+    // Gemini handles full text (1M context); DeepSeek truncates at MAX_CONTRACT_LENGTH
+    const wasTruncated = !useGemini && isLongContract;
+    const processedText = useGemini ? text : text.substring(0, MAX_CONTRACT_LENGTH);
+
+    if (useGemini) {
+      console.log(`Long contract (${text.length} chars) → Gemini 2.0 Flash (full text, no truncation)`);
+    } else if (wasTruncated) {
+      console.log(`Long contract (${text.length} chars) → DeepSeek truncated to ${MAX_CONTRACT_LENGTH} (GEMINI_API_KEY not set)`);
+    }
+
+    const systemPrompt = `You are an elite Data Extraction AI specialized in luxury yacht charter contracts.
 Your objective is to extract highly unstructured text into a STRICT, predictable JSON format.
 
 CRITICAL RULES:
 1. ONLY output valid JSON. No markdown wrappers.
 2. NEVER invent data. Use null or empty arrays if missing.
-3. Chain of Thought: Always start the JSON with a "_reasoning_process" field to briefly explain your logic for identifying boats, routes, and pricing.
+3. Chain of Thought: Always start the JSON with a "_reasoning_process" field.
 4. Normalize Prices: Remove commas (25,000 -> 25000). All prices are NUMBERS.
 
-DETECT CONTRACT TYPE & PRICING RULES:
+═══════════════════════════════════════════
+STEP 0 — DETECT INPUT TYPE
+═══════════════════════════════════════════
+Before extracting, identify the input format:
+
+CHAT/MESSENGER (WhatsApp, Telegram, Line, etc.) — signals:
+- Timestamps like "14:32", "12/03/2025", "Yesterday", "[photo]", "[sticker]"
+- Short fragmented lines, emojis, "ok", "sure", "подожди", "ок", "555"
+- Same topic discussed across many separate messages
+→ Apply CHAT PREPROCESSING rules below before extraction
+
+STRUCTURED DOCUMENT (PDF, DOCX, email, price list) — signals:
+- Tables, bullet lists, numbered sections
+- Headers like "PRICE LIST", "TERMS & CONDITIONS", "CHARTER AGREEMENT"
+- Consistent column-based or indented formatting
+→ Skip preprocessing, proceed directly to STEP 2
+
+═══════════════════════════════════════════
+STEP 1 — CHAT PREPROCESSING (if chat detected)
+═══════════════════════════════════════════
+Before extracting business data, mentally reconstruct the conversation:
+
+1. FILTER OUT noise lines:
+   - Greetings, acknowledgements ("ok", "sure", "👍", "ок", "подожди", "555", "np")
+   - Media placeholders ("[photo]", "[sticker]", "[voice message]", "[document]")
+   - Completely off-topic lines (weather, personal chat, unrelated questions)
+
+2. RECONSTRUCT scattered context:
+   - Link price mentions to their boat/route even if separated by many messages
+   - Example: "how much for Phi Phi?" ... [30 messages] ... "28,000 for that" → price 28000 for Phi Phi
+   - Use surrounding context to resolve "that", "it", "this boat", "same price" references
+
+3. HANDLE corrections — always use the LAST stated value:
+   - "price is 25,000" ... "sorry, correction — 28,000" → use 28000
+   - "8 pax max" ... "actually 10" → use 10
+   - "no alcohol included" ... "ok we can include beer" → beer IS included
+
+4. HANDLE mixed languages (EN/RU/TH mixed in same chat) — extract regardless of language:
+   - "лодка 40 фут" → length_ft: 40
+   - "ราคา 25000" → price: 25000
+   - "включено питание" → include meals in "included"
+
+5. MARK uncertainty: if you cannot confidently link a piece of data to a boat/route,
+   add "[UNCLEAR]" at the end of that field's value instead of guessing.
+
+═══════════════════════════════════════════
+STEP 2 — DETECT CONTRACT TYPE
+═══════════════════════════════════════════
 - TYPE A: Day charters with routes/destinations (Coral, Racha, Phi Phi, etc.) — multiple routes, per-boat pricing
+  → SEASONAL EXPANSION RULE: If TYPE A lists distinct prices per season (Peak/High/Low), you MUST create a SEPARATE route entry for EACH (season × destination × charter_type) combination. NEVER collapse multiple seasons into a single "all" season entry when distinct prices exist.
+  → Example: "Full Day Peak 115,000 / Full Day High 105,000 / Full Day Low 88,000 / Half Day Peak 85,000..." → 6+ separate route objects, each with the correct season value ("peak"/"high"/"low").
+  → Half Day duration_hours: use explicitly stated hours, or default to 4 if not stated.
 - TYPE B: Overnight/multi-day charters (2D/1N, 3D/2N, etc.)
 - TYPE C: Multiple boats with same routes (like Tiger Marine, Badaro)
 - TYPE D: Boat names listed at top, then SHARED pricing section below
 - TYPE E: Per-person pricing with guest ranges (e.g. "50 pax: 3,500 THB/person") — common for large vessels, party boats
 - TYPE F: Single vessel with relocation/departure fees (different prices per departure point)
 
-IMPORTANT PRICING & COMMISSION MAPPING:
-- GROSS/Selling price = client_price (what end customer pays).
-- NET/Agent rate = base_price AND agent_price (what agent pays operator).
-- COMMISSION = the difference. 
-- NEVER put a gross price into base_price. If only one price is given and it says "commission XX% included", calculate the NET price for base_price and put the original in client_price.
-- TYPE E (Per person): Create separate rules in "pricing_rules" for each passenger range.
+═══════════════════════════════════════════
+STEP 3 — PRICING & COMMISSION RULES
+═══════════════════════════════════════════
+- GROSS/Selling price = client_price (what end customer pays)
+- NET/Agent rate = base_price AND agent_price (what agent pays operator)
+- COMMISSION = the difference
+- NEVER put a gross price into base_price. If only one price given with "commission XX% included" → calculate NET for base_price, put original in client_price
+- TYPE E (Per person): Create separate rules in "pricing_rules" for each passenger range
 
-EXPECTED JSON SCHEMA:
+COMMISSION MATH — mandatory calculation steps:
+1. "Price X THB — VAT and 20% commission included" → the listed price X is the GROSS (client_price). base_price = agent_price = round(X / 1.2).
+   Example: 115,000 THB commission included → client_price: 115000, base_price: 95833, agent_price: 95833
+2. "Net price X THB, 20% commission on top" → base_price = agent_price = X, client_price = round(X * 1.2)
+3. NEVER set base_price = client_price when any commission is mentioned.
+
+FIELD CONSTRAINTS — prevent hallucinations:
+- extra_pax_price on boat level: set ONLY if the contract explicitly states an extra-passenger surcharge rate. If NOT mentioned, set to 0.
+- Route guests_to: MUST NOT exceed the boat's max_pax_day unless the route explicitly states a different capacity.
+- Route guests_from: use 1 unless contract states minimum passengers.
+- Do NOT invent duration_hours — use only what is stated (Full Day = stated hours or 8; Half Day = stated hours or 4).
+
+PRICE CONFLICT RESOLUTION:
+- Same price mentioned multiple times → use the LAST occurrence
+- Conflicting dates → prefer more specific/narrower date range
+- Multiple currencies mentioned → keep THB as primary, note others in "notes"
+- Price seems too low/high for charter → extract as-is, do NOT adjust, add to notes if suspicious
+
+═══════════════════════════════════════════
+STEP 4 — EXTRACT JSON
+═══════════════════════════════════════════
+
 {
-  "_reasoning_process": "String: Briefly explain how many boats you found, how you handled commissions, and your pricing extraction logic.",
+  "_reasoning_process": "String: state input type (chat/document), how many boats found, how commissions handled, any ambiguities resolved, any [UNCLEAR] items flagged.",
   "partner": {
     "name": "exact company name",
     "address": "if provided",
@@ -154,13 +247,13 @@ TRANSLATION REQUIREMENT:
 IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.`;
 
     const response = await openai.chat.completions.create({
-      model: 'deepseek-chat',
+      model: modelName,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Parse this charter contract. Extract ONLY what is explicitly written. Output valid JSON only:\n\n' + processedText }
       ],
       temperature: 0.03,
-      max_tokens: 8192,
+      max_tokens: 8000,
     });
 
     let content = response.choices[0].message.content || '{}';
@@ -180,7 +273,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
       console.log('Response appears truncated, requesting continuation...');
       try {
         const contResponse = await openai.chat.completions.create({
-          model: 'deepseek-chat',
+          model: modelName,
           messages: [
             { role: 'system', content: 'You previously started outputting JSON but it was cut off. Continue EXACTLY from where you stopped. Output ONLY the remaining JSON to complete the structure. No explanations.' },
             { role: 'user', content: 'Continue this JSON (pick up exactly where it ends):\n\n' + content.substring(content.length - 2000) }
@@ -260,7 +353,11 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
     const warnings: string[] = [];
 
     if (wasTruncated) {
-      warnings.push('Contract truncated: ' + text.length.toLocaleString() + ' -> ' + MAX_CONTRACT_LENGTH.toLocaleString() + ' chars. Data at end may be lost.');
+      warnings.push('Contract truncated: ' + text.length.toLocaleString() + ' -> ' + MAX_CONTRACT_LENGTH.toLocaleString() + ' chars. Data at end may be lost. Set GEMINI_API_KEY to parse full text.');
+    }
+
+    if (useGemini) {
+      warnings.push('Long contract parsed via Gemini 2.0 Flash (full ' + text.length.toLocaleString() + ' chars, no truncation).');
     }
 
     if (possiblyTruncated) {
