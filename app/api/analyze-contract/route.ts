@@ -9,14 +9,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'API key not configured' }, { status: 500 });
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.DEEPSEEK_API_KEY,
-      baseURL: 'https://api.deepseek.com/v1'
-    });
     const { text } = await request.json();
 
-    const wasTruncated = text.length > MAX_CONTRACT_LENGTH;
-    const processedText = text.substring(0, MAX_CONTRACT_LENGTH);
+    // For long contracts: use Gemini 2.0 Flash (1M token context, no truncation)
+    // For normal contracts: use DeepSeek (cheaper, faster)
+    const isLongContract = text.length > MAX_CONTRACT_LENGTH;
+    const useGemini = isLongContract && !!process.env.GEMINI_API_KEY;
+
+    const openai = useGemini
+      ? new OpenAI({
+          apiKey: process.env.GEMINI_API_KEY,
+          baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        })
+      : new OpenAI({
+          apiKey: process.env.DEEPSEEK_API_KEY,
+          baseURL: 'https://api.deepseek.com/v1',
+        });
+
+    const modelName = useGemini ? 'gemini-2.0-flash' : 'deepseek-chat';
+
+    // Gemini handles full text (1M context); DeepSeek truncates at MAX_CONTRACT_LENGTH
+    const wasTruncated = !useGemini && isLongContract;
+    const processedText = useGemini ? text : text.substring(0, MAX_CONTRACT_LENGTH);
+
+    if (useGemini) {
+      console.log(`Long contract (${text.length} chars) → Gemini 2.0 Flash (full text, no truncation)`);
+    } else if (wasTruncated) {
+      console.log(`Long contract (${text.length} chars) → DeepSeek truncated to ${MAX_CONTRACT_LENGTH} (GEMINI_API_KEY not set)`);
+    }
 
     const systemPrompt = `You are an elite Data Extraction AI specialized in luxury yacht charter contracts.
 Your objective is to extract highly unstructured text into a STRICT, predictable JSON format.
@@ -212,7 +232,7 @@ TRANSLATION REQUIREMENT:
 IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.`;
 
     const response = await openai.chat.completions.create({
-      model: 'deepseek-chat',
+      model: modelName,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Parse this charter contract. Extract ONLY what is explicitly written. Output valid JSON only:\n\n' + processedText }
@@ -238,7 +258,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
       console.log('Response appears truncated, requesting continuation...');
       try {
         const contResponse = await openai.chat.completions.create({
-          model: 'deepseek-chat',
+          model: modelName,
           messages: [
             { role: 'system', content: 'You previously started outputting JSON but it was cut off. Continue EXACTLY from where you stopped. Output ONLY the remaining JSON to complete the structure. No explanations.' },
             { role: 'user', content: 'Continue this JSON (pick up exactly where it ends):\n\n' + content.substring(content.length - 2000) }
@@ -318,7 +338,11 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
     const warnings: string[] = [];
 
     if (wasTruncated) {
-      warnings.push('Contract truncated: ' + text.length.toLocaleString() + ' -> ' + MAX_CONTRACT_LENGTH.toLocaleString() + ' chars. Data at end may be lost.');
+      warnings.push('Contract truncated: ' + text.length.toLocaleString() + ' -> ' + MAX_CONTRACT_LENGTH.toLocaleString() + ' chars. Data at end may be lost. Set GEMINI_API_KEY to parse full text.');
+    }
+
+    if (useGemini) {
+      warnings.push('Long contract parsed via Gemini 2.0 Flash (full ' + text.length.toLocaleString() + ' chars, no truncation).');
     }
 
     if (possiblyTruncated) {
