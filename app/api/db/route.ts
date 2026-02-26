@@ -50,7 +50,7 @@ async function getAuthorizedUser(req: NextRequest): Promise<AuthUser | null> {
   const token = req.cookies.get('os_token')?.value || req.headers.get('x-session-token');
   if (!token) return null;
 
-  const { data: session } = await sb
+  const { data: session } = await getSupabaseAdmin()
     .from('app_sessions')
     .select('user_id, expires_at')
     .eq('token', token)
