@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
           baseURL: 'https://api.deepseek.com/v1',
         });
 
-    const modelName = useGemini ? 'gemini-2.0-flash-exp' : 'deepseek-chat';
+    const modelName = useGemini ? 'gemini-3-flash-preview' : 'deepseek-chat';
 
     // Gemini handles full text (1M context); DeepSeek truncates at MAX_CONTRACT_LENGTH
     const wasTruncated = !useGemini && isLongContract;
