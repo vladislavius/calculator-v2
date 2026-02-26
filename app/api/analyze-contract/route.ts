@@ -95,9 +95,21 @@ Before extracting business data, mentally reconstruct the conversation:
 ═══════════════════════════════════════════
 STEP 2 — DETECT CONTRACT TYPE
 ═══════════════════════════════════════════
-- TYPE A: Day charters with routes/destinations (Coral, Racha, Phi Phi, etc.) — multiple routes, per-boat pricing
-  → SEASONAL EXPANSION RULE: If TYPE A lists distinct prices per season (Peak/High/Low), you MUST create a SEPARATE route entry for EACH (season × destination × charter_type) combination. NEVER collapse multiple seasons into a single "all" season entry when distinct prices exist.
-  → Example: "Full Day Peak 115,000 / Full Day High 105,000 / Full Day Low 88,000 / Half Day Peak 85,000..." → 6+ separate route objects, each with the correct season value ("peak"/"high"/"low").
+- TYPE A: Day charters with routes/destinations (Coral, Racha, Phi Phi, Similan, Full Day, Half Day, etc.) — multiple routes, per-boat pricing
+  → SEASONAL EXPANSION RULE: For every unique (season × charter_type/destination) combination that has a DISTINCT price, create a SEPARATE route entry in "routes". NEVER collapse different seasons into one entry. NEVER put seasonal pricing only into "pricing_rules" — it MUST also appear as separate route entries.
+  → When no specific destination is named, use the charter type as destination: "Full Day", "Half Day", "Similan", etc.
+  → MANDATORY COUNT CHECK: Before finalizing, compute N_seasons × N_charter_types = expected_routes. Verify routes[] has exactly that many entries. State this count in _reasoning_process.
+  → CONCRETE EXAMPLE — contract with Peak/High/Low × Full Day/Half Day/Similan (VAT+20% commission included):
+    routes: [
+      { "destination": "Full Day",  "duration_hours": 8, "season": "peak", "client_price": 115000, "base_price": 95833, "agent_price": 95833 },
+      { "destination": "Half Day",  "duration_hours": 4, "season": "peak", "client_price": 85000,  "base_price": 70833, "agent_price": 70833 },
+      { "destination": "Similan",   "duration_hours": 8, "season": "peak", "client_price": 148000, "base_price": 123333, "agent_price": 123333 },
+      { "destination": "Full Day",  "duration_hours": 8, "season": "high", "client_price": 105000, "base_price": 87500,  "agent_price": 87500 },
+      { "destination": "Half Day",  "duration_hours": 4, "season": "high", "client_price": 75000,  "base_price": 62500,  "agent_price": 62500 },
+      { "destination": "Similan",   "duration_hours": 8, "season": "high", "client_price": 138000, "base_price": 115000, "agent_price": 115000 },
+      { "destination": "Full Day",  "duration_hours": 8, "season": "low",  "client_price": 88000,  "base_price": 73333,  "agent_price": 73333 },
+      { "destination": "Half Day",  "duration_hours": 4, "season": "low",  "client_price": 68000,  "base_price": 56667,  "agent_price": 56667 }
+    ]  — 8 routes total (3 seasons x 3 types, minus Similan which has no Low season price)
   → Half Day duration_hours: use explicitly stated hours, or default to 4 if not stated.
 - TYPE B: Overnight/multi-day charters (2D/1N, 3D/2N, etc.)
 - TYPE C: Multiple boats with same routes (like Tiger Marine, Badaro)
@@ -137,7 +149,7 @@ STEP 4 — EXTRACT JSON
 ═══════════════════════════════════════════
 
 {
-  "_reasoning_process": "String: state input type (chat/document), how many boats found, how commissions handled, any ambiguities resolved, any [UNCLEAR] items flagged.",
+  "_reasoning_process": "String: (1) input type (chat/document), (2) contract type (A/B/C/D/E/F), (3) boats found, (4) for TYPE A — list all seasons found × charter types found = expected route count, verify routes[] matches this count, (5) commission math applied, (6) any ambiguities or [UNCLEAR] items.",
   "partner": {
     "name": "exact company name",
     "address": "if provided",
