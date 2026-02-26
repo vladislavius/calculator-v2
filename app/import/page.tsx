@@ -417,7 +417,7 @@ export default function ImportPage() {
           } else if (s === 'peak' || s === 'peak_season') {
             r.season = 'peak';
           } else if (s === 'high' || s === 'high_season') {
-            r.season = 'all';
+            r.season = 'high';
           } else if (s === 'low' || s === 'low_season' || s === 'green') {
             r.season = 'low';
           } else if (s.includes('chinese') && s.includes('new')) {
@@ -444,16 +444,16 @@ export default function ImportPage() {
           // else keep as-is
         }
 
-        // Step 2: Deduplicate by destination — keep one route per destination with min price
+        // Step 2: Deduplicate — only truly identical routes (same destination + season + charter_type)
         const routeMap = new Map<string, any>();
         for (const r of boat.routes) {
-          const key = (r.destination || '').toLowerCase().trim();
+          const key = `${(r.destination || '').toLowerCase().trim()}_${r.season || 'all'}_${r.charter_type || r.time_slot || 'full_day'}`;
           const existing = routeMap.get(key);
           if (!existing) {
             routeMap.set(key, r);
           } else {
-            // Keep the one with lower price (min tier)
-            if (r.base_price && existing.base_price && r.base_price < existing.base_price) {
+            // Keep the one with more complete data (non-null base_price preferred)
+            if (r.base_price && !existing.base_price) {
               routeMap.set(key, r);
             }
           }

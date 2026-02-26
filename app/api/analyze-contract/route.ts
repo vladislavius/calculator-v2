@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     // For long contracts: use Gemini 2.0 Flash (1M token context, no truncation)
     // For normal contracts: use DeepSeek (cheaper, faster)
     const isLongContract = text.length > MAX_CONTRACT_LENGTH;
-    const useGemini = isLongContract && !!process.env.GEMINI_API_KEY;
+    const useGemini = !!process.env.GEMINI_API_KEY;
 
     const openai = useGemini
       ? new OpenAI({
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
           baseURL: 'https://api.deepseek.com/v1',
         });
 
-    const modelName = useGemini ? 'gemini-2.0-flash' : 'deepseek-chat';
+    const modelName = useGemini ? 'gemini-2.0-flash-exp' : 'deepseek-chat';
 
     // Gemini handles full text (1M context); DeepSeek truncates at MAX_CONTRACT_LENGTH
     const wasTruncated = !useGemini && isLongContract;
@@ -265,7 +265,7 @@ IMPORTANT: Output ONLY valid JSON. No markdown, no explanations, no code fences.
         { role: 'user', content: 'Parse this charter contract. Extract ONLY what is explicitly written. Output valid JSON only:\n\n' + processedText }
       ],
       temperature: 0.03,
-      max_tokens: 8000,
+      max_tokens: 16384,
     });
 
     let content = response.choices[0].message.content || '{}';
