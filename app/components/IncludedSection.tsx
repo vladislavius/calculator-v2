@@ -33,7 +33,7 @@ export default function IncludedSection() {
           <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--os-border)', fontSize:13, fontWeight:700, color:'var(--os-green)', display:'flex', alignItems:'center', gap:8 }}>
             {lang === 'en' ? '✅ INCLUDED' : '✅ ВКЛЮЧЕНО В СТОИМОСТЬ'}
           </div>
-          <div style={{ padding:'14px 16px', display:'flex', flexWrap:'wrap', gap:8 }}>
+          <div style={{ padding:'14px 16px' }} className="os-included-grid">
             {included.map(opt => (
               <span key={opt.id} className="os-included-item">
                 ✓ {lang === 'en' ? (opt.option_name || opt.option_name_ru) : (opt.option_name_ru || opt.option_name)}

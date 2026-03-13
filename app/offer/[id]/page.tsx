@@ -107,14 +107,16 @@ export default function OfferPage() {
           return (
             <div style={sec}>
               <div style={{fontSize:13,fontWeight:700,color:'#22c55e',marginBottom:10}}>✅ Включено в стоимость</div>
-              <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:6}}>
                 {includedOptions.map((opt: any, i: number) => (
-                  <span key={'o'+i} style={{fontSize:12,padding:'4px 10px',borderRadius:20,background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac'}}>
+                  <span key={'o'+i} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,padding:'7px 10px',borderRadius:8,background:'rgba(34,197,94,0.08)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac',lineHeight:1.3}}>
+                    <span style={{color:'#22c55e',fontSize:10,flexShrink:0}}>✓</span>
                     {opt.option_name_ru || opt.option_name || opt.name_en || opt.name}
                   </span>
                 ))}
                 {includedDrinks.map((d: any, i: number) => (
-                  <span key={'d'+i} style={{fontSize:12,padding:'4px 10px',borderRadius:20,background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac'}}>
+                  <span key={'d'+i} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,padding:'7px 10px',borderRadius:8,background:'rgba(34,197,94,0.08)',border:'1px solid rgba(34,197,94,0.2)',color:'#86efac',lineHeight:1.3}}>
+                    <span style={{color:'#22c55e',fontSize:10,flexShrink:0}}>✓</span>
                     {d.name_ru || d.name_en}
                   </span>
                 ))}
