@@ -77,7 +77,12 @@ export function generatePDFContent(p: PDFParams): string {
 
     const rows = categoryItems.map(i => {
       const name = lang === 'en' ? i.name : (i.nameRu || i.name);
-      return `<tr><td>${name}${i.details ? ` <br><span style="color:#666;font-size:9px">(${i.details})</span>` : ''}</td><td>${i.quantity} ${i.unit}</td><td>${fmt(i.total)}</td></tr>`;
+      const dishesHtml = i.details
+        ? '<br><ul style="margin:3px 0 0 12px;padding:0;list-style:disc;color:#94a3b8;font-size:9px">' +
+          i.details.split(' · ').map((d: string) => `<li>${d}</li>`).join('') +
+          '</ul>'
+        : '';
+      return `<tr><td>${name}${dishesHtml}</td><td>${i.quantity} ${i.unit}</td><td>${fmt(i.total)}</td></tr>`;
     }).join('');
 
     return `<div class="section"><div class="section-title">${title}</div><table><tr><th>${headers[0]}</th><th>${headers[1]}</th><th>${headers[2]}</th></tr>${rows}</table></div>`;

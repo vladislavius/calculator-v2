@@ -63,6 +63,7 @@ export interface CateringOrder {
   persons: number;
   minPersons?: number;
   notes: string;
+  dishes?: string[];
 }
 
 export interface DrinkOrder {

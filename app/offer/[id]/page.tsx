@@ -5,7 +5,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 type OfferItem = {
   id: string; name: string; nameRu: string;
-  quantity: number; unit: string; price: number; total: number; category: string;
+  quantity: number; unit: string; price: number; total: number; category: string; details?: string;
 };
 type Offer = {
   id: string; boat_name: string; search_date: string; guests: number;
@@ -141,7 +141,14 @@ export default function OfferPage() {
                 <tbody>
                   {ci.map((item,i)=>(
                     <tr key={i}>
-                      <td style={td}>{item.nameRu||item.name}</td>
+                      <td style={td}>
+                        {item.nameRu||item.name}
+                        {item.details && (
+                          <ul style={{margin:'4px 0 0 12px',padding:0,listStyle:'disc',color:'#64748b',fontSize:11}}>
+                            {item.details.split(' · ').map((d: string, di: number) => <li key={di}>{d}</li>)}
+                          </ul>
+                        )}
+                      </td>
                       <td style={{...td,textAlign:'center',color:'#64748b'}}>{item.quantity} {UNIT[item.unit]||item.unit}</td>
                       <td style={{...td,textAlign:'right',fontWeight:600,color:'#e2e8f0'}}>{item.total.toLocaleString()} ฿</td>
                     </tr>

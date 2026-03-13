@@ -103,7 +103,7 @@ export default function FoodSection() {
             return (
               <div key={set.id} style={row(isSelected,'var(--os-green)')}
                 onClick={()=>{ if(isSelected){setCateringOrders(cateringOrders.filter(c=>String(c.packageId)!==String(set.id)));}
-                  else{setCateringOrders([...cateringOrders,{packageId:String(set.id),packageName:set.name_en+(set.name_ru?` (${set.name_ru})`:''),pricePerPerson:0,persons:adults+children3to11,notes:''}]);} }}>
+                  else{setCateringOrders([...cateringOrders,{packageId:String(set.id),packageName:set.name_en+(set.name_ru?` (${set.name_ru})`:''),pricePerPerson:0,persons:adults+children3to11,notes:'',dishes:[...(set.dishes_ru||set.dishes||[])]}]);} }}>
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isSelected?'var(--os-green)':'var(--os-border)'}`,backgroundColor:isSelected?'var(--os-green)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isSelected&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>
@@ -139,7 +139,7 @@ export default function FoodSection() {
             const order = orderIndex>=0 ? cateringOrders[orderIndex] : null;
             return (
               <div key={item.id} style={row(isAdded,'var(--os-gold)')}
-                onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!==String(item.id)));} else{addMenuItem(0, item.id, item.name_en || item.name_ru || '', item.price || 0);} }}>
+                onClick={()=>{ if(isAdded){setCateringOrders(cateringOrders.filter(c=>c.packageId!==String(item.id)));} else{ const persons = adults + children3to11; setCateringOrders((prev: any[]) => [...prev, { packageId: String(item.id), packageName: (item.name_en || item.name_ru || '') + (item.name_ru && item.name_en ? ` (${item.name_ru})` : ''), pricePerPerson: item.price || 0, persons, notes: '', dishes: [...(item.dishes_ru || item.dishes || [])] }]); } }}>
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isAdded?'var(--os-gold)':'var(--os-border)'}`,backgroundColor:isAdded?'var(--os-gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isAdded&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>

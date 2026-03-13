@@ -73,6 +73,9 @@ export function generateWhatsAppMessage(p: WhatsAppParams): string {
         // For toys/watersports, unit might be 'h' or 'd', let's just use what's in unit
         const quantityStr = (category === 'toy' || category === 'watersport') ? i.quantity + ' ' + i.unit : 'x' + i.quantity;
         message += '  - ' + name + ' ' + quantityStr + ' - ' + fmt(i.total) + '\n';
+        if (i.details) {
+          i.details.split(' · ').forEach((d: string) => { message += '    • ' + d + '\n'; });
+        }
       });
     }
   };

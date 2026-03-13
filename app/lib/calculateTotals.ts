@@ -125,7 +125,7 @@ export function calculateTotals(p: CalcParams): DetailedCalcResult {
       price: c.pricePerPerson,
       total: total,
       category: 'catering',
-      details: c.notes
+      details: (c.dishes && c.dishes.length > 0) ? c.dishes.join(' · ') : (c.notes || undefined)
     });
   });
 
