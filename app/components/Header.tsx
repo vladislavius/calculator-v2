@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useCharterStore } from '../store/useCharterStore';
 
 export default function Header() {
@@ -51,17 +52,17 @@ export default function Header() {
     <>
       <header className="os-header">
         <div className="os-header__inner">
-          <a href="/" className="os-logo">
+          <Link href="/" className="os-logo">
             <div className="os-logo__icon">🚤</div>
             <div className="os-logo__wrap hidden md:block">
               <span className="os-logo__name">OnlySea Charter</span>
               <span className="os-logo__sub">Phuket · Calculator Pro</span>
             </div>
-          </a>
+          </Link>
           <nav className="os-nav">
-            <a href="/" className="os-nav__link active">🧮<span className="hidden md:inline"> Калькулятор</span></a>
-            <a href="/calendar" className="os-nav__link">📅<span className="hidden md:inline"> Календарь</span></a>
-            <a href="/admin" className="os-nav__link">⚙️<span className="hidden md:inline"> Админ</span></a>
+            <Link href="/" className="os-nav__link active">🧮<span className="hidden md:inline"> Калькулятор</span></Link>
+            <Link href="/calendar" className="os-nav__link">📅<span className="hidden md:inline"> Календарь</span></Link>
+            <Link href="/admin" className="os-nav__link">⚙️<span className="hidden md:inline"> Админ</span></Link>
           </nav>
           <div className="os-header__spacer" />
           <div className="os-lang-switch">
