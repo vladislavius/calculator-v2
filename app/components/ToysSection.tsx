@@ -1,34 +1,8 @@
 'use client';
 import { useCharterStore } from '../store/useCharterStore';
-
-import { BoatOption, SelectedExtra } from '../lib/types';
-
-interface WatersportsPartner {
-  id: number;
-  name: string;
-  phone?: string;
-}
-
-interface WatersportsCatalogItem {
-  id: number;
-  partner_id: number;
-  name_en: string;
-  name_ru?: string;
-  price_per_hour: number;
-  price_per_day: number;
-}
-
-interface SelectedPartnerWatersport {
-  id: number;
-  name: string;
-  partnerName: string;
-  partnerId: number;
-  pricePerHour: number;
-  pricePerDay: number;
-  hours: number;
-  days: number;
-}
-
+import Counter from './ui/Counter';
+import PriceInput from './ui/PriceInput';
+import CollapsibleSection from './ui/CollapsibleSection';
 
 export default function ToysSection() {
   const {
@@ -40,56 +14,77 @@ export default function ToysSection() {
   } = useCharterStore();
 
   const toggleExtra = (opt: any) => {
-    const exists = selectedExtras.find(e => e.optionId === opt.id);
-    if (exists) set({ selectedExtras: selectedExtras.filter(e => e.optionId !== opt.id) });
+    const exists = selectedExtras.find((e: any) => e.optionId === opt.id);
+    if (exists) set({ selectedExtras: selectedExtras.filter((e: any) => e.optionId !== opt.id) });
     else set({ selectedExtras: [...selectedExtras, { optionId: opt.id, name: opt.name_en || opt.name, nameRu: opt.name_ru || '', quantity: 1, price: opt.price || 0, pricePer: opt.price_per || 'fix', category: opt.option_category || 'other' }] });
   };
 
-  const setSelectedPartnerWatersports = (v: any) => set({ selectedPartnerWatersports: typeof v === 'function' ? v(selectedPartnerWatersports) : v });
-
   const removePartnerWatersport = (id: number) => {
-    set({ selectedPartnerWatersports: selectedPartnerWatersports.filter(w => w.id !== id) });
+    set({ selectedPartnerWatersports: selectedPartnerWatersports.filter((w: any) => w.id !== id) });
   };
 
   const updatePartnerWatersport = (id: number, field: string, value: number) => {
-    set({ selectedPartnerWatersports: selectedPartnerWatersports.map(w => w.id === id ? {...w, [field]: value} : w) });
+    set({ selectedPartnerWatersports: selectedPartnerWatersports.map((w: any) => w.id === id ? { ...w, [field]: value } : w) });
   };
+
+  const addPartnerWatersport = (item: any, partner: any) => {
+    set({
+      selectedPartnerWatersports: [...selectedPartnerWatersports, {
+        id: item.id,
+        name: item.name_en,
+        partnerName: partner.name,
+        partnerId: partner.id,
+        pricePerHour: (item.price_per_hour || 0),
+        pricePerDay: (item.price_per_day || 0),
+        hours: (item.price_per_hour || 0) > 0 ? 1 : 0,
+        days: (item.price_per_hour || 0) > 0 ? 0 : ((item.price_per_day || 0) > 0 ? 1 : 0),
+      }],
+    });
+  };
+
+  const waterIncluded = boatOptions.filter((o: any) =>
+    ['water', 'toys', 'equipment'].includes(o.category_code) && o.status === 'included'
+  );
+  const waterPaid = boatOptions.filter((o: any) =>
+    ['water', 'toys'].includes(o.category_code) && o.status === 'paid_optional'
+  );
+
   return (
     <div id="toys" className="os-section">
-      <h3 style={{ margin: '0 0 16px', fontSize: '15px', fontWeight: '700', color: 'var(--os-aqua)' }}>🎿 ВОДНЫЕ РАЗВЛЕЧЕНИЯ</h3>
-      
-      {/* Included water toys */}
-      {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys' || o.category_code === 'equipment') && o.status === 'included').length > 0 && (
-        <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: 'var(--os-card)', borderRadius: '8px', border: '1px solid rgba(46,204,113,0.2)' }}>
-          <span style={{ fontWeight: '600', color: 'var(--os-green)' }}>Включено: </span>
-          {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys' || o.category_code === 'equipment') && o.status === 'included').map((o, i) => (
-            <span key={o.id}>{i > 0 ? ', ' : ''}{o.option_name}</span>
-          ))}
+      <div className="os-section__title" style={{ color: 'var(--os-aqua)' }}>🎿 ВОДНЫЕ РАЗВЛЕЧЕНИЯ</div>
+
+      {/* Included from boat */}
+      {waterIncluded.length > 0 && (
+        <div style={{ marginBottom: 12, padding: '10px 14px', background: 'var(--os-card)', borderRadius: 'var(--r-sm)', border: '1px solid rgba(34,197,94,0.2)', fontSize: 13 }}>
+          <span style={{ fontWeight: 600, color: 'var(--os-green)' }}>✅ Включено: </span>
+          {waterIncluded.map((o: any, i: number) => <span key={o.id}>{i > 0 ? ', ' : ''}{o.option_name}</span>)}
         </div>
       )}
 
-      {/* Paid water toys from boat */}
-      {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').length > 0 && (
-        <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'var(--os-card)', borderRadius: '12px', border: '1px solid var(--os-border)' }}>
-          <p style={{ margin: '0 0 12px', fontWeight: '600', color: 'var(--os-aqua)' }}>➕ Добавить с яхты:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '8px' }}>
-            {boatOptions.filter(o => (o.category_code === 'water' || o.category_code === 'toys') && o.status === 'paid_optional').map(opt => {
-              const isAdded = selectedExtras.some(e => e.optionId === opt.id);
+      {/* Paid extras from boat */}
+      {waterPaid.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--os-aqua)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>➕ Добавить с яхты:</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 8 }}>
+            {waterPaid.map((opt: any) => {
+              const isAdded = selectedExtras.some((e: any) => e.optionId === opt.id);
               return (
-                <div key={opt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', flexWrap: 'wrap', gap: '8px', backgroundColor: isAdded ? 'var(--os-aqua-glow)' : 'var(--os-surface)', borderRadius: '8px', border: isAdded ? '2px solid #00C9FF' : '1px solid rgba(255,255,255,0.08)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input type="checkbox" checked={isAdded} onChange={() => toggleExtra(opt)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                    <span style={{ fontWeight: '500' }}>{opt.option_name}</span>
+                <div key={opt.id}
+                  className={`os-item-row${isAdded ? ' os-item-row--active-aqua' : ''}`}
+                  onClick={() => toggleExtra(opt)}>
+                  <div className={`os-check${isAdded ? ' os-check--aqua' : ''}`}>
+                    {isAdded && <span className="os-check__tick">✓</span>}
                   </div>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', color: 'var(--os-aqua)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    +<input
-                      type="number"
+                  <span style={{ flex: 1, fontWeight: 500, fontSize: 13 }}>{opt.option_name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
+                    <PriceInput
                       value={getPrice(`opt_${opt.id}`, opt.price || 0)}
-                      onChange={(e) => setPrice(`opt_${opt.id}`, Number(e.target.value))}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ width: '60px', padding: '2px 4px', border: '1px solid #0891b2', borderRadius: '4px', textAlign: 'right', fontSize: '13px' }}
-                    /> THB{opt.price_per === 'hour' ? '/час' : opt.price_per === 'day' ? '/день' : ''}
-                  </span>
+                      onChange={v => setPrice(`opt_${opt.id}`, v)}
+                      unit={`THB${opt.price_per === 'hour' ? '/ч' : opt.price_per === 'day' ? '/д' : ''}`}
+                      accentColor="var(--os-aqua)"
+                      width={65}
+                    />
+                  </div>
                 </div>
               );
             })}
@@ -97,114 +92,85 @@ export default function ToysSection() {
         </div>
       )}
 
-      {/* Partner watersports - Collapsible */}
+      {/* Partner watersports collapsible */}
       {watersportsPartners.length > 0 && (
-        <div style={{ borderRadius: '12px', border: '1px solid var(--os-border)', overflow: 'hidden' }}>
-          <div 
-            onClick={() => toggleSection('partnerWatersports')}
-            style={{ padding: '14px 16px', backgroundColor: 'var(--os-card)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '13px' }}>{expandedSections.partnerWatersports ? '▼' : '▶'}</span>
-              <span style={{ fontWeight: '600', color: 'var(--os-aqua)' }}>🏄 Водные игрушки</span>
-              
-            </div>
-          </div>
-          
-          {expandedSections.partnerWatersports && (
-            <div style={{ padding: '16px', backgroundColor: 'var(--os-card)' }}>
-              {watersportsPartners.map(partner => (
-                <div key={partner.id} style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'var(--os-card)', borderRadius: '10px', border: '1px solid var(--os-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div>
-                      <span style={{ fontWeight: '700', color: 'var(--os-aqua)', fontSize: '13px' }}>{partner.name}</span>
-                      {partner.phone && <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--os-text-3)' }}>📞 {partner.phone}</p>}
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '8px' }}>
-                    {watersportsCatalog.filter(w => w.partner_id === partner.id).map(item => {
-                      const isAdded = selectedPartnerWatersports.some(w => w.id === item.id);
-                      const pw = selectedPartnerWatersports.find(w => w.id === item.id);
-                      const basePrice = (item.price_per_hour || 0) > 0 ? item.price_per_hour : item.price_per_day;
-                      
-                      return (
-                        <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: isAdded ? 'var(--os-aqua-glow)' : 'var(--os-surface)', borderRadius: '8px', border: isAdded ? '2px solid #00C9FF' : '1px solid rgba(255,255,255,0.08)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <input 
-                              type="checkbox" 
-                              checked={isAdded} 
-                              onChange={() => {
-                                if (isAdded) {
-                                  removePartnerWatersport(item.id);
-                                } else {
-                                  setSelectedPartnerWatersports([...selectedPartnerWatersports, {
-                                    id: item.id,
-                                    name: item.name_en,
-                                    partnerName: partner.name,
-                                    partnerId: partner.id,
-                                    pricePerHour: customPrices[`ws_${item.id}`] !== undefined ? (item.price_per_hour > 0 ? customPrices[`ws_${item.id}`] : 0) : (item.price_per_hour || 0),
-                                    pricePerDay: customPrices[`ws_${item.id}`] !== undefined ? (item.price_per_day > 0 ? customPrices[`ws_${item.id}`] : 0) : (item.price_per_day || 0),
-                                    hours: (item.price_per_hour || 0) > 0 ? 1 : 0,
-                                    days: (item.price_per_hour || 0) > 0 ? 0 : ((item.price_per_day || 0) > 0 ? 1 : 0),
-                                  }]);
-                                }
-                              }}
-                              style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
-                            />
-                            <div>
-                              <span style={{ fontWeight: '500', fontSize: '13px', color: 'var(--os-text-1)' }}>{item.name_en}</span>
-                              {item.name_ru && <span className="os-hide-mobile" style={{ marginLeft: '6px', fontSize: '13px', color: 'var(--os-text-3)' }}>({item.name_ru})</span>}
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            {isAdded && pw && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {(item.price_per_hour || 0) > 0 && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'hours', Math.max(1, (pw.hours || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                                    <span style={{ minWidth: '40px', textAlign: 'center', fontSize: '13px' }}>{pw.hours} ч</span>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'hours', (pw.hours || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                                  </div>
-                                )}
-                                {(item.price_per_day || 0) > 0 && (item.price_per_hour || 0) === 0 && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'days', Math.max(1, (pw.days || 1) - 1))} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                                    <span style={{ minWidth: '40px', textAlign: 'center', fontSize: '13px' }}>{pw.days} дн</span>
-                                    <button onClick={() => updatePartnerWatersport(item.id, 'days', (pw.days || 1) + 1)} style={{ width: '24px', height: '24px', border: '1px solid var(--os-aqua)', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'var(--os-surface)', color: 'var(--os-text-1)', fontSize: '16px', fontWeight: '700', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <input
-                                type="number"
-                                value={getPrice(`ws_${item.id}`, basePrice)}
-                                onChange={(e) => {
-                                  const val = Number(e.target.value) || 0;
-                                  setPrice(`ws_${item.id}`, val);
-                                  if (isAdded) {
-                                    const updated = selectedPartnerWatersports.map(w => 
-                                      w.id === item.id ? {...w, pricePerHour: (item.price_per_hour || 0) > 0 ? val : 0, pricePerDay: (item.price_per_day || 0) > 0 ? val : 0} : w
-                                    );
-                                    setSelectedPartnerWatersports(updated);
-                                  }
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{ width: '80px', padding: '6px 8px', border: '1px solid #0891b2', borderRadius: '6px', fontSize: '14px', fontWeight: '600', textAlign: 'right' }}
+        <CollapsibleSection
+          title="🏄 Водные игрушки (партнёры)"
+          isOpen={!!expandedSections.partnerWatersports}
+          onToggle={() => toggleSection('partnerWatersports')}
+          accentColor="var(--os-aqua)"
+          badge={selectedPartnerWatersports.length > 0 ? selectedPartnerWatersports.length : undefined}
+        >
+          {(watersportsPartners as any[]).map((partner: any) => (
+            <div key={partner.id} style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 8 }}>
+                <span style={{ fontWeight: 700, color: 'var(--os-aqua)', fontSize: 13 }}>{partner.name}</span>
+                {partner.phone && <div style={{ fontSize: 11, color: 'var(--os-text-3)', marginTop: 2 }}>📞 {partner.phone}</div>}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 8 }}>
+                {(watersportsCatalog as any[]).filter((w: any) => w.partner_id === partner.id).map((item: any) => {
+                  const isAdded = selectedPartnerWatersports.some((w: any) => w.id === item.id);
+                  const pw = selectedPartnerWatersports.find((w: any) => w.id === item.id);
+                  const basePrice = (item.price_per_hour || 0) > 0 ? item.price_per_hour : item.price_per_day;
+                  const byHour = (item.price_per_hour || 0) > 0;
+                  const byDay = (item.price_per_day || 0) > 0 && !byHour;
+
+                  return (
+                    <div key={item.id}
+                      className={`os-item-row${isAdded ? ' os-item-row--active-aqua' : ''}`}
+                      onClick={() => isAdded ? removePartnerWatersport(item.id) : addPartnerWatersport(item, partner)}>
+                      <div className={`os-check${isAdded ? ' os-check--aqua' : ''}`}>
+                        {isAdded && <span className="os-check__tick">✓</span>}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 500, fontSize: 13, color: 'var(--os-text-1)' }}>{item.name_en}</span>
+                        {item.name_ru && <span className="os-hide-mobile" style={{ marginLeft: 6, fontSize: 11, color: 'var(--os-text-3)' }}>({item.name_ru})</span>}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
+                        {isAdded && pw && (
+                          <>
+                            {byHour && (
+                              <Counter
+                                value={pw.hours || 1}
+                                onChange={v => updatePartnerWatersport(item.id, 'hours', Math.max(1, v))}
+                                min={1}
+                                label="ч"
                               />
-                              <span style={{ fontSize: '11px', color: 'var(--os-text-3)', fontWeight: '600' }}>THB/{(item.price_per_hour || 0) > 0 ? 'час' : 'день'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                            )}
+                            {byDay && (
+                              <Counter
+                                value={pw.days || 1}
+                                onChange={v => updatePartnerWatersport(item.id, 'days', Math.max(1, v))}
+                                min={1}
+                                label="дн"
+                              />
+                            )}
+                          </>
+                        )}
+                        <PriceInput
+                          value={getPrice(`ws_${item.id}`, basePrice)}
+                          onChange={v => {
+                            setPrice(`ws_${item.id}`, v);
+                            if (isAdded) {
+                              set({
+                                selectedPartnerWatersports: selectedPartnerWatersports.map((w: any) =>
+                                  w.id === item.id ? { ...w, pricePerHour: byHour ? v : 0, pricePerDay: byDay ? v : 0 } : w
+                                ),
+                              });
+                            }
+                          }}
+                          unit={`THB/${byHour ? 'ч' : 'д'}`}
+                          accentColor="var(--os-aqua)"
+                          width={75}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
-        </div>
+          ))}
+        </CollapsibleSection>
       )}
     </div>
   );

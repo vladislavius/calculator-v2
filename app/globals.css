@@ -1294,6 +1294,73 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .os-stat-card__label { font-size: 12px; color: var(--os-text-3); margin-top: 2px; }
 .os-stat-card__sub { font-size: 11px; color: var(--os-text-3); }
 
+/* ═══ Item Row (unified selectable row) ═══ */
+.os-item-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 12px; border-radius: var(--r-sm);
+  border: 1.5px solid var(--os-border);
+  background: var(--os-surface);
+  transition: all var(--t-fast); cursor: pointer;
+}
+.os-item-row--active-green  { border-color: var(--os-green)  !important; background: rgba(34,197,94,0.07)   !important; }
+.os-item-row--active-purple { border-color: var(--os-purple) !important; background: rgba(168,85,247,0.08)  !important; }
+.os-item-row--active-red    { border-color: var(--os-red)    !important; background: rgba(239,68,68,0.07)   !important; }
+.os-item-row--active-gold   { border-color: var(--os-gold)   !important; background: rgba(245,158,11,0.08)  !important; }
+.os-item-row--active-aqua   { border-color: var(--os-aqua)   !important; background: var(--os-aqua-glow)    !important; }
+
+/* ═══ Custom Checkbox ═══ */
+.os-check {
+  width: 15px; height: 15px; border-radius: 3px; flex-shrink: 0;
+  border: 2px solid var(--os-border);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--t-fast);
+}
+.os-check--green  { border-color: var(--os-green);  background: var(--os-green); }
+.os-check--purple { border-color: var(--os-purple); background: var(--os-purple); }
+.os-check--red    { border-color: var(--os-red);    background: var(--os-red); }
+.os-check--aqua   { border-color: var(--os-aqua);   background: var(--os-aqua); }
+.os-check__tick { color: #0C1825; font-size: 9px; font-weight: 900; line-height: 1; }
+
+/* ═══ Collapsible Section ═══ */
+.os-collapsible { border-radius: var(--r-md); border: 1px solid var(--os-border); overflow: hidden; }
+.os-collapsible__header {
+  padding: 12px 16px; background: var(--os-card); cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  transition: background var(--t-fast);
+}
+.os-collapsible__header:hover { background: var(--os-card-hover); }
+.os-collapsible__arrow { font-size: 11px; color: var(--os-text-3); flex-shrink: 0; }
+.os-collapsible__title { font-weight: 600; font-size: 13px; flex: 1; }
+.os-collapsible__badge {
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; flex-shrink: 0;
+}
+.os-collapsible__body { padding: 14px 16px; background: var(--os-card); }
+
+/* ═══ Radio Button ═══ */
+.os-radio {
+  width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--os-border); background: transparent;
+  transition: all var(--t-fast);
+}
+.os-radio--green  { border-color: var(--os-green);  background: var(--os-green); }
+.os-radio--gold   { border-color: var(--os-gold);   background: var(--os-gold); }
+
+/* ═══ Dir Button (Transfer toggle) ═══ */
+.os-dir-btn {
+  flex: 1; padding: 8px 12px; border-radius: var(--r-sm);
+  border: 1.5px solid var(--os-border);
+  background: var(--os-surface);
+  color: var(--os-text-2);
+  cursor: pointer; font-weight: 600; font-size: 13px; transition: all var(--t-fast);
+}
+.os-dir-btn--active {
+  border-color: var(--os-green) !important;
+  background: rgba(34,197,94,0.1) !important;
+  color: var(--os-green) !important;
+}
+
 /* ═══ List Items ═══ */
 .os-list-item {
   display: flex;
