@@ -102,22 +102,62 @@ export default function FoodSection() {
             const order = orderIndex>=0 ? cateringOrders[orderIndex] : null;
             return (
               <div key={set.id} style={row(isSelected,'var(--os-green)')}
-                onClick={()=>{ if(isSelected){setCateringOrders(cateringOrders.filter(c=>String(c.packageId)!==String(set.id)));}
-                  else{setCateringOrders([...cateringOrders,{packageId:String(set.id),packageName:set.name_en+(set.name_ru?` (${set.name_ru})`:''),pricePerPerson:0,persons:adults+children3to11,notes:'',dishes:[...(set.dishes_ru||set.dishes||[])]}]);} }}>
+                onClick={()=>{
+                  if(isSelected){
+                    setCateringOrders(cateringOrders.filter(c=>String(c.packageId)!==String(set.id)));
+                    if(set.dishes_ru?.length){
+                      const next={...selectedDishes};
+                      set.dishes_ru.forEach((_:string,i:number)=>delete next[`${String(set.id)}_${i}`]);
+                      setSelectedDishes(next);
+                    }
+                  } else {
+                    setCateringOrders([...cateringOrders,{packageId:String(set.id),packageName:set.name_en+(set.name_ru?` (${set.name_ru})`:''),pricePerPerson:0,persons:adults+children3to11,notes:'',dishes:[...(set.dishes_ru||set.dishes||[])]}]);
+                  }
+                }}>
                 <div style={{width:15,height:15,borderRadius:3,flexShrink:0,border:`2px solid ${isSelected?'var(--os-green)':'var(--os-border)'}`,backgroundColor:isSelected?'var(--os-green)':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {isSelected&&<span style={{color:'#0C1825',fontSize:9,fontWeight:900}}>✓</span>}
                 </div>
                 <span style={{flex:1,fontSize:13,fontWeight:600,color:isSelected?'var(--os-text-1)':'var(--os-text-2)',minWidth:'150px'}}>{set.name_en}{set.name_ru&&<span className="os-hide-mobile" style={{fontWeight:400,color:'var(--os-text-3)',fontSize:12}}> ({set.name_ru})</span>}</span>
                 <span style={{fontSize:10,padding:'1px 6px',borderRadius:3,backgroundColor:'rgba(34,197,94,0.15)',color:'var(--os-green)',fontWeight:600,flexShrink:0}}>{catLabels[set.category||'other']||set.category}</span>
-                {set.dishes_ru && set.dishes_ru.length > 0 && (
+                {/* Not selected: show dishes as plain text */}
+                {!isSelected && set.dishes_ru && set.dishes_ru.length > 0 && (
                   <div style={{width:'100%',fontSize:11,color:'var(--os-text-3)',marginTop:4,lineHeight:'1.5'}}>
                     {set.dishes_ru.join(' · ')}
                   </div>
                 )}
+                {/* Selected: show per-dish quantity controls */}
+                {isSelected && order && set.dishes_ru && set.dishes_ru.length > 0 && (
+                  <div style={{width:'100%',marginTop:8,padding:'8px 10px',background:'rgba(0,0,0,0.2)',borderRadius:6,border:'1px solid rgba(34,197,94,0.15)'}} onClick={e=>e.stopPropagation()}>
+                    <div style={{fontSize:10,fontWeight:700,color:'var(--os-text-3)',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.06em'}}>Порции по блюдам:</div>
+                    {set.dishes_ru.map((dish:string, dishIdx:number)=>{
+                      const dishKey=`${String(set.id)}_${dishIdx}`;
+                      const qty=selectedDishes[dishKey]!==undefined?selectedDishes[dishKey]:order.persons;
+                      const updateQty=(newQty:number)=>{
+                        const safe=Math.max(0,newQty);
+                        const next={...selectedDishes,[dishKey]:safe};
+                        setSelectedDishes(next);
+                        const updatedDishes=set.dishes_ru!.map((d:string,i:number)=>{
+                          const q=next[`${String(set.id)}_${i}`]!==undefined?next[`${String(set.id)}_${i}`]:order.persons;
+                          return `${d} ×${q}`;
+                        });
+                        setCateringOrders(cateringOrders.map((o,idx)=>idx===orderIndex?{...o,dishes:updatedDishes}:o));
+                      };
+                      return (
+                        <div key={dishIdx} style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                          <span style={{flex:1,fontSize:11,color:'var(--os-text-2)'}}>{dish}</span>
+                          <button style={{...ctrBtn,width:20,height:20}} onClick={()=>updateQty(qty-1)}>−</button>
+                          <span style={{minWidth:28,textAlign:'center',fontSize:12,fontWeight:700,color:'var(--os-green)'}}>{qty}</span>
+                          <button style={{...ctrBtn,width:20,height:20}} onClick={()=>updateQty(qty+1)}>+</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 {isSelected&&order&&(
-                  <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
+                  <div style={{display:'flex',alignItems:'center',gap:4,marginTop:4}} onClick={e=>e.stopPropagation()}>
+                    <span style={{fontSize:10,color:'var(--os-text-3)',marginRight:4}}>Всего:</span>
                     <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,Math.max(1,order.persons-1))}>−</button>
-                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700,color:'var(--os-green)'}}>{order.persons} шт</span>
+                    <span style={{minWidth:40,textAlign:'center',fontSize:12,fontWeight:700,color:'var(--os-green)'}}>{order.persons} чел</span>
                     <button style={ctrBtn} onClick={()=>updateCateringPersons(orderIndex,order.persons+1)}>+</button>
                   </div>
                 )}
