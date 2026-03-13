@@ -308,15 +308,12 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  // Load user role once
+  // Load user role once — cookie-based auth (os_token httpOnly cookie set by login)
   useEffect(() => {
-    const token = JSON.parse(localStorage.getItem('os_session') || '{}').token || '';
-    if (token) {
-      fetch('/api/auth/me', { headers: { 'x-session-token': token } })
-        .then(r => r.json())
-        .then(data => { if (data.user?.role === 'admin') storeSet({ isAdmin: true }); })
-        .catch(() => {});
-    }
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => { if (data.user?.role === 'admin') storeSet({ isAdmin: true }); })
+      .catch(() => {});
   }, []);
 
   // Sync local state → store for components that read from store
